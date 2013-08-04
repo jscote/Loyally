@@ -1,11 +1,11 @@
 'use strict';
 
 controllers
-    .controller ('checkinCtrl',
+    .controller ('checkoutCtrl',
         ['$scope', function ($scope) {
             $scope.clicked = function() {
-                alert('checkedIn ');
+                //console.log(softwareVersion);
+                alert('checkedOut ');
             };
         }]
     );
-
