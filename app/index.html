@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" ng-app="myApp">
+<html lang="en" data-ng-app="loyuly">
 <head>
   <meta charset="utf-8">
   <title>My AngularJS App</title>
@@ -11,15 +11,15 @@
     <li><a href="#/view2">view2</a></li>
   </ul>
 
-  <div ng-view></div>
+  <div data-ng-view></div>
 
-  <div>Angular seed app: v<span app-version></span></div>
+  <div>Angular seed app: v<span data-app-version></span></div>
 
   <script src="lib/angular/angular.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/services.js"></script>
-  <script src="js/controllers.js"></script>
-  <script src="js/filters.js"></script>
-  <script src="js/directives.js"></script>
+  <script src="js/Services/services.js"></script>
+  <script src="js/Controllers/checkinCtrl.js"></script>
+  <script src="js/filters/filters.js"></script>
+  <script src="js/Directives/appVersion.js"></script>
 </body>
 </html>
