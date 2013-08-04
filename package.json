@@ -1,0 +1,29 @@
+{
+  "name": "loyuly",
+  "description": "Our stuff",
+  "version": "3.3.4",
+  "author": {
+    "name": "JS Cote",
+    "email": "jean.sebastien.cote@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "anil",
+      "email": ""
+    },
+    {
+      "name": "JS",
+      "email": "jean.sebastien.cote@gmail.com"
+    }
+  ],
+  "dependencies": {
+    "express": "3.3.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jscote/loyally"
+  },
+  "engines": {
+    "node": "*"
+  }
+}
