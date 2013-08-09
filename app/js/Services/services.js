@@ -4,6 +4,8 @@
 
 services.dataService = function() {
     services.BaseService.call(this);
+    alert('hey');
+    return this;
 }
 
 services.dataService.inherits(services.BaseService);
@@ -14,4 +16,4 @@ services.dataService.inherits(services.BaseService);
 services
     .value('version', '0.1');
 
-services.service('dataService', [, services.dataService]);
+services.service('dataService', services.dataService);

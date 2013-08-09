@@ -26,3 +26,7 @@ controllers.BaseController.prototype.doSomething = function() {
 services.BaseService = function (options) {
     this.options = options || {};
 }
+
+services.BaseService.prototype.doSomething = function() {
+    alert('I do something');
+}
