@@ -2,18 +2,17 @@
 
 /* Services */
 
-services.dataService = function() {
-    services.BaseService.call(this);
-    alert('hey');
+_$.services.dataService = function() {
+    _$.services.BaseService.call(this);
     return this;
 }
 
-services.dataService.inherits(services.BaseService);
+_$.services.dataService.inherits(_$.services.BaseService);
 
 
 // Demonstrate how to register services
 // In this case it is a simple value service.
-services
+_$.services
     .value('version', '0.1');
 
-services.service('dataService', services.dataService);
+_$.services.service('dataService', _$.services.dataService);

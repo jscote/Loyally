@@ -1,6 +1,6 @@
 'use strict';
 
-controllers
+_$.controllers
     .controller ('checkoutCtrl',
         ['$scope', function ($scope) {
             $scope.clicked = function() {

@@ -5,10 +5,18 @@
  *
  * @param {Object} params - compound/express webserver initialization params.
  * @returns express powered express webserver
+ *
+ * Postgre is listening on the default installation port which is 5432
  */
+
 
 var cluster = require('cluster');
 var numCpus = require('os').cpus().length;
+
+global.Injector = require(__dirname + '/app/server/Injector/Injector');
+global.Injector.setBasePath(__dirname);
+require(__dirname + '/app/server/Injector/Configuration');
+
 
 var app = module.exports = function getServerInstance(params) {
     params = params || {};
@@ -16,12 +24,23 @@ var app = module.exports = function getServerInstance(params) {
     params.root = params.root || __dirname;
 
     var express =  require('express');
+    var Resource = require('express-resource-new');
     var app = express();
+
+    app.configure(function() {
+       app.set('controllers', __dirname + '/app/server/controllers');
+    });
+
 
     app.use(express.bodyParser());
     app.use(express.methodOverride());
     app.use(express.static(__dirname + '/app'));
-    app.use(express.static(__dirname + '/app//partials'))
+    app.use(express.static(__dirname + '/app/server/partials'))
+
+    app.resource('events', {id: 'id'});
+    app.resource('customers', function() {app.resource('events')});
+
+
     app.use(function(err, req, res, next) {
         console.error(err.stack);
         next(err);
@@ -33,7 +52,7 @@ var app = module.exports = function getServerInstance(params) {
 var startListening = function(server){
     server.listen(port, host, function () {
         console.log(
-            'Compound server listening on %s:%d within %s environment',
+            'Web server listening on %s:%d within %s environment',
             host, port, server.set('env')
         );
     });

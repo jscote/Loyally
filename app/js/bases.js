@@ -11,22 +11,32 @@
 
 /* Add functionality to base controller here */
 
-controllers.BaseController = function (options) {
+_$.controllers.BaseController = function (options) {
     options = options || {};
+    var self = this;
     this.scope = options.scope || null;
+
+    this.scope.definitions = [{fieldName: 'name'}];
+
+    this.scope.getModel = function(fieldName) {
+        return self.getModel(fieldName);
+    }
 }
 
-controllers.BaseController.prototype.doSomething = function() {
-    alert("scope name is " + this.scope.name);
+_$.controllers.BaseController.prototype.doSomething = function() {
+    alert("scope name is " + this.scope.data.name);
 }
 
+_$.controllers.BaseController.prototype.getModel = function(fieldName) {
+    return 'data.' + fieldName;
+}
 
 /* Add functionality to base service here */
 
-services.BaseService = function (options) {
+_$.services.BaseService = function (options) {
     this.options = options || {};
 }
 
-services.BaseService.prototype.doSomething = function() {
+_$.services.BaseService.prototype.doSomething = function() {
     alert('I do something');
 }
