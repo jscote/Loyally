@@ -8,5 +8,6 @@ module.exports = function() {
     Injector.register(require(Injector.getBasePath() + '/app/server/controllers/GeneralEventController'), 'GeneralEventController', 'CustomerEvent');
     Injector.register(require(Injector.getBasePath() + '/app/server/controllers/EventsController'), 'getEventService', 'GeneralEvent');
     Injector.register(require(Injector.getBasePath() + '/app/server/controllers/eventForCustomerController'), 'getEventService', 'CustomerEvent');
+    Injector.register(require(Injector.getBasePath() + '/app/server/controllers/test'), 'test');
 
 }()

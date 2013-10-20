@@ -13,7 +13,14 @@ module.exports = {
         var self = this;
 
         function F() {
-            var c = constructor.apply(this, self.getDependencies(args, resolutionName));
+
+            var arguments = self.getDependencies(args, resolutionName);
+            var resolvedArguments = [];
+            for(var i = 0; i < arguments.length; i++ ) {
+                resolvedArguments.push(self.resolve(arguments[i], resolutionName));
+            }
+
+            var c = constructor.apply(this, resolvedArguments);
             return c;
         }
         F.prototype = constructor.prototype;
@@ -24,7 +31,9 @@ module.exports = {
 
     resolve: function (target, resolutionName) {
 
-
+        //We are calling resolve recursively on the arguments of a method.
+        //When we reached the last level, we have no target anymore so just return.
+        if(target === undefined) return;
 
         if(typeof target === 'string') {
             console.log("Resolving dependency: " + target);
@@ -39,7 +48,7 @@ module.exports = {
         var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
         var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
         var text = target.toString();
-        var args = text.match(FN_ARGS)[1].split(',');
+        var args = text.match(FN_ARGS)[1].split(FN_ARG_SPLIT);
 
         var obj = this.construct(target, args, resolutionName);
         return obj;

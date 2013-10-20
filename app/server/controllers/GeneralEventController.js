@@ -3,7 +3,7 @@
  */
 
 var GeneralEventController = function(getEventService) {
-    this.getEventService = Injector.resolve(getEventService);
+    this.getEventService = getEventService;
 }
 
 GeneralEventController.prototype.index = function(request, response){
