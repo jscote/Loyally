@@ -15,12 +15,6 @@ _$.controllers.BaseController = function (options) {
     options = options || {};
     var self = this;
     this.scope = options.scope || null;
-
-    this.scope.definitions = [{fieldName: 'name'}];
-
-    this.scope.getModel = function(fieldName) {
-        return self.getModel(fieldName);
-    }
 }
 
 _$.controllers.BaseController.prototype.doSomething = function() {

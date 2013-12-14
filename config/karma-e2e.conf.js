@@ -1,19 +1,19 @@
-basePath = '../';
 
-files = [
-  ANGULAR_SCENARIO,
-  ANGULAR_SCENARIO_ADAPTER,
-  'test/e2e/**/*.js'
-];
+process.env['CHROME_BIN'] = 'C:/Program Files (x86)/Google/Chrome/Application/Chrome.exe';
 
-autoWatch = false;
-
-browsers = ['Chrome'];
-
-singleRun = true;
-
-proxies = {
-  '/': 'http://localhost:8000/'
+module.exports = function(config) {
+    config.set({
+        // your config
+        urlRoot: '/__karma/',
+        browsers: ['Chrome'],
+        frameworks: [ 'ng-scenario', 'jasmine'],
+        basePath: '../',
+        files: [  'test/e2e/**/*.js'],
+        proxies: {
+        '/': 'http://localhost:8000/'
+        },
+        singleRun: true
+    });
 };
 
 junitReporter = {

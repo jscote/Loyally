@@ -1,50 +1,67 @@
 <!doctype html>
 <html lang="en" data-ng-app="loyuly">
 <head>
-  <meta charset="utf-8">
-  <title>My AngularJS App</title>
-  <link rel="stylesheet" href="css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="css/app.css"/>
+    <meta charset="utf-8">
+    <title>My AngularJS App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/app.css"/>
 </head>
 <body>
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="navbar-inner">
-            <a class="navbar-brand" href="#">Loyuly</a>
-            <div class="container">
-                <button type="button" class="navbar-toggle"
-                        data-toggle="collapse" data-target=".bs-nav-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="navbar-header">
 
-                <div class="nav-collapse collapse bs-navbar-collapse">
-                    <ul class="nav navbar-nav">
-                        <li class="active"><a href="#">Home</a></li>
-                        <li><a href="#/view1">Check in</a></li>
-                        <li><a href="#/view2">Check out</a></li>
-                    </ul>
-                </div><!--/.nav-collapse -->
+        <div class="container">
+            <button type="button" class="navbar-toggle"
+                    data-toggle="collapse" data-target=".bs-nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <div class="navbar-collapse collapse bs-navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Home</a></li>
+                    <li><a href="#/View1">Check in</a></li>
+                    <li><a href="#/View2">Check out</a></li>
+                </ul>
             </div>
+            <!--/.nav-collapse -->
         </div>
     </div>
+</nav>
 
-  <div class="container" data-ng-view></div>
+<div class="container">
+    <div class="row">
+        <div class="span2">
+            <div data-ll-sidebar></div>
+        </div>
+        <div class="span10" data-ng-view></div>
+    </div>
+    <div class="panel-footer">
+        <div>Angular seed app: v<span data-app-version></span></div>
+    </div>
+</div>
 
-  <div class="container">Angular seed app: v<span data-app-version></span></div>
 
-  <script src="lib/jquery/jquery-2.0.3.min.js"></script>
-  <script src="lib/bootstrap/bootstrap.min.js"></script>
-  <script src="lib/underscore/underscore-1.5.0-min.js"></script>
-  <script src="lib/angular/angular.js"></script>
-  <script src="js/extensions.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/bases.js"></script>
-  <script src="js/Services/services.js"></script>
-  <script src="js/Controllers/checkinCtrl.js"></script>
-  <script src="js/Controllers/checkoutCtrl.js"></script>
-  <script src="js/filters/filters.js"></script>
-  <script src="js/Directives/appVersion.js"></script>
+<script src="lib/jquery/jquery-2.0.3.min.js"></script>
+<script src="lib/bootstrap/bootstrap.min.js"></script>
+<script src="lib/underscore/underscore-1.5.0-min.js"></script>
+<script src="lib/angular/angular.js"></script>
+<script src="lib/angular/angular-route.js"></script>
+<script src="lib/angular/angular-sanitize.js"></script>
+<script src="js/extensions.js"></script>
+<script src="js/app.js"></script>
+<script src="js/config.js"></script>
+<script src="js/config.route.js"></script>
+<script src="js/bases.js"></script>
+<script src="js/navigation/sidebar.js"></script>
+<script src="js/navigation/sidebarCtrl.js"></script>
+<script src="js/Services/services.js"></script>
+<script src="js/Controllers/checkinCtrl.js"></script>
+<script src="js/Controllers/checkoutCtrl.js"></script>
+<script src="js/filters/filters.js"></script>
+<script src="js/Directives/appVersion.js"></script>
 </body>
 </html>

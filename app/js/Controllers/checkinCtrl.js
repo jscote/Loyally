@@ -1,19 +1,23 @@
-'use strict';
+(function() {
+    'use strict';
 
-_$.controllers.checkinCtrl = function($scope, dataService){
-    _$.controllers.BaseController.call(this, {scope: $scope});
-    var self = this;
 
-    $scope.data = {name: 'toto'};
+    var controllerId = 'checkinCtrl';
 
-    $scope.clicked = function() {
-        self.doSomething();
-        alert($scope.data.name);
-        dataService.doSomething();
-    };
-}
+    var checkinCtrl = function($scope, dataService){
+        _$.controllers.BaseController.call(this, {scope: $scope});
+        var self = this;
 
-_$.controllers.checkinCtrl.inherits(_$.controllers.BaseController);
+        $scope.data = {name: 'toto'};
+
+        $scope.clicked = function() {
+            self.doSomething();
+            alert($scope.data.name);
+            dataService.doSomething();
+        };
+    }
+
+    checkinCtrl.inherits(_$.controllers.BaseController);
 
 /*checkinCtrl.prototype.doSomething = function() {
     this.callBaseMethod('doSomething');
@@ -21,6 +25,7 @@ _$.controllers.checkinCtrl.inherits(_$.controllers.BaseController);
 }*/
 
 _$.controllers
-    .controller ('checkinCtrl',
-        ['$scope', 'dataService',_$.controllers.checkinCtrl]
+    .controller (controllerId,
+        ['$scope', 'dataService',checkinCtrl]
     );
+})();
