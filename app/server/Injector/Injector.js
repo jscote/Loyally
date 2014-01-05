@@ -3,21 +3,26 @@
  */
 
 var util = require('util');
+var lodash = require('lodash');
 
-module.exports = (function(util){
+module.exports = (function(util, _){
 
     var _dependencies = {},
         _decorators = {},
         _path = '',
         defaultDependency= 'defaultDependency';
 
-    var construct = function (constructor, args, resolutionName) {
+    var construct = function (parameters) {
+        var constructor = parameters.constructor;
+        var args = parameters.args;
+        var resolutionName = parameters.resolutionName;
+
         function F() {
 
-            var arguments = getDependencies(args, resolutionName);
+            var arguments = getDependencies({arr: args, resolutionName: resolutionName});
             var resolvedArguments = [];
             for(var i = 0; i < arguments.length; i++ ) {
-                var ar = resolve(arguments[i], resolutionName);
+                var ar = resolve({target: arguments[i], resolutionName: resolutionName});
                 resolvedArguments.push(ar);
             }
 
@@ -30,7 +35,35 @@ module.exports = (function(util){
         return f;
     }
 
-    var resolve = function (target, resolutionName) {
+    var getDecorator = function(parameters) {
+
+        _.extend( {resolutionName: defaultDependency}, parameters)
+
+        var target = parameters.target;
+        var resolutionName = parameters.resolutionName;
+
+        if(_decorators[target]) {
+            var item = _decorators[target];
+
+            resolutionName = resolutionName || defaultDependency;
+
+            if(util.isArray(item)) {
+                for(var i = 0; i < item.length ; i++ ) {
+                    if(item[i].resolutionName == resolutionName) {
+                        return item[i].target;
+                    }
+                }
+                return null;
+
+            }
+
+            return item;
+        }
+    }
+
+    var resolve = function (parameters) {
+        var target = parameters.target;
+        var resolutionName = parameters.resolutionName;
 
         //We are calling resolve recursively on the arguments of a method.
         //When we reached the last level, we have no target then just return
@@ -38,24 +71,30 @@ module.exports = (function(util){
             return;
         }
 
+        var decorator = null;
 
-
-        if(typeof target === 'string') {
+        if(_.isString(target)) {
             console.log("Resolving dependency: " + target);
+
+            //find decorator, if any
+            decorator = getDecorator({target: target, resolutionName: resolutionName});
 
             //check first if it is a node module
             try {
                 target = require(target.trim());
+                if(decorator) {
+                    target = decorator(target);
+                }
                 return target;
             } catch(e) {
 
                 //todo: hardened the code if the dependencies aren't defined
-                target = getDependencies([target], resolutionName)[0];
+                target = getDependencies({arr: [target], resolutionName: resolutionName})[0];
             }
 
         } else {
             //if the target is an object, no need to try to resolve anything
-            if(typeof(target) !== 'function') {
+            if(!_.isFunction(target)) {
                 return target;
             }
             console.log("Resolving dependency on a function");
@@ -63,20 +102,25 @@ module.exports = (function(util){
 
         var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
         var FN_ARG_SPLIT = /,/;
-        var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
-        var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
         var text = target.toString();
         var args = text.match(FN_ARGS)[1].split(FN_ARG_SPLIT);
 
-        var obj = construct(target, args, resolutionName);
+        var obj = construct({constructor: target, args: args, resolutionName: resolutionName});
+
+         //Call the decorator if it exists
+        if(decorator) {
+            obj = decorator(obj);
+        }
+
         return obj;
     }
 
-    var getDependencies = function (arr, resolutionName) {
+    var getDependencies = function (parameters) {
 
-        if(resolutionName === undefined) {
-            resolutionName = defaultDependency;
-        }
+        _.extend( {resolutionName: defaultDependency}, parameters)
+
+        var arr = parameters.arr;
+        var resolutionName = parameters.resolutionName;
 
         var m = arr.map(function (value) {
             //TODO, when getting dependencies, we should check if we need to "new" it or just return it
@@ -91,7 +135,7 @@ module.exports = (function(util){
 
             }
 
-            if(item === undefined) {
+            if(_.isUndefined(item)) {
                 try{
                     item = require(value.trim());
                 } catch (e) {
@@ -111,13 +155,19 @@ module.exports = (function(util){
         var name = parameters.name;
         var target = parameters.target;
 
-        if (resolutionName !== undefined) {
+        if (_.isUndefined(resolutionName)) {
+            console.log('registering target with name: ' + name);
+            collection[name] = target;
+        } else {
             console.log('registering target with name: ' + name + ' and resolutionName: ' + resolutionName)
-
 
             //if we already have a dependency for this name, let's move it to an object and make the current
             //dependency the default one.
-            if (collection[name] !== undefined) {
+            if (_.isUndefined(collection[name])) {
+                //collection is not defined.
+                collection[name] = [];
+                collection[name].push({resolutionName: resolutionName, target: target});
+            } else {
                 //We need to check if it is an array. If not, we need to move the current dependency into an array.
                 if (!util.isArray(collection[name])) {
                     var defaultTarget = {resolutionName: defaultDependency, target: collection[name]};
@@ -125,27 +175,21 @@ module.exports = (function(util){
                     collection[name].push(defaultTarget);
                 }
                 collection[name].push({resolutionName: resolutionName, target: target});
-            } else {
-                //collection is not defined.
-                collection[name] = [];
-                collection[name].push({resolutionName: resolutionName, target: target});
             }
-
-
-        } else {
-            console.log('registering target with name: ' + name);
-            collection[name] = target;
         }
     }
 
-    var register = function (dependency, name, resolutionName) {
+    var register = function (parameters) {
+        var dependency = parameters.dependency;
+        var name = parameters.name;
+        var resolutionName = parameters.resolutionName;
 
-        if(dependency === undefined || dependency === null || dependency === '') {
+        if(_.isEmpty(dependency)) { //dependency === undefined || dependency === null || dependency === '') {
             console.error('The dependency cannot be undefined');
             throw('The dependency cannot be undefined');
         }
 
-        if( typeof(dependency) === 'string'){
+        if(_.isString(dependency)){
             dependency = require(getBasePath() + dependency);
         }
         makeCollection({collection: _dependencies, resolutionName: resolutionName, name: name, target: dependency});
@@ -153,12 +197,12 @@ module.exports = (function(util){
     }
 
     var decorator = function(name, decorator, resolutionName ){
-        if(name === undefined || name === null || name === '' || typeof(name) !== 'string') {
+        if(_.isEmpty(name) || ! _.isString(name)) {
             console.error("Name must be defined, not null and have a value");
             throw("Name must be defined, not null and have a value");
         }
 
-        if(decorator === undefined || typeof(decorator) !== "Function") {
+        if(_.isUndefined(decorator) || !_.isFunction(decorator)) {
             console.error("Decorator must be a valid function");
             throw("Decorator must be a valid function");
         }
@@ -184,4 +228,4 @@ module.exports = (function(util){
         decorator: decorator
     }
 
-})(util);
+})(util, lodash);

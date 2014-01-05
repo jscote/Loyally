@@ -3,7 +3,7 @@
  */
 
 var GeneralEventController = function(getEventService, fs) {
-    var f = fs;
+    fs.myFunction();
     this.getEventService = getEventService;
 }
 

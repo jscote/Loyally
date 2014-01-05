@@ -4,10 +4,24 @@
 module.exports = function() {
     console.log('Configuring the injection container');
     console.log('dirname is: ' + Injector.getBasePath());
-    Injector.register('/app/server/controllers/GeneralEventController', 'GeneralEventController', 'GeneralEvent');
-    Injector.register('/app/server/controllers/GeneralEventController', 'GeneralEventController', 'CustomerEvent');
-    Injector.register('/app/server/controllers/EventsController', 'getEventService', 'GeneralEvent');
-    Injector.register('/app/server/controllers/eventForCustomerController', 'getEventService', 'CustomerEvent');
-    Injector.register('/app/server/controllers/test', 'test');
+    Injector
+        .decorator('GeneralEventController', function(delegate) {
+            console.log('decorating GeneralEventController')
+            var fn = delegate.index;
+            delegate.index = function() {
+                console.log("logging from decorator");
+                var args = [].slice.call(arguments);
+                fn.apply(delegate, args)};
+            return delegate;
+        }, 'CustomerEvent')
+        .decorator('fs', function(delegate) {
+            delegate.myFunction = function() {console.log("from fs myFunction");};
+            return delegate;
+        })
+        .register({dependency : '/app/server/controllers/GeneralEventController', name: 'GeneralEventController', resolutionName: 'GeneralEvent'})
+        .register({dependency : '/app/server/controllers/GeneralEventController', name: 'GeneralEventController', resolutionName: 'CustomerEvent'})
+        .register({dependency : '/app/server/controllers/EventsController', name: 'getEventService', resolutionName: 'GeneralEvent'})
+        .register({dependency : '/app/server/controllers/eventForCustomerController', name: 'getEventService', resolutionName: 'CustomerEvent'})
+        .register({dependency : '/app/server/controllers/test', name: 'test'});
 
 }()
