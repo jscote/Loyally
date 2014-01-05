@@ -6,6 +6,7 @@
 module.exports = {
     index: function(request, response) {
 
+        var f = Injector.resolve('fs');
         var strategy = 'GeneralEvent';
         if(request.params.customer !== undefined) {
             strategy = 'CustomerEvent';
