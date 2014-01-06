@@ -22,8 +22,8 @@ module.exports = (function(util, _){
             var arguments = getDependencies({arr: args, resolutionName: resolutionName});
             var resolvedArguments = [];
             for(var i = 0; i < arguments.length; i++ ) {
-                var ar = resolve({target: arguments[i], resolutionName: resolutionName});
-                resolvedArguments.push(ar);
+                var ar = resolve({target: arguments[i].dependency , resolutionName: resolutionName});
+                resolvedArguments.push(_.isUndefined(arguments[i].decorator) ?  ar : arguments[i].decorator(ar));
             }
 
             var c = constructor.apply(this, resolvedArguments);
@@ -71,25 +71,22 @@ module.exports = (function(util, _){
             return;
         }
 
-        var decorator = null;
+        var newTarget = target;
+
+
 
         if(_.isString(target)) {
+
             console.log("Resolving dependency: " + target);
 
-            //find decorator, if any
-            decorator = getDecorator({target: target, resolutionName: resolutionName});
+            newTarget = getDependencies({arr: [target], resolutionName: resolutionName})[0];
 
-            //check first if it is a node module
-            try {
-                target = require(target.trim());
-                if(decorator) {
-                    target = decorator(target);
+            if(!_.isFunction(newTarget.dependency)) {
+                //to make sure to call the decorator on node modules
+                if(newTarget.decorator) {
+                    newTarget.dependency = newTarget.decorator(newTarget.dependency);
                 }
-                return target;
-            } catch(e) {
-
-                //todo: hardened the code if the dependencies aren't defined
-                target = getDependencies({arr: [target], resolutionName: resolutionName})[0];
+                return newTarget.dependency;
             }
 
         } else {
@@ -97,19 +94,23 @@ module.exports = (function(util, _){
             if(!_.isFunction(target)) {
                 return target;
             }
+
+            newTarget.dependency = target;
+
             console.log("Resolving dependency on a function");
         }
 
         var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
         var FN_ARG_SPLIT = /,/;
-        var text = target.toString();
-        var args = text.match(FN_ARGS)[1].split(FN_ARG_SPLIT);
 
-        var obj = construct({constructor: target, args: args, resolutionName: resolutionName});
+        var text = newTarget.dependency.toString();
+        var args = text.match(FN_ARGS)[1].split(FN_ARG_SPLIT).map(function(value) {return value.trim()});
+
+        var obj = construct({constructor: newTarget.dependency, args: args, resolutionName: resolutionName});
 
          //Call the decorator if it exists
-        if(decorator) {
-            obj = decorator(obj);
+        if(newTarget.decorator) {
+            obj = newTarget.decorator(obj);
         }
 
         return obj;
@@ -122,27 +123,41 @@ module.exports = (function(util, _){
         var arr = parameters.arr;
         var resolutionName = parameters.resolutionName;
 
+
         var m = arr.map(function (value) {
-            //TODO, when getting dependencies, we should check if we need to "new" it or just return it
-            var item = _dependencies[value.trim()];
+
+            //Get the dependency
+            var item = _dependencies[value];
+            var decorator = getDecorator({target: value, resolutionName: resolutionName});
             if(util.isArray(item)) {
                 for(var i = 0; i < item.length ; i++ ) {
                     if(item[i].resolutionName == resolutionName) {
-                        return item[i].target;
+
+                        var convertedItem = null;
+                        try{
+                            convertedItem = require(item[i].target);
+                            //if(decorator) {
+                            //    convertedItem = decorator(convertedItem);
+                            //}
+                        }catch(e){
+                            convertedItem = item[i].target;
+                        }
+
+                        return {dependency: convertedItem, decorator: decorator};
                     }
                 }
-                return null;
+                return {dependency: null, decorator: null};
 
             }
 
             if(_.isUndefined(item)) {
                 try{
-                    item = require(value.trim());
+                    item = require(value);
                 } catch (e) {
-                    return item;
+                    return {dependency :item, decorator: decorator};
                 }
             }
-            return item;
+            return {dependency: item, decorator: decorator};
         });
 
         return m;
