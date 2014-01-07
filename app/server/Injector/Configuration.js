@@ -31,10 +31,12 @@ module.exports = function() {
                 console.log("from fs myFunction");};
             return delegate;
         })
+        .register({dependency : '/app/server/Injector/ControllerResolver', name: 'controllerResolver', resolutionName: 'EventsController'})
+        .register({dependency : '/app/server/controllers/strategies/eventControllerStrategyResolver', name: 'strategyResolver', resolutionName: 'EventsController'})
         .register({dependency : '/app/server/controllers/GeneralEventController', name: 'GeneralEventController', resolutionName: 'GeneralEvent'})
         .register({dependency : '/app/server/controllers/GeneralEventController', name: 'GeneralEventController', resolutionName: 'CustomerEvent'})
-        .register({dependency : '/app/server/controllers/EventsController', name: 'getEventService', resolutionName: 'GeneralEvent'})
-        .register({dependency : '/app/server/controllers/eventForCustomerController', name: 'getEventService', resolutionName: 'CustomerEvent'})
+        .register({dependency : '/app/server/services/EventsController', name: 'eventService', resolutionName: 'GeneralEvent'})
+        .register({dependency : '/app/server/services/eventForCustomerController', name: 'eventService', resolutionName: 'CustomerEvent'})
         .register({dependency : '/app/server/controllers/test', name: 'test'});
 
 }()

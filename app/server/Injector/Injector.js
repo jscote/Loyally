@@ -199,7 +199,7 @@ module.exports = (function(util, _){
         var name = parameters.name;
         var resolutionName = parameters.resolutionName;
 
-        if(_.isEmpty(dependency)) { //dependency === undefined || dependency === null || dependency === '') {
+        if(_.isEmpty(dependency)) {
             console.error('The dependency cannot be undefined');
             throw('The dependency cannot be undefined');
         }
