@@ -17,6 +17,8 @@ global.Injector = require(__dirname + '/app/server/Injector/Injector');
 global.Injector.setBasePath(__dirname);
 require(__dirname + '/app/server/Injector/Configuration');
 
+var RouteRegistration = Injector.resolve({target: 'RouteRegistration'});
+
 
 var app = module.exports = function getServerInstance(params) {
     params = params || {};
@@ -39,7 +41,7 @@ var app = module.exports = function getServerInstance(params) {
 
 
     //TODO: Think of injecting routeRegistration and use it for a generic strategy resolver to inject proper controller in our route handler
-    app.resource((function() {return 'events';})(), {id: 'id'});
+    app.resource(RouteRegistration.registerRoute({route: {}, routeName: 'events'}), {id: 'id'});
     app.resource((function() {return 'customers';})(), function() {app.resource('events')});
 
 

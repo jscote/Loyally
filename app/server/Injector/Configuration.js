@@ -31,6 +31,7 @@ module.exports = function() {
                 console.log("from fs myFunction");};
             return delegate;
         })
+        .register({dependency : '/app/server/Injector/RouteRegistration', name: 'RouteRegistration'})
         .register({dependency : '/app/server/Injector/ControllerResolver', name: 'controllerResolver', resolutionName: 'EventsController'})
         .register({dependency : '/app/server/controllers/strategies/eventControllerStrategyResolver', name: 'strategyResolver', resolutionName: 'EventsController'})
         .register({dependency : '/app/server/controllers/GeneralEventController', name: 'GeneralEventController', resolutionName: 'GeneralEvent'})
