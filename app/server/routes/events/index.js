@@ -26,8 +26,8 @@
 
     'use strict'
 
-    module.exports = (function eventsController () {
-        var targetController = 'GeneralEventController';
+    module.exports = (function eventsRouteHandler () {
+        var targetController = 'EventController';
         var controller = null;
 
          var all = function (request, response, next) {

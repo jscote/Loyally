@@ -25,12 +25,12 @@ var app = module.exports = function getServerInstance(params) {
     // specify current dir as default root of server
     params.root = params.root || __dirname;
 
-    var express =  require('express');
+    var express = require('express');
     var Resource = require('express-resource-new');
     var app = express();
 
-    app.configure(function() {
-       app.set('controllers', __dirname + '/app/server/routes');
+    app.configure(function () {
+        app.set('controllers', __dirname + '/app/server/routes');
     });
 
 
@@ -41,26 +41,27 @@ var app = module.exports = function getServerInstance(params) {
 
 
     //TODO: Think of injecting routeRegistration and use it for a generic strategy resolver to inject proper controller in our route handler
-    app.resource(RouteRegistration.registerRoute({route: {}, routeName: 'events'}), {id: 'id'});
-    app.resource((function() {return 'customers';})(), function() {app.resource('events')});
+    app.resource(RouteRegistration.registerRoute({route: {}, routeName: 'events'}));
+    app.resource(RouteRegistration.registerRoute({route: {}, routeName: 'customers'}), RouteRegistration.registerNestedRoute({app: app, route: {}, routeName: 'events'}));
+    //app.resource((function() {return 'customers';})(), function() {app.resource('events')});
 
 
-    app.use(function(err, req, res, next) {
+    app.use(function (err, req, res, next) {
         console.error(err.stack);
         next(err);
-    }) ;
+    });
 
     return app;
 };
 
-var startListening = function(server){
+var startListening = function (server) {
     server.listen(port, host, function () {
         console.log(
             'Web server listening on %s:%d within %s environment',
             host, port, server.set('env')
         );
     });
-}  ;
+};
 
 if (!module.parent) {
     var port = process.env.PORT || 8000;
