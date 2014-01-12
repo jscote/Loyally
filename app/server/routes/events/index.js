@@ -37,6 +37,8 @@
 
         var index = function (request, response) {
 
+            //This is just a sample of resolving locally a node module
+            //that gets decorated with our own function and then calling the function
             var f = Injector.resolve({target: 'fs'});
             f.myFunction();
 

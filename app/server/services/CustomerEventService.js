@@ -3,6 +3,8 @@
  */
 
 var CustomerEventService = function (test) {
+
+    //Example of injecting a simple function with the default resolutionName
     this.test = test;
 }
 

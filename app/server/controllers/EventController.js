@@ -3,6 +3,10 @@
  */
 
 var EventController = function(eventService, fs) {
+    //Example of injecting a function/object of our own and a node module
+    //while constructing an object/function
+    //Remember that the fs module was decorated in our configuration
+    //so we can call our deoorated method
     fs.myFunction();
     this.eventService = eventService;
 }
