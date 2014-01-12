@@ -2,7 +2,10 @@
  * Created by jscote on 10/20/13.
  */
 
-var EventController = function(eventService, fs) {
+function EventController(eventService, fs) {
+
+    if(!(this instanceof EventController)) return new EventController(eventService, fs);
+
     //Example of injecting a function/object of our own and a node module
     //while constructing an object/function
     //Remember that the fs module was decorated in our configuration

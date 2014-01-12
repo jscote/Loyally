@@ -2,7 +2,9 @@
  * Created by jscote on 10/20/13.
  */
 
-var CustomerEventController = function(eventService, fs) {
+function CustomerEventController(eventService, fs) {
+    if(!(this instanceof CustomerEventController)) return new CustomerEventController(eventService, fs);
+
     fs.myFunction();
     this.eventService = eventService;
 }

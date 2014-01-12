@@ -2,7 +2,8 @@
  * Created by jscote on 10/20/13.
  */
 
-var CustomerEventService = function (test) {
+function CustomerEventService(test) {
+    if(!(this instanceof CustomerEventService)) return new CustomerEventService(test);
 
     //Example of injecting a simple function with the default resolutionName
     this.test = test;

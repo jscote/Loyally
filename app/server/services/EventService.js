@@ -2,7 +2,8 @@
  * Created by jscote on 10/20/13.
  */
 
-var EventService = function () {
+function EventService() {
+    if(!(this instanceof EventService)) return new EventService();
 
 }
 
