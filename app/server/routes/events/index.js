@@ -44,9 +44,16 @@
 
         }
 
+        var get = function(request, response){
+           controller.get(request, response);
+        }
+
+
+
         return {
             all: all,
-            index: index
+            index: index,
+            show: get
         }
     })();
 })(Injector.resolve({target: 'controllerResolver', resolutionName: 'EventsController'}))
