@@ -41,9 +41,8 @@ var app = module.exports = function getServerInstance(params) {
 
 
     //TODO: Think of injecting routeRegistration and use it for a generic strategy resolver to inject proper controller in our route handler
-    app.resource(RouteRegistration.registerRoute({route: {}, routeName: 'events'}));
-    app.resource(RouteRegistration.registerRoute({route: {}, routeName: 'customers'}), RouteRegistration.registerNestedRoute({app: app, route: {}, routeName: 'events'}));
-    //app.resource((function() {return 'customers';})(), function() {app.resource('events')});
+    app.resource('events');
+    app.resource('customers', function() {app.resource('events')});
 
 
     app.use(function (err, req, res, next) {

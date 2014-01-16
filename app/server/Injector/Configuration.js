@@ -17,7 +17,7 @@ module.exports = function() {
                 fn.apply(instance, args)
             };
             return delegate;
-        }, 'CustomerEvent')
+        }, '/customers/:customer/events/:event?/:op?')
        .decorator('EventController', function(delegate) {
             console.log('decorating GeneralEventController')
             var fn = delegate.index;
@@ -27,19 +27,18 @@ module.exports = function() {
                 fn.apply(delegate, args)
             };
             return delegate;
-        }, 'CustomerEvent')
+        }, '/customers/:customer/events/:event?/:op?')
         .decorator('fs', function(delegate) {
             delegate.myFunction = function() {
                 console.log("from fs myFunction");};
             return delegate;
         })
-        .register({dependency : '/app/server/Injector/RouteRegistration', name: 'RouteRegistration'})
+        .register({dependency : '/app/server/Injector/StrategyResolver', name: 'strategyResolver'})
         .register({dependency : '/app/server/Injector/ControllerResolver', name: 'controllerResolver', resolutionName: 'EventsController'})
-        .register({dependency : '/app/server/controllers/strategies/eventControllerStrategyResolver', name: 'strategyResolver', resolutionName: 'EventsController'})
-        .register({dependency : '/app/server/controllers/EventController', name: 'EventController', resolutionName: 'GeneralEvent'})
-        .register({dependency : '/app/server/controllers/CustomerEventController', name: 'EventController', resolutionName: 'CustomerEvent'})
-        .register({dependency : '/app/server/services/EventService', name: 'eventService', resolutionName: 'GeneralEvent'})
-        .register({dependency : '/app/server/services/CustomerEventService', name: 'eventService', resolutionName: 'CustomerEvent'})
+        .register({dependency : '/app/server/controllers/EventController', name: 'EventController', resolutionName: '/events/:event?/:op?'})
+        .register({dependency : '/app/server/controllers/CustomerEventController', name: 'EventController', resolutionName: '/customers/:customer/events/:event?/:op?'})
+        .register({dependency : '/app/server/services/EventService', name: 'eventService', resolutionName: '/events/:event?/:op?'})
+        .register({dependency : '/app/server/services/CustomerEventService', name: 'eventService', resolutionName: '/customers/:customer/events/:event?/:op?'})
         .register({dependency : '/app/server/controllers/test', name: 'test'});
 
 }()

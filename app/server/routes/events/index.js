@@ -51,11 +51,11 @@
         }
 
 
-
         return {
             all: all,
             index: index,
-            show: get
+            show: get,
+            edit: get
         }
     })();
 })(Injector.resolve({target: 'controllerResolver', resolutionName: 'EventsController'}))
