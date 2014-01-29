@@ -212,7 +212,7 @@ module.exports = (function(util, _){
     }
 
     var decorator = function(name, decorator, resolutionName ){
-        if(_.isEmpty(name) || ! _.isString(name)) {
+        if(_.isEmpty(name) || (! _.isString(name))) {
             console.error("Name must be defined, not null and have a value");
             throw("Name must be defined, not null and have a value");
         }

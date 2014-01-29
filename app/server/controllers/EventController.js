@@ -18,6 +18,8 @@ EventController.prototype.index = function(request, response){
     response.send(this.eventService.getEvents());
 }
 
+EventController.prototype.index.annotations = []
+
 EventController.prototype.get = function(request, response){
     var eventId = request.params.event;
     response.send(this.eventService.getEvent(eventId));
