@@ -113,13 +113,13 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
                 return delegate;
             })
             .register({dependency: '/app/server/Injector/StrategyResolver', name: 'strategyResolver'})
-            .register({dependency: '/app/server/Injector/ControllerResolver', name: 'controllerResolver', resolutionName: 'EventsController'})
+            .register({dependency: '/app/server/Injector/ControllerResolver', name: 'controllerResolver'})
             .register({dependency: '/app/server/controllers/EventController', name: 'EventController', resolutionName: '/events/:event?/:op?'})
             .register({dependency: '/app/server/controllers/CustomerEventController', name: 'EventController', resolutionName: '/customers/:customer/events/:event?/:op?'})
             .register({dependency: '/app/server/services/EventService', name: 'eventService', resolutionName: '/events/:event?/:op?'})
             .register({dependency: '/app/server/services/CustomerEventService', name: 'eventService', resolutionName: '/customers/:customer/events/:event?/:op?'})
             .register({dependency: '/app/server/controllers/test', name: 'test'})
-            .register({dependency: '/app/server/Security/Permissions', name: 'permission'});
+            .register({dependency: '/app/server/controllers/CustomerController', name: 'CustomerController', resolutionName: '/customers/:customer?/:op?'})
 
     }()
 })(lodash, PermissionAnnotation, permissionEnum)

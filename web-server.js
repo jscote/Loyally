@@ -40,7 +40,6 @@ var app = module.exports = function getServerInstance(params) {
     app.use(express.static(__dirname + '/app/server/partials'))
 
 
-    //TODO: Think of injecting routeRegistration and use it for a generic strategy resolver to inject proper controller in our route handler
     app.resource('events');
     app.resource('customers', function() {app.resource('events')});
 

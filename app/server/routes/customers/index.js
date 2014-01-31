@@ -2,27 +2,31 @@
  * Created by jscote on 10/20/13.
  */
 
-(function () {
+(function (controllerResolver) {
     "use strict"
     module.exports = (function customerRouteHandler() {
-        var targetController = 'GeneralEventController';
+        var targetController = 'CustomerController';
         var controller = null;
 
         var all = function (request, response, next) {
-            //controller = controllerResolver.getController({targetController: targetController, parameters: request});
+            controller = controllerResolver.getController({targetController: targetController, parameters: request});
             next();
-        }
+        };
 
         var index = function (request, response) {
-            //response.send('events index');
-            response.send({"data": [
-                {"customerId": 1, "customerName": 'My Address'}
-            ]});
-        }
+            controller.index(request, response);
+        };
+
+        var get = function (request, response) {
+            controller.get(request, response);
+        };
+
 
         return {
             all: all,
-            index: index
+            index: index,
+            show: get,
+            edit: get
         }
     })();
-})()
+})(Injector.resolve({target: 'controllerResolver', resolutionName: 'CustomerController'}));
