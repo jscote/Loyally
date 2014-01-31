@@ -5,12 +5,12 @@
 var util = require('util');
 var lodash = require('lodash');
 
-module.exports = (function(util, _){
+module.exports = (function (util, _) {
 
     var _dependencies = {},
         _decorators = {},
         _path = '',
-        defaultDependency= 'defaultDependency';
+        defaultDependency = 'defaultDependency';
 
     var construct = function (parameters) {
         var constructor = parameters.constructor;
@@ -21,39 +21,51 @@ module.exports = (function(util, _){
 
             var arguments = getDependencies({arr: args, resolutionName: resolutionName});
             var resolvedArguments = [];
-            for(var i = 0; i < arguments.length; i++ ) {
-                var ar = resolve({target: arguments[i].dependency , resolutionName: resolutionName});
-                resolvedArguments.push(_.isUndefined(arguments[i].decorator) ?  ar : arguments[i].decorator(ar));
+            for (var i = 0; i < arguments.length; i++) {
+                var ar = resolve({target: arguments[i].dependency, resolutionName: resolutionName});
+                resolvedArguments.push(_.isUndefined(arguments[i].decorators) ? ar : arguments[i].decorators.lenght > 0 ? ar : arguments[i].decorators(ar));
             }
 
             var c = constructor.apply(this, resolvedArguments);
             return c;
         }
+
         F.prototype = constructor.prototype;
         var f = new F();
         f.constructor = constructor;
         return f;
     }
 
-    var getDecorator = function(parameters) {
+    var getDecorators = function (parameters) {
 
-        _.extend( {resolutionName: defaultDependency}, parameters)
+        _.extend({resolutionName: defaultDependency}, parameters)
 
         var target = parameters.target;
         var resolutionName = parameters.resolutionName;
 
-        if(_decorators[target]) {
+        if (_decorators[target]) {
             var item = _decorators[target];
+
+            var decorators = [];
 
             resolutionName = resolutionName || defaultDependency;
 
-            if(util.isArray(item)) {
-                for(var i = 0; i < item.length ; i++ ) {
-                    if(item[i].resolutionName == resolutionName) {
-                        return item[i].target;
-                    }
-                }
+            if (util.isArray(item)) {
+
+                decorators = _.map(
+                    _.sortBy(
+                        _.filter(item, {resolutionName: resolutionName}), 'priority'),function (item) {
+                        return item.target
+                    }).reverse();
+
+                if (decorators.length > 0) return decorators;
                 return null;
+                /*                for(var i = 0; i < item.length ; i++ ) {
+                 if(item[i].resolutionName == resolutionName) {
+                 return item[i].target;
+                 }
+                 }
+                 return null;*/
 
             }
 
@@ -67,31 +79,37 @@ module.exports = (function(util, _){
 
         //We are calling resolve recursively on the arguments of a method.
         //When we reached the last level, we have no target then just return
-        if(target === undefined) {
+        if (target === undefined) {
             return;
         }
 
         var newTarget = target;
 
 
-
-        if(_.isString(target)) {
+        if (_.isString(target)) {
 
             console.log("Resolving dependency: " + target);
 
             newTarget = getDependencies({arr: [target], resolutionName: resolutionName})[0];
 
-            if(!_.isFunction(newTarget.dependency)) {
+            if (!_.isFunction(newTarget.dependency)) {
                 //to make sure to call the decorator on node modules
-                if(newTarget.decorator) {
-                    newTarget.dependency = newTarget.decorator(newTarget.dependency);
+                if (newTarget.decorators) {
+                    if (_.isArray(newTarget.decorators) && newTarget.decorators.length > 0) {
+                        for (var i = 0; i < newTarget.decorators.length; i++) {
+                            newTarget.dependency = newTarget.decorators[i](newTarget.dependency);
+                        }
+                    }
+                    else {
+                        newTarget.dependency = newTarget.decorators(newTarget.dependency);
+                    }
                 }
                 return newTarget.dependency;
             }
 
         } else {
             //if the target is an object, no need to try to resolve anything
-            if(!_.isFunction(target)) {
+            if (!_.isFunction(target)) {
                 return target;
             }
 
@@ -104,13 +122,27 @@ module.exports = (function(util, _){
         var FN_ARG_SPLIT = /,/;
 
         var text = newTarget.dependency.toString();
-        var args = text.match(FN_ARGS)[1].split(FN_ARG_SPLIT).map(function(value) {return value.trim()});
+        var args = text.match(FN_ARGS)[1].split(FN_ARG_SPLIT).map(function (value) {
+            return value.trim()
+        });
 
         var obj = construct({constructor: newTarget.dependency, args: args, resolutionName: resolutionName});
 
-         //Call the decorator if it exists
-        if(newTarget.decorator) {
-            obj = newTarget.decorator(obj);
+        //Call the decorator if it exists
+        /*        if (newTarget.decorators && newTarget.decorators.length > 0) {
+         obj = newTarget.decorators[0](obj);
+         }*/
+
+        //to make sure to call the decorator on node modules
+        if (newTarget.decorators) {
+            if (_.isArray(newTarget.decorators) && newTarget.decorators.length > 0) {
+                for (var i = 0; i < newTarget.decorators.length; i++) {
+                    obj.dependency = newTarget.decorators[i](obj);
+                }
+            }
+            else {
+                obj.dependency = newTarget.decorators(obj);
+            }
         }
 
         return obj;
@@ -118,7 +150,7 @@ module.exports = (function(util, _){
 
     var getDependencies = function (parameters) {
 
-        _.extend( {resolutionName: defaultDependency}, parameters)
+        _.extend({resolutionName: defaultDependency}, parameters)
 
         var arr = parameters.arr;
         var resolutionName = parameters.resolutionName;
@@ -128,36 +160,33 @@ module.exports = (function(util, _){
 
             //Get the dependency
             var item = _dependencies[value];
-            var decorator = getDecorator({target: value, resolutionName: resolutionName});
-            if(util.isArray(item)) {
-                for(var i = 0; i < item.length ; i++ ) {
-                    if(item[i].resolutionName == resolutionName) {
+            var decorators = getDecorators({target: value, resolutionName: resolutionName});
+            if (util.isArray(item)) {
+                for (var i = 0; i < item.length; i++) {
+                    if (item[i].resolutionName == resolutionName) {
 
                         var convertedItem = null;
-                        try{
+                        try {
                             convertedItem = require(item[i].target);
-                            //if(decorator) {
-                            //    convertedItem = decorator(convertedItem);
-                            //}
-                        }catch(e){
+                        } catch (e) {
                             convertedItem = item[i].target;
                         }
 
-                        return {dependency: convertedItem, decorator: decorator};
+                        return {dependency: convertedItem, decorators: decorators};
                     }
                 }
-                return {dependency: null, decorator: null};
+                return {dependency: null, decorators: null};
 
             }
 
-            if(_.isUndefined(item)) {
-                try{
+            if (_.isUndefined(item)) {
+                try {
                     item = require(value);
                 } catch (e) {
-                    return {dependency :item, decorator: decorator};
+                    return {dependency: item, decorators: decorators};
                 }
             }
-            return {dependency: item, decorator: decorator};
+            return {dependency: item, decorators: decorators};
         });
 
         return m;
@@ -169,6 +198,7 @@ module.exports = (function(util, _){
         var resolutionName = parameters.resolutionName;
         var name = parameters.name;
         var target = parameters.target;
+        var priority = parameters.priority || 1;
 
         if (_.isUndefined(resolutionName)) {
             console.log('registering target with name: ' + name);
@@ -181,15 +211,15 @@ module.exports = (function(util, _){
             if (_.isUndefined(collection[name])) {
                 //collection is not defined.
                 collection[name] = [];
-                collection[name].push({resolutionName: resolutionName, target: target});
+                collection[name].push({resolutionName: resolutionName, target: target, priority: priority});
             } else {
                 //We need to check if it is an array. If not, we need to move the current dependency into an array.
                 if (!util.isArray(collection[name])) {
-                    var defaultTarget = {resolutionName: defaultDependency, target: collection[name]};
+                    var defaultTarget = {resolutionName: defaultDependency, target: collection[name], priority: priority};
                     collection[name] = [];
                     collection[name].push(defaultTarget);
                 }
-                collection[name].push({resolutionName: resolutionName, target: target});
+                collection[name].push({resolutionName: resolutionName, target: target, priority: priority});
             }
         }
     }
@@ -199,39 +229,39 @@ module.exports = (function(util, _){
         var name = parameters.name;
         var resolutionName = parameters.resolutionName;
 
-        if(_.isEmpty(dependency)) {
+        if (_.isEmpty(dependency)) {
             console.error('The dependency cannot be undefined');
             throw('The dependency cannot be undefined');
         }
 
-        if(_.isString(dependency)){
+        if (_.isString(dependency)) {
             dependency = require(getBasePath() + dependency);
         }
         makeCollection({collection: _dependencies, resolutionName: resolutionName, name: name, target: dependency});
         return this;
     }
 
-    var decorator = function(name, decorator, resolutionName ){
-        if(_.isEmpty(name) || (! _.isString(name))) {
+    var decorator = function (name, decorator, resolutionName, priority) {
+        if (_.isEmpty(name) || (!_.isString(name))) {
             console.error("Name must be defined, not null and have a value");
             throw("Name must be defined, not null and have a value");
         }
 
-        if(_.isUndefined(decorator) || !_.isFunction(decorator)) {
+        if (_.isUndefined(decorator) || !_.isFunction(decorator)) {
             console.error("Decorator must be a valid function");
             throw("Decorator must be a valid function");
         }
 
-        makeCollection({collection: _decorators, resolutionName: resolutionName, name: name, target: decorator});
+        makeCollection({collection: _decorators, resolutionName: resolutionName, name: name, target: decorator, priority: priority});
 
         return this;
     }
 
-     var setBasePath = function(basePath){
+    var setBasePath = function (basePath) {
         _path = basePath;
     }
 
-    var getBasePath = function(){
+    var getBasePath = function () {
         return _path;
     }
 
@@ -243,4 +273,5 @@ module.exports = (function(util, _){
         decorator: decorator
     }
 
-})(util, lodash);
+})
+    (util, lodash);

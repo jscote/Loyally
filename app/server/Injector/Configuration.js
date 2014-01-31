@@ -24,16 +24,18 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
                 };
                 return delegate;
             }, '/customers/:customer/events/:event?/:op?')
-            /*.decorator('EventController', function (delegate) {
-             console.log('decorating GeneralEventController')
-             var fn = delegate.index;
-             delegate.index = function () {
-             console.log("logging from decorator");
-             var args = [].slice.call(arguments);
-             fn.apply(delegate, args)
-             };
-             return delegate;
-             }, '/customers/:customer/events/:event?/:op?')*/
+            .decorator('EventController', function (delegate) {
+                console.log('decorating GeneralEventController')
+                var fn = delegate.index;
+                fn.annotations = delegate.index.annotations;
+                delegate.index = function () {
+                    console.log("logging from decorator 1");
+                    var args = [].slice.call(arguments);
+                    fn.apply(delegate, args)
+                };
+                delegate.index.annotations = fn.annotations;
+                return delegate;
+            }, '/customers/:customer/events/:event?/:op?', 2)
             .decorator('EventController', function (delegate) {
 
                 //TODO: Refactor this decorator to extract the method to get annotation so we can pass different type of annotations
@@ -48,13 +50,16 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
                 //it is usually attached to the request so that might require to inspect properties of
                 //parameters passed to a method to extract the user from it.
                 var user = {name: 'JS', permissions: [
-                    permissionEnum().CanGetCustomer
+                    //permissionEnum().CanGetCustomer
                     , permissionEnum().CanGetEvent
                     , permissionEnum().CanLogin]};
 
                 //Decorating for permissions
                 var fn = delegate.index;
+                fn.annotations = delegate.index.annotations;
                 delegate.index = function () {
+
+                    console.log("logging from decorator 2");
 
                     var typeAnnotations = delegate.constructor.prototype.annotations;
                     var fnAnnotations = fn.annotations;
@@ -104,8 +109,9 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
                         }).apply(delegate, args);
                     }
                 };
+                delegate.index.annotations = fn.annotations;
                 return delegate;
-            }, '/customers/:customer/events/:event?/:op?')
+            }, '/customers/:customer/events/:event?/:op?', 1)
             .decorator('fs', function (delegate) {
                 delegate.myFunction = function () {
                     console.log("from fs myFunction");
