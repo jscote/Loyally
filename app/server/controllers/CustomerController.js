@@ -2,7 +2,7 @@
  * Created by jscote on 10/20/13.
  */
 
-(function (Permission, PermissionAnnotation, permissionEnum) {
+(function (util, base, Permission, PermissionAnnotation, permissionEnum) {
 
     'use strict'
 
@@ -10,7 +10,12 @@
     function CustomerController() {
         if (!(this instanceof CustomerController)) return new CustomerController();
 
+        base.call(this);
+
     }
+
+    util.inherits(CustomerController, base);
+
 
     CustomerController.prototype.annotations =
         [new PermissionAnnotation()
@@ -36,8 +41,11 @@
     };
 
 
-
-
     module.exports = CustomerController;
-})(require(Injector.getBasePath() + '/app/server/Security/Permissions'), require(Injector.getBasePath() + '/app/server/Security/PermissionAnnotation'), require(Injector.getBasePath() + '/app/server/Security/permissionEnum'));
+
+})(require('util'),
+        require(Injector.getBasePath() + '/app/server/controllers/baseController'),
+        require(Injector.getBasePath() + '/app/server/Security/Permissions'),
+        require(Injector.getBasePath() + '/app/server/Security/PermissionAnnotation'),
+        require(Injector.getBasePath() + '/app/server/Security/permissionEnum'));
 

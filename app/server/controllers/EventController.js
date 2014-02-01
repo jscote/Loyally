@@ -2,28 +2,44 @@
  * Created by jscote on 10/20/13.
  */
 
-function EventController(eventService, fs) {
+(function (util, base, Permission, PermissionAnnotation, permissionEnum) {
 
-    if(!(this instanceof EventController)) return new EventController(eventService, fs);
+    'use strict'
 
-    //Example of injecting a function/object of our own and a node module
-    //while constructing an object/function
-    //Remember that the fs module was decorated in our configuration
-    //so we can call our deoorated method
-    fs.myFunction();
-    this.eventService = eventService;
-}
+    function EventController(eventService, fs) {
 
-EventController.prototype.index = function(request, response){
-    response.send(this.eventService.getEvents());
-}
+        if (!(this instanceof EventController)) return new EventController(eventService, fs);
 
-EventController.prototype.index.annotations = []
 
-EventController.prototype.get = function(request, response){
-    var eventId = request.params.event;
-    response.send(this.eventService.getEvent(eventId));
-}
+        base.call(this);
 
-module.exports = EventController;
+        //Example of injecting a function/object of our own and a node module
+        //while constructing an object/function
+        //Remember that the fs module was decorated in our configuration
+        //so we can call our deoorated method
+        fs.myFunction();
+        this.eventService = eventService;
 
+    }
+
+    util.inherits(EventController, base);
+
+    EventController.prototype.index = function (request, response) {
+        response.send(this.eventService.getEvents());
+    };
+
+    EventController.prototype.index.annotations = []
+
+    EventController.prototype.get = function (request, response) {
+        var eventId = request.params.event;
+        response.send(this.eventService.getEvent(eventId));
+    };
+
+
+    module.exports = EventController;
+
+})(require('util'),
+        require(Injector.getBasePath() + '/app/server/controllers/baseController'),
+        require(Injector.getBasePath() + '/app/server/Security/Permissions'),
+        require(Injector.getBasePath() + '/app/server/Security/PermissionAnnotation'),
+        require(Injector.getBasePath() + '/app/server/Security/permissionEnum'));
