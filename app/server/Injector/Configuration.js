@@ -3,63 +3,11 @@
  */
 
 var lodash = require('lodash');
-var PermissionAnnotation = require(Injector.getBasePath() + '/app/server/Security/PermissionAnnotation');
 var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/permissionEnum');
+var decoratorHelper = require(Injector.getBasePath() + '/app/server/Helpers/decoratorHelper');
+var permissionHelper = require(Injector.getBasePath() + '/app/server/Helpers/permissionHelper');
 
-(function (_, PermissionAnnotation, permissionEnum) {
-
-    function decorateFunction(delegate, copyFromFunction, copyToFunction) {
-        var fn = delegate[copyFromFunction];
-        var annotations = delegate[copyFromFunction].annotations;
-        delegate[copyFromFunction] = copyToFunction(fn);
-        delegate[copyFromFunction].annotations = annotations;
-    };
-
-    function decorateFunctions(delegate, copyToFunction) {
-
-        //var props = Object.getOwnPropertyNames(delegate.constructor.prototype);
-        //for(var i=0; i< props.length; i++) {
-            //var prop = props[i];
-        for(var prop in delegate.__proto__) {
-            if(_.isFunction(delegate[prop])) {
-                var fn = delegate[prop];
-                var annotations = delegate[prop].annotations;
-                delegate[prop] = copyToFunction(fn);
-                delegate[prop].annotations = annotations;
-            }
-        }
-    };
-
-    function getRequestedPermissions(delegateClass, delegateFn) {
-        var typeAnnotations = delegateClass.constructor.prototype.annotations;
-        var fnAnnotations = delegateFn.annotations;
-
-        //var requiredPermissions
-        var permissions =
-            _.union(
-                _.map(
-                    _.filter(typeAnnotations, function (item) {
-                        return item instanceof PermissionAnnotation
-                    }), function (item) {
-                        return item.requiredPermissions
-                    }),
-                _.map(
-                    _.filter(fnAnnotations, function (item) {
-                        return item instanceof PermissionAnnotation
-                    }), function (item) {
-                        return item.requiredPermissions
-
-                    }));
-
-        var p = [];
-
-        _.forEach(permissions, function (item) {
-            _.forEach(item, function (i) {
-                p.push(i.value);
-            });
-        });
-        return p;
-    }
+(function (_, decoratorHelper, permissionHelper, permissionEnum) {
 
 //TODO: Make this file ENV dependent
 
@@ -70,7 +18,7 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
         Injector
             .decorator('eventService', function (delegateClass) {
 
-                decorateFunction(delegateClass, 'getEventsForCustomer', function (delegateFn) {
+                decoratorHelper.decorateFunction(delegateClass, 'getEventsForCustomer', function (delegateFn) {
                     return function () {
                         console.log("logging from decorator for getEventService");
                         var args = [].slice.call(arguments);
@@ -82,8 +30,8 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
             }, '/customers/:customer/events/:event?/:op?')
             .decorator('EventController', function (delegateClass) {
 
-                decorateFunction(delegateClass, 'index', function(delegateFn) {
-                    return function() {
+                decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn) {
+                    return function () {
                         console.log("logging from decorator 1");
                         var args = [].slice.call(arguments);
                         delegateFn.apply(delegateClass, args)
@@ -94,9 +42,6 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
             }, '/customers/:customer/events/:event?/:op?', 2)
             .decorator('EventController', function (delegateClass) {
 
-                //TODO: Refactor this decorator to extract the method to get annotation so we can pass different type of annotations
-                //TODO: Create an object to assign to prototype.annotations that can accept only annotation type of objects.
-                //TODO: Enumerate the function of the delegate to insert permission check on all of them
                 //TODO: Modify injector so that we can decorate all instances of a specific type (to be used with inherited classes so we can decorate all descendant of a class)
                 //TODO: Implement real authentication so that we can keep the user somewhere or know how to retrieve it from the request
                 //TODO: Implement base class for controllers: If we separate the concern of getting the user from request (which we could assume to be at a specific place for specific derived class/methods) and the actual application of the permission, then we should be ok
@@ -109,15 +54,16 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
                     permissionEnum().CanGetCustomer
                     , permissionEnum().CanGetEvent
                     , permissionEnum().CanLogin
-                    ]
+                ]
                 };
 
 
-                decorateFunctions(delegateClass, function(delegateFn) {
-                    return function() {
+                decoratorHelper.decorateFunctions(delegateClass, function (delegateFn) {
+                    return function () {
                         console.log("logging from decorator 2");
 
-                        var permissions = getRequestedPermissions(delegateClass, delegateFn);
+                        var permissions = permissionHelper.getRequestedPermissions(delegateClass, delegateFn);
+
                         var hasPermission = true;
 
                         _.forEach(permissions, function (item) {
@@ -158,4 +104,4 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
             .register({dependency: '/app/server/controllers/CustomerController', name: 'CustomerController', resolutionName: '/customers/:customer?/:op?'})
 
     }()
-})(lodash, PermissionAnnotation, permissionEnum)
+})(lodash, decoratorHelper, permissionHelper, permissionEnum)
