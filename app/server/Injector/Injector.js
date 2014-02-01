@@ -23,8 +23,27 @@ module.exports = (function (util, _) {
             var resolvedArguments = [];
             for (var i = 0; i < arguments.length; i++) {
                 var ar = resolve({target: arguments[i].dependency, resolutionName: resolutionName});
-                resolvedArguments.push(_.isUndefined(arguments[i].decorators) ? ar : arguments[i].decorators.lenght > 0 ? ar : arguments[i].decorators(ar));
+
+                var obj = ar;
+                var current = arguments[i].decorators;
+
+                if (!_.isUndefined(current)) {
+                    if (_.isArray(current) && current.length > 0) {
+                        for (var j = 0; j < current.length; j++) {
+                            obj = current[j](obj);
+                        }
+                    }
+                    else {
+                        obj = current(obj);
+                    }
+                } else {
+
+                    obj = ar;
+                }
+
+                resolvedArguments.push(obj);
             }
+
 
             var c = constructor.apply(this, resolvedArguments);
             return c;

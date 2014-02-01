@@ -8,19 +8,25 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
 
 (function (_, PermissionAnnotation, permissionEnum) {
 
+    function copyFunction(delegate, copyFromFunction, copyToFunction){
+        var fn = delegate[copyFromFunction];
+        var annotations = delegate[copyFromFunction].annotations;
+        delegate[copyFromFunction] = copyToFunction;
+        delegate[copyFromFunction].annotations = annotations;
+    }
+
 //TODO: Make this file ENV dependent
     module.exports = function () {
         console.log('Configuring the injection container');
         console.log('dirname is: ' + Injector.getBasePath());
         Injector
-            .decorator('getEventService', function (delegate) {
+            .decorator('eventService', function (delegate) {
                 console.log('decorating getEventService')
-                var fn = delegate.index;
-                var instance = delegate;
-                delegate.index = function () {
+                var fn = delegate.getEventsForCustomer;
+                delegate.getEventsForCustomer = function () {
                     console.log("logging from decorator for getEventService");
                     var args = [].slice.call(arguments);
-                    fn.apply(instance, args)
+                    return fn.apply(delegate, args)
                 };
                 return delegate;
             }, '/customers/:customer/events/:event?/:op?')
@@ -50,7 +56,7 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
                 //it is usually attached to the request so that might require to inspect properties of
                 //parameters passed to a method to extract the user from it.
                 var user = {name: 'JS', permissions: [
-                    //permissionEnum().CanGetCustomer
+                    permissionEnum().CanGetCustomer
                     , permissionEnum().CanGetEvent
                     , permissionEnum().CanLogin]};
 
