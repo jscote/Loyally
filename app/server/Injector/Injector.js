@@ -27,7 +27,7 @@ module.exports = (function (util, _) {
                 var obj = ar;
                 var current = arguments[i].decorators;
 
-                if (!_.isUndefined(current)) {
+                if (!_.isUndefined(current) && current !== null) {
                     if (_.isArray(current) && current.length > 0) {
                         for (var j = 0; j < current.length; j++) {
                             obj = current[j](obj);
