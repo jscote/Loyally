@@ -8,41 +8,91 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
 
 (function (_, PermissionAnnotation, permissionEnum) {
 
-    function copyFunction(delegate, copyFromFunction, copyToFunction){
+    function decorateFunction(delegate, copyFromFunction, copyToFunction) {
         var fn = delegate[copyFromFunction];
         var annotations = delegate[copyFromFunction].annotations;
-        delegate[copyFromFunction] = copyToFunction;
+        delegate[copyFromFunction] = copyToFunction(fn);
         delegate[copyFromFunction].annotations = annotations;
+    };
+
+    function decorateFunctions(delegate, copyToFunction) {
+
+        //var props = Object.getOwnPropertyNames(delegate.constructor.prototype);
+        //for(var i=0; i< props.length; i++) {
+            //var prop = props[i];
+        for(var prop in delegate.__proto__) {
+            if(_.isFunction(delegate[prop])) {
+                var fn = delegate[prop];
+                var annotations = delegate[prop].annotations;
+                delegate[prop] = copyToFunction(fn);
+                delegate[prop].annotations = annotations;
+            }
+        }
+    };
+
+    function getRequestedPermissions(delegateClass, delegateFn) {
+        var typeAnnotations = delegateClass.constructor.prototype.annotations;
+        var fnAnnotations = delegateFn.annotations;
+
+        //var requiredPermissions
+        var permissions =
+            _.union(
+                _.map(
+                    _.filter(typeAnnotations, function (item) {
+                        return item instanceof PermissionAnnotation
+                    }), function (item) {
+                        return item.requiredPermissions
+                    }),
+                _.map(
+                    _.filter(fnAnnotations, function (item) {
+                        return item instanceof PermissionAnnotation
+                    }), function (item) {
+                        return item.requiredPermissions
+
+                    }));
+
+        var p = [];
+
+        _.forEach(permissions, function (item) {
+            _.forEach(item, function (i) {
+                p.push(i.value);
+            });
+        });
+        return p;
     }
 
 //TODO: Make this file ENV dependent
+
+
     module.exports = function () {
         console.log('Configuring the injection container');
         console.log('dirname is: ' + Injector.getBasePath());
         Injector
-            .decorator('eventService', function (delegate) {
-                console.log('decorating getEventService')
-                var fn = delegate.getEventsForCustomer;
-                delegate.getEventsForCustomer = function () {
-                    console.log("logging from decorator for getEventService");
-                    var args = [].slice.call(arguments);
-                    return fn.apply(delegate, args)
-                };
-                return delegate;
+            .decorator('eventService', function (delegateClass) {
+
+                decorateFunction(delegateClass, 'getEventsForCustomer', function (delegateFn) {
+                    return function () {
+                        console.log("logging from decorator for getEventService");
+                        var args = [].slice.call(arguments);
+                        return delegateFn.apply(delegateClass, args)
+                    };
+                });
+                return delegateClass;
+
             }, '/customers/:customer/events/:event?/:op?')
-            .decorator('EventController', function (delegate) {
-                console.log('decorating GeneralEventController')
-                var fn = delegate.index;
-                fn.annotations = delegate.index.annotations;
-                delegate.index = function () {
-                    console.log("logging from decorator 1");
-                    var args = [].slice.call(arguments);
-                    fn.apply(delegate, args)
-                };
-                delegate.index.annotations = fn.annotations;
-                return delegate;
+            .decorator('EventController', function (delegateClass) {
+
+                decorateFunction(delegateClass, 'index', function(delegateFn) {
+                    return function() {
+                        console.log("logging from decorator 1");
+                        var args = [].slice.call(arguments);
+                        delegateFn.apply(delegateClass, args)
+                    };
+                });
+
+                return delegateClass;
             }, '/customers/:customer/events/:event?/:op?', 2)
-            .decorator('EventController', function (delegate) {
+            .decorator('EventController', function (delegateClass) {
 
                 //TODO: Refactor this decorator to extract the method to get annotation so we can pass different type of annotations
                 //TODO: Create an object to assign to prototype.annotations that can accept only annotation type of objects.
@@ -58,71 +108,45 @@ var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/perm
                 var user = {name: 'JS', permissions: [
                     permissionEnum().CanGetCustomer
                     , permissionEnum().CanGetEvent
-                    , permissionEnum().CanLogin]};
-
-                //Decorating for permissions
-                var fn = delegate.index;
-                fn.annotations = delegate.index.annotations;
-                delegate.index = function () {
-
-                    console.log("logging from decorator 2");
-
-                    var typeAnnotations = delegate.constructor.prototype.annotations;
-                    var fnAnnotations = fn.annotations;
-
-                    //var requiredPermissions
-                    var permissions =
-                        _.union(
-                            _.map(
-                                _.filter(typeAnnotations, function (item) {
-                                    return item instanceof PermissionAnnotation
-                                }), function (item) {
-                                    return item.requiredPermissions
-                                }),
-                            _.map(
-                                _.filter(fnAnnotations, function (item) {
-                                    return item instanceof PermissionAnnotation
-                                }), function (item) {
-                                    return item.requiredPermissions
-
-                                }));
-
-                    var p = [];
-
-                    _.forEach(permissions, function (item) {
-                        _.forEach(item, function (i) {
-                            p.push(i.value);
-                        });
-                    });
-
-
-                    var hasPermission = true;
-                    _.forEach(p, function (item) {
-                        if (!_.contains(user.permissions, item)) {
-                            hasPermission = false;
-                            return false;
-                        }
-                    });
-
-                    var args = [].slice.call(arguments);
-
-                    if (hasPermission) {
-                        fn.apply(delegate, args)
-                    } else {
-                        (function (request, response) {
-                            response.statusCode = 403;
-                            response.send({error: 'Permission Denied'});
-                        }).apply(delegate, args);
-                    }
+                    , permissionEnum().CanLogin
+                    ]
                 };
-                delegate.index.annotations = fn.annotations;
-                return delegate;
+
+
+                decorateFunctions(delegateClass, function(delegateFn) {
+                    return function() {
+                        console.log("logging from decorator 2");
+
+                        var permissions = getRequestedPermissions(delegateClass, delegateFn);
+                        var hasPermission = true;
+
+                        _.forEach(permissions, function (item) {
+                            if (!_.contains(user.permissions, item)) {
+                                hasPermission = false;
+                                return false;
+                            }
+                        });
+
+                        var args = [].slice.call(arguments);
+
+                        if (hasPermission) {
+                            delegateFn.apply(delegateClass, args)
+                        } else {
+                            (function (request, response) {
+                                response.statusCode = 403;
+                                response.send({error: 'Permission Denied'});
+                            }).apply(delegateClass, args);
+                        }
+                    };
+                });
+
+                return delegateClass;
             }, '/customers/:customer/events/:event?/:op?', 1)
-            .decorator('fs', function (delegate) {
-                delegate.myFunction = function () {
+            .decorator('fs', function (delegateClass) {
+                delegateClass.myFunction = function () {
                     console.log("from fs myFunction");
                 };
-                return delegate;
+                return delegateClass;
             })
             .register({dependency: '/app/server/Injector/StrategyResolver', name: 'strategyResolver'})
             .register({dependency: '/app/server/Injector/ControllerResolver', name: 'controllerResolver'})
