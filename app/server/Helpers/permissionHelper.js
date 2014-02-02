@@ -3,12 +3,9 @@
  */
 
 
-var lodash = require('lodash');
-
-
 (function(_, annotation, permissionAnnotation){
 
-    'use strict'
+    'use strict';
 
     function getRequestedPermissions(delegateClass, delegateFn) {
 
@@ -34,4 +31,4 @@ var lodash = require('lodash');
         getRequestedPermissions: getRequestedPermissions
     }
 
-})(lodash, require(Injector.getBasePath() + '/app/server/Helpers/annotationHelper'), require(Injector.getBasePath() + '/app/server/Security/PermissionAnnotation'));
+})(require('lodash'), require(Injector.getBasePath() + '/Helpers/annotationHelper'), require(Injector.getBasePath() + '/Security/PermissionAnnotation'));

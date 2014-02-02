@@ -9,7 +9,8 @@ angular.module('loyuly', [
         'loyuly.services',
         'loyuly.directives',
         'ngRoute',
-        'ngSanitize'
+        'ngSanitize',
+        'ngResource'
     ]);
     /*.
   config(['$routeProvider', function($routeProvider) {

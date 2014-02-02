@@ -13,44 +13,29 @@
 var cluster = require('cluster');
 var numCpus = require('os').cpus().length;
 
-global.Injector = require(__dirname + '/app/server/Injector/Injector');
-global.Injector.setBasePath(__dirname);
-require(__dirname + '/app/server/Injector/Configuration');
 
-var RouteRegistration = Injector.resolve({target: 'RouteRegistration'});
+//Configure environment
+var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
+//TODO: determine an interface for config tasks and call all the tasks in the config folder
 
-var app = module.exports = function getServerInstance(params) {
-    params = params || {};
-    // specify current dir as default root of server
-    params.root = params.root || __dirname;
+//Get configuration file based on environment
+var config = require('./app/server/config/config')[env];
 
-    var express = require('express');
-    var Resource = require('express-resource-new');
-    var app = express();
+//Configure Injection
+require('./app/server/config/injection')(config.rootPath);
 
-    app.configure(function () {
-        app.set('controllers', __dirname + '/app/server/routes');
-    });
+//Configure mongoose
+require('./app/server/config/mongoose')(config);
 
+//Configure Express
+var app = require('./app/server/config/express')({root: config.rootPath});
 
-    app.use(express.bodyParser());
-    app.use(express.methodOverride());
-    app.use(express.static(__dirname + '/app'));
-    app.use(express.static(__dirname + '/app/server/partials'))
+//Configure Passport
+require('./app/server/config/passport')();
 
-
-    app.resource('events');
-    app.resource('customers', function() {app.resource('events')});
-
-
-    app.use(function (err, req, res, next) {
-        console.error(err.stack);
-        next(err);
-    });
-
-    return app;
-};
+//Configure Routes
+require('./app/server/config/routes')(app);
 
 var startListening = function (server) {
     server.listen(port, host, function () {
@@ -65,10 +50,10 @@ if (!module.parent) {
     var port = process.env.PORT || 8000;
     var host = process.env.HOST || '0.0.0.0';
 
-    var server = app();
+
 
     //using only one core while developing as it is not debuggable with multiple core running
-    if (server.set('env') !== 'development') {
+    if (env !== 'development') {
         if (cluster.isMaster) {
             // Fork workers.
             for (var i = 0; i < numCpus; i++) {
@@ -81,9 +66,9 @@ if (!module.parent) {
         } else {
             // Workers can share any TCP connection
             // In this case its a HTTP server
-            startListening(server);
+            startListening(app);
         }
     } else {
-        startListening(server);
+        startListening(app);
     }
 }

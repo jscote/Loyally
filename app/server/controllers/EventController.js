@@ -4,7 +4,7 @@
 
 (function (util, base, Permission, PermissionAnnotation, permissionEnum) {
 
-    'use strict'
+    'use strict';
 
     function EventController(eventService, fs) {
 
@@ -28,7 +28,7 @@
         response.send(this.eventService.getEvents());
     };
 
-    EventController.prototype.index.annotations = []
+    EventController.prototype.index.annotations = [];
 
     EventController.prototype.get = function (request, response) {
         var eventId = request.params.event;
@@ -39,7 +39,7 @@
     module.exports = EventController;
 
 })(require('util'),
-        require(Injector.getBasePath() + '/app/server/controllers/baseController'),
-        require(Injector.getBasePath() + '/app/server/Security/Permissions'),
-        require(Injector.getBasePath() + '/app/server/Security/PermissionAnnotation'),
-        require(Injector.getBasePath() + '/app/server/Security/permissionEnum'));
+        require(Injector.getBasePath() + '/controllers/baseController'),
+        require(Injector.getBasePath() + '/Security/Permissions'),
+        require(Injector.getBasePath() + '/Security/PermissionAnnotation'),
+        require(Injector.getBasePath() + '/Security/permissionEnum'));

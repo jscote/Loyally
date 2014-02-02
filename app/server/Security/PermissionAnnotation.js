@@ -3,7 +3,7 @@
  */
 
 (function(Permission){
-    'use strict'
+    'use strict';
 
     function PermissionAnnotation() {
         this.requiredPermissions = [];
@@ -16,7 +16,7 @@
         this.requiredPermissions.push(permission);
 
         return this;
-    }
+    };
 
     module.exports = PermissionAnnotation;
-}) (require(Injector.getBasePath() + '/app/server/Security/Permissions'))
+}) (require(Injector.getBasePath() + '/Security/Permissions'));

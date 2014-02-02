@@ -3,9 +3,9 @@
  */
 
 var lodash = require('lodash');
-var permissionEnum = require(Injector.getBasePath() + '/app/server/Security/permissionEnum');
-var decoratorHelper = require(Injector.getBasePath() + '/app/server/Helpers/decoratorHelper');
-var permissionHelper = require(Injector.getBasePath() + '/app/server/Helpers/permissionHelper');
+var permissionEnum = require(Injector.getBasePath() + '/Security/permissionEnum');
+var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper');
+var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelper');
 
 (function (_, decoratorHelper, permissionHelper, permissionEnum) {
 
@@ -51,7 +51,7 @@ var permissionHelper = require(Injector.getBasePath() + '/app/server/Helpers/per
                 //it is usually attached to the request so that might require to inspect properties of
                 //parameters passed to a method to extract the user from it.
                 var user = {name: 'JS', permissions: [
-                    permissionEnum().CanGetCustomer
+                    //permissionEnum().CanGetCustomer
                     , permissionEnum().CanGetEvent
                     , permissionEnum().CanLogin
                 ]
@@ -94,14 +94,14 @@ var permissionHelper = require(Injector.getBasePath() + '/app/server/Helpers/per
                 };
                 return delegateClass;
             })
-            .register({dependency: '/app/server/Injector/StrategyResolver', name: 'strategyResolver'})
-            .register({dependency: '/app/server/Injector/ControllerResolver', name: 'controllerResolver'})
-            .register({dependency: '/app/server/controllers/EventController', name: 'EventController', resolutionName: '/events/:event?/:op?'})
-            .register({dependency: '/app/server/controllers/CustomerEventController', name: 'EventController', resolutionName: '/customers/:customer/events/:event?/:op?'})
-            .register({dependency: '/app/server/services/EventService', name: 'eventService', resolutionName: '/events/:event?/:op?'})
-            .register({dependency: '/app/server/services/CustomerEventService', name: 'eventService', resolutionName: '/customers/:customer/events/:event?/:op?'})
-            .register({dependency: '/app/server/controllers/test', name: 'test'})
-            .register({dependency: '/app/server/controllers/CustomerController', name: 'CustomerController', resolutionName: '/customers/:customer?/:op?'})
+            .register({dependency: '/Injector/StrategyResolver', name: 'strategyResolver'})
+            .register({dependency: '/Injector/ControllerResolver', name: 'controllerResolver'})
+            .register({dependency: '/controllers/EventController', name: 'EventController', resolutionName: '/events/:event?/:op?'})
+            .register({dependency: '/controllers/CustomerEventController', name: 'EventController', resolutionName: '/customers/:customer/events/:event?/:op?'})
+            .register({dependency: '/services/EventService', name: 'eventService', resolutionName: '/events/:event?/:op?'})
+            .register({dependency: '/services/CustomerEventService', name: 'eventService', resolutionName: '/customers/:customer/events/:event?/:op?'})
+            .register({dependency: '/controllers/test', name: 'test'})
+            .register({dependency: '/controllers/CustomerController', name: 'CustomerController', resolutionName: '/customers/:customer?/:op?'})
 
     }()
-})(lodash, decoratorHelper, permissionHelper, permissionEnum)
+})(lodash, decoratorHelper, permissionHelper, permissionEnum);

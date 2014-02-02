@@ -4,7 +4,7 @@
 
 (function (util, base, Permission, PermissionAnnotation, permissionEnum) {
 
-    'use strict'
+    'use strict';
 
 
     function CustomerEventController(eventService, fs) {
@@ -44,8 +44,8 @@
     module.exports = CustomerEventController;
 
 })(require('util'),
-        require(Injector.getBasePath() + '/app/server/controllers/baseController'),
-        require(Injector.getBasePath() + '/app/server/Security/Permissions'),
-        require(Injector.getBasePath() + '/app/server/Security/PermissionAnnotation'),
-        require(Injector.getBasePath() + '/app/server/Security/permissionEnum'));
+        require(Injector.getBasePath() + '/controllers/baseController'),
+        require(Injector.getBasePath() + '/Security/Permissions'),
+        require(Injector.getBasePath() + '/Security/PermissionAnnotation'),
+        require(Injector.getBasePath() + '/Security/permissionEnum'));
 
