@@ -43,23 +43,30 @@ var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelp
             .decorator('EventController', function (delegateClass) {
 
                 //TODO: Modify injector so that we can decorate all instances of a specific type (to be used with inherited classes so we can decorate all descendant of a class)
-                //TODO: Implement real authentication so that we can keep the user somewhere or know how to retrieve it from the request
                 //TODO: Implement base class for controllers: If we separate the concern of getting the user from request (which we could assume to be at a specific place for specific derived class/methods) and the actual application of the permission, then we should be ok
 
 
-                //This is for demonstration purpose. The user should be obtained in a better way.
-                //it is usually attached to the request so that might require to inspect properties of
-                //parameters passed to a method to extract the user from it.
-                var user = {name: 'JS', permissions: [
-                    //permissionEnum().CanGetCustomer
-                    , permissionEnum().CanGetEvent
-                    , permissionEnum().CanLogin
-                ]
-                };
-
-
                 decoratorHelper.decorateFunctions(delegateClass, function (delegateFn) {
+                    //TODO: Consider refactoring to extract the way we obtain the method to know if a user is authenticated
+                    //TODO: consider refactoring to extract the way we obtain the current permissions of a user
+                    //      This would allow to decouple the method to verify permissions from the fact that it is obtained from a request, in effect, allowing to use this mechanism in other places
+
                     return function () {
+
+                        var args = [].slice.call(arguments);
+
+                        var req = args[0];
+                        var user = req.user;
+
+                        if(!req.isAuthenticated()) {
+                            (function (request, response) {
+                                response.statusCode = 403;
+                                response.send({error: 'Not Authenticated'});
+                            }).apply(delegateClass, args);
+
+                            return;
+                        }
+
                         console.log("logging from decorator 2");
 
                         var permissions = permissionHelper.getRequestedPermissions(delegateClass, delegateFn);
@@ -72,8 +79,6 @@ var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelp
                                 return false;
                             }
                         });
-
-                        var args = [].slice.call(arguments);
 
                         if (hasPermission) {
                             delegateFn.apply(delegateClass, args)

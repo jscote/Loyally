@@ -5,15 +5,12 @@
 //TODO: review file structure to make it compliant with revealing module pattern
 //TODO: review mechanism to work with injected controllers
 
-(function (auth, mongoose) {
+(function (auth) {
 
     //TODO: instead of going to controllers folder, we would go to routes folder. The function there would simply be
     //TODO: calling a real injected controller
     //TODO: figure out how to get the authentication in that chain
     //users = require('../controllers/users'),
-
-
-    var User = mongoose.model('User');
 
     module.exports = function (app) {
 
@@ -48,7 +45,7 @@
         });
     };
 
-})(require('../Security/auth'),require('mongoose') );
+})(require('../Security/auth'));
 
 
 

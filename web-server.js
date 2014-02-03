@@ -17,7 +17,10 @@ var numCpus = require('os').cpus().length;
 //Configure environment
 var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-//TODO: determine an interface for config tasks and call all the tasks in the config folder
+//DONE: No need to determine an interface to call all the task in a config folder as the order in which the files need to be executed is important.
+//      Writing something to do this would add complexity without bringing much benefit. The intent would have been to avoid missing a config task
+//      but since it may require configuration of ordering, it is more complex and less explicit than calling each file one after another, in the order
+//      that is desired./
 
 //Get configuration file based on environment
 var config = require('./app/server/config/config')[env];
@@ -27,6 +30,9 @@ require('./app/server/config/injection')(config.rootPath);
 
 //Configure mongoose
 require('./app/server/config/mongoose')(config);
+
+//Configure all models
+require('./app/server/config/models')(config);
 
 //Configure Express
 var app = require('./app/server/config/express')({root: config.rootPath});
