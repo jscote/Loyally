@@ -44,16 +44,16 @@ require('./app/server/config/passport')();
 require('./app/server/config/routes')(app);
 
 var startListening = function (server) {
-    server.listen(port, host, function () {
+    server.listen(config.port, host, function () {
         console.log(
             'Web server listening on %s:%d within %s environment',
-            host, port, server.set('env')
+            host, config.port, server.set('env')
         );
     });
 };
 
 if (!module.parent) {
-    var port = process.env.PORT || 8000;
+    //var port = process.env.PORT || 8000;
     var host = process.env.HOST || '0.0.0.0';
 
 
