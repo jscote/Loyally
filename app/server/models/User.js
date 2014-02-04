@@ -48,13 +48,6 @@ function createDefaultUsers() {
 
         }
 
-        process.nextTick(function () {
-            for (var i = count; i < 100000 + count; i++) {
-                salt = encrypt.createSalt();
-                hash = encrypt.hashPwd(salt, 'pwd' + i);
-                User.create({firstName: 'fn' + i, lastName: 'ln' + i, username: 'fn' + i, salt: salt, hashed_pwd: hash, permissions: ['CanLogin', 'CanGetEvent', 'CanGetCustomer']});
-            }
-        });
     })
 }
 

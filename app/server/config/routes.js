@@ -33,11 +33,11 @@
             res.send(404);
         });
 
-        /*app.get('*', function(req, res) {
-         res.render('index', {
-         bootstrappedUser: req.user
-         });
-         });*/
+        app.get('*', function (req, res) {
+            res.render('index', {
+                bootstrappedUser: req.user
+            });
+        });
 
         app.resource('events');
         app.resource('customers', function () {

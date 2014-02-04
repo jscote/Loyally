@@ -15,6 +15,9 @@
         var app = express();
 
         app.configure(function () {
+            app.set('views', params.root + '/views');
+            app.set('view engine', 'ejs');
+
             app.set('controllers', params.root + '/routes');
 
             app.use(express.static(params.root + '../'));
@@ -25,7 +28,7 @@
             app.use(express.cookieParser());
             app.use(express.bodyParser());
             app.use(express.methodOverride());
-            app.use(express.session({secret: 'multi vision unicorns'}));
+            app.use(express.session({secret: 'too many secrets'}));
             app.use(passport.initialize());
             app.use(passport.session());
             app.use(app.router);

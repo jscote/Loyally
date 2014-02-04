@@ -2,7 +2,7 @@
 <html lang="en" data-ng-app="loyuly">
 <head>
     <meta charset="utf-8">
-    <title>My AngularJS App</title>
+    <title>My AngularJS App from EJS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.min.css"/>
@@ -48,6 +48,9 @@
     </div>
 </div>
 
+<script>
+window.bootstrappedUserObject = <%-JSON.stringify(bootstrappedUser)%>;
+</script>
 
 <script src="lib/jquery/jquery-2.0.3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.min.js"></script>
