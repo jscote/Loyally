@@ -29,8 +29,10 @@
             res.end();
         });
 
-        app.all('/api/*', function (req, res) {
-            res.send(404);
+
+        app.resource('events');
+        app.resource('customers', function () {
+            app.resource('events')
         });
 
         app.get('*', function (req, res) {
@@ -39,9 +41,8 @@
             });
         });
 
-        app.resource('events');
-        app.resource('customers', function () {
-            app.resource('events')
+        app.all('/api/*', function (req, res) {
+            res.send(404);
         });
     };
 
