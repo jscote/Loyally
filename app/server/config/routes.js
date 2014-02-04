@@ -10,6 +10,7 @@
     //TODO: instead of going to controllers folder, we would go to routes folder. The function there would simply be
     //TODO: calling a real injected controller
     //TODO: figure out how to get the authentication in that chain
+    //TODO: Figure a way to specify a starting path such as /api to use with resources.
     //users = require('../controllers/users'),
 
     module.exports = function (app) {
