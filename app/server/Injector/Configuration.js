@@ -27,7 +27,7 @@ var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelp
                 });
                 return delegateClass;
 
-            }, '/customers/:customer/events/:event?/:op?')
+            }, '/:id/customers/:customer/events/:event?/:op?')
             .decorator('EventController', function (delegateClass) {
 
                 decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn) {
@@ -39,7 +39,7 @@ var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelp
                 });
 
                 return delegateClass;
-            }, '/customers/:customer/events/:event?/:op?', 2)
+            }, '/:id/customers/:customer/events/:event?/:op?', 2)
             .decorator('EventController', function (delegateClass) {
 
                 //TODO: Modify injector so that we can decorate all instances of a specific type (to be used with inherited classes so we can decorate all descendant of a class)
@@ -92,7 +92,7 @@ var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelp
                 });
 
                 return delegateClass;
-            }, '/customers/:customer/events/:event?/:op?', 1)
+            }, '/:id/customers/:customer/events/:event?/:op?', 1)
             .decorator('fs', function (delegateClass) {
                 delegateClass.myFunction = function () {
                     console.log("from fs myFunction");
@@ -101,12 +101,12 @@ var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelp
             })
             .register({dependency: '/Injector/StrategyResolver', name: 'strategyResolver'})
             .register({dependency: '/Injector/ControllerResolver', name: 'controllerResolver'})
-            .register({dependency: '/controllers/EventController', name: 'EventController', resolutionName: '/events/:event?/:op?'})
-            .register({dependency: '/controllers/CustomerEventController', name: 'EventController', resolutionName: '/customers/:customer/events/:event?/:op?'})
-            .register({dependency: '/services/EventService', name: 'eventService', resolutionName: '/events/:event?/:op?'})
-            .register({dependency: '/services/CustomerEventService', name: 'eventService', resolutionName: '/customers/:customer/events/:event?/:op?'})
+            .register({dependency: '/controllers/EventController', name: 'EventController', resolutionName: '/:id/events/:event?/:op?'})
+            .register({dependency: '/controllers/CustomerEventController', name: 'EventController', resolutionName: '/:id/customers/:customer/events/:event?/:op?'})
+            .register({dependency: '/services/EventService', name: 'eventService', resolutionName: '/:id/events/:event?/:op?'})
+            .register({dependency: '/services/CustomerEventService', name: 'eventService', resolutionName: '/:id/customers/:customer/events/:event?/:op?'})
             .register({dependency: '/controllers/test', name: 'test'})
-            .register({dependency: '/controllers/CustomerController', name: 'CustomerController', resolutionName: '/customers/:customer?/:op?'})
+            .register({dependency: '/controllers/CustomerController', name: 'CustomerController', resolutionName: '/:id/customers/:customer?/:op?'})
 
     }()
 })(lodash, decoratorHelper, permissionHelper, permissionEnum);

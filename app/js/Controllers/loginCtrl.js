@@ -19,7 +19,7 @@ _$.controllers
                         if (success) {
                             lyNotifier.notify('You have successfully signed in!');
                         } else {
-                            lyNotifier.notify('Username/Password combination incorrect');
+                            lyNotifier.error('Username/Password combination incorrect');
                         }
                     }).catch(function (reason) {
                             lyNotifier.error(reason);

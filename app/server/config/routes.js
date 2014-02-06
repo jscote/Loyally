@@ -15,14 +15,6 @@
 
     module.exports = function (app) {
 
-        //app.get('/api/users', auth.requiresRole('admin'), users.getUsers);
-        //app.post('/api/users', users.createUser);
-        // app.put('/api/users', users.updateUser);
-
-
-        /*app.get('/partials/*', function(req, res) {
-         res.render('../../public/app/' + req.params);
-         });*/
         app.post('/login', auth.authenticate);
 
         app.post('/logout', function (req, res) {
@@ -30,21 +22,27 @@
             res.end();
         });
 
-
-        app.resource('events');
-        app.resource('customers', function () {
-            app.resource('events')
-        });
-
-        app.get('*', function (req, res) {
+        app.get('/', function (req, res) {
             res.render('index', {
                 bootstrappedUser: req.user
             });
         });
 
-        app.all('/api/*', function (req, res) {
+        // Put other specific routes for pages or partials here
+
+        app.resource('api', function () {
+            this.resource('events');
+            this.resource('customers', function () {
+                this.resource('events')
+            });
+
+        });
+
+
+        app.all('/*', function (req, res) {
             res.send(404);
         });
+
     };
 
 })(require('../Security/auth'));
