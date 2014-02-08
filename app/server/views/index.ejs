@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.min.css"/>
     <link rel="stylesheet" href="css/app.css"/>
 </head>
-<body>
+<body style="margin-top: 100px">
 
 <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="navbar-header">
@@ -35,6 +35,10 @@
         </div>
     </div>
 </nav>
+
+<div data-ng-controller="startupCtrl">
+    <div ng-show="offlineDetection.online">We are online</div>
+    <div ng-hide="offlineDetection.online">we are offline</div></div></div>
 
 <div class="container">
     <div class="row">
@@ -72,6 +76,8 @@ window.bootstrappedUserObject = <%-JSON.stringify(bootstrappedUser)%>;
 <script src="js/Services/lyIdentity.js"></script>
 <script src="js/Services/lyUser.js"></script>
 <script src="js/Services/lyNotifier.js"></script>
+<script src="js/Services/lyOfflineDetect.js"></script>
+<script src="js/Controllers/startupCtrl.js"></script>
 <script src="js/Controllers/checkinCtrl.js"></script>
 <script src="js/Controllers/checkoutCtrl.js"></script>
 <script src="js/Controllers/loginCtrl.js"></script>
