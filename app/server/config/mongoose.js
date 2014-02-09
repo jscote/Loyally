@@ -2,9 +2,6 @@
  * Created by jscote on 2/2/14.
  */
 
-//TODO: Change the way schemas are being configured. The user schema is instantiated because the method is called on the User object.
-//TODO: because in other require, the model is directly requested from mongoose module but the schema hasn't been instantiated yet.
-
 (function (mongoose/*, userModel*/) {
 
     module.exports = function (config) {
@@ -15,7 +12,7 @@
             console.log('db opened');
         });
 
-        //userModel.createDefaultUsers();
+
     };
 
-})(require('mongoose')/*, require('../models/User')*/);
+})(require('mongoose'));

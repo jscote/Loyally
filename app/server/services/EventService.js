@@ -2,24 +2,35 @@
  * Created by jscote on 10/20/13.
  */
 
-function EventService() {
-    if(!(this instanceof EventService)) return new EventService();
+(function (util, base) {
 
-}
+    'use strict';
 
-EventService.prototype.getEvents = function () {
-    console.log('From events service');
-    return {"data": [
-        {"eventId": 10, "eventName": 'General Events'},
-        {"eventId": 10, "eventName": 'General Events'}
-    ]};
-}
+    function EventService() {
+        if (!(this instanceof EventService)) return new EventService();
 
-EventService.prototype.getEvent = function (eventId) {
-    return {"data": [
-        {"eventId": eventId, "eventName": 'General Events'}
-    ]};
-}
+        base.call(this);
+    }
 
-module.exports = EventService;
+    util.inherits(EventService, base);
 
+    EventService.prototype.getEvents = function () {
+        console.log('From events service');
+        return {"data": [
+            {"eventId": 10, "eventName": 'General Events'},
+            {"eventId": 10, "eventName": 'General Events'}
+        ]};
+    };
+
+    EventService.prototype.getEvent = function (eventId) {
+        return {"data": [
+            {"eventId": eventId, "eventName": 'General Events'}
+        ]};
+    };
+
+    module.exports = EventService;
+
+})(
+        require('util'),
+        require(Injector.getBasePath() + '/services/baseService')
+    );

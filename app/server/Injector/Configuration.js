@@ -9,44 +9,13 @@ var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelp
 
 (function (_, decoratorHelper, permissionHelper, permissionEnum) {
 
-//TODO: Make this file ENV dependent
-
-
     module.exports = function () {
         console.log('Configuring the injection container');
         console.log('dirname is: ' + Injector.getBasePath());
         Injector
-            .decorator('eventService', function (delegateClass) {
-
-                decoratorHelper.decorateFunction(delegateClass, 'getEventsForCustomer', function (delegateFn) {
-                    return function () {
-                        console.log("logging from decorator for getEventService");
-                        var args = [].slice.call(arguments);
-                        return delegateFn.apply(delegateClass, args)
-                    };
-                });
-                return delegateClass;
-
-            }, '/:id/customers/:customer/events/:event?/:op?')
-            .decorator('EventController', function (delegateClass) {
-
-                decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn) {
-                    return function () {
-                        console.log("logging from decorator 1");
-                        var args = [].slice.call(arguments);
-                        delegateFn.apply(delegateClass, args)
-                    };
-                });
-
-                return delegateClass;
-            }, '/:id/customers/:customer/events/:event?/:op?', 2)
-            .decorator('EventController', function (delegateClass) {
-
-                //TODO: Modify injector so that we can decorate all instances of a specific type (to be used with inherited classes so we can decorate all descendant of a class)
-                //TODO: Implement base class for controllers: If we separate the concern of getting the user from request (which we could assume to be at a specific place for specific derived class/methods) and the actual application of the permission, then we should be ok
-
-
+              .decorator(require(Injector.getBasePath() + '/controllers/baseController'), function(delegateClass) {
                 decoratorHelper.decorateFunctions(delegateClass, function (delegateFn) {
+
                     //TODO: Consider refactoring to extract the way we obtain the method to know if a user is authenticated
                     //TODO: consider refactoring to extract the way we obtain the current permissions of a user
                     //      This would allow to decouple the method to verify permissions from the fact that it is obtained from a request, in effect, allowing to use this mechanism in other places
@@ -92,21 +61,18 @@ var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelp
                 });
 
                 return delegateClass;
-            }, '/:id/customers/:customer/events/:event?/:op?', 1)
-            .decorator('fs', function (delegateClass) {
-                delegateClass.myFunction = function () {
-                    console.log("from fs myFunction");
-                };
+            })
+            .decorator(require(Injector.getBasePath() + '/services/baseService'), function(delegateClass) {
+                decoratorHelper.decorateFunctions(delegateClass, function (delegateFn) {
+                    return function () {
+                        console.log("logging from decorator for all services");
+                        var args = [].slice.call(arguments);
+                        return delegateFn.apply(delegateClass, args)
+                    };
+                });
                 return delegateClass;
             })
             .register({dependency: '/Injector/StrategyResolver', name: 'strategyResolver'})
             .register({dependency: '/Injector/ControllerResolver', name: 'controllerResolver'})
-            .register({dependency: '/controllers/EventController', name: 'EventController', resolutionName: '/:id/events/:event?/:op?'})
-            .register({dependency: '/controllers/CustomerEventController', name: 'EventController', resolutionName: '/:id/customers/:customer/events/:event?/:op?'})
-            .register({dependency: '/services/EventService', name: 'eventService', resolutionName: '/:id/events/:event?/:op?'})
-            .register({dependency: '/services/CustomerEventService', name: 'eventService', resolutionName: '/:id/customers/:customer/events/:event?/:op?'})
-            .register({dependency: '/controllers/test', name: 'test'})
-            .register({dependency: '/controllers/CustomerController', name: 'CustomerController', resolutionName: '/:id/customers/:customer?/:op?'})
-
     }()
 })(lodash, decoratorHelper, permissionHelper, permissionEnum);

@@ -36,9 +36,13 @@
     </div>
 </nav>
 
+
 <div data-ng-controller="startupCtrl">
     <div ng-show="offlineDetection.online">We are online</div>
-    <div ng-hide="offlineDetection.online">we are offline</div></div></div>
+    <div ng-hide="offlineDetection.online">we are offline</div>
+</div>
+</div>
+
 
 <div class="container">
     <div class="row">
@@ -53,7 +57,7 @@
 </div>
 
 <script>
-window.bootstrappedUserObject = <%-JSON.stringify(bootstrappedUser)%>;
+    window.bootstrappedUserObject = <%-JSON.stringify(bootstrappedUser)%>;
 </script>
 
 <script src="lib/jquery/jquery-2.0.3.min.js"></script>

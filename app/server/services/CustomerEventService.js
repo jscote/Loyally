@@ -2,28 +2,40 @@
  * Created by jscote on 10/20/13.
  */
 
-function CustomerEventService(test) {
-    if(!(this instanceof CustomerEventService)) return new CustomerEventService(test);
+(function (util, base) {
 
-    //Example of injecting a simple function with the default resolutionName
-    this.test = test;
-}
+    'use strict';
 
-CustomerEventService.prototype.getEventsForCustomer = function (customerId) {
-    console.log('From Customer Event Service');
-    this.test.log();
-    return ({"data": [
-        {"eventId": 20, "eventName": 'Event For Customer', "customerId": customerId},
-        {"eventId": 30, "eventName": 'Event For Customer', "customerId": customerId}
-    ]});
+    function CustomerEventService(test) {
+        if (!(this instanceof CustomerEventService)) return new CustomerEventService(test);
+        base.call(this);
 
-};
+        //Example of injecting a simple function with the default resolutionName
+        this.test = test;
 
-CustomerEventService.prototype.getEvent = function (customerId, eventId) {
-    return ({"data":
-        {"eventId": eventId, "eventName": 'Event For Customer', "customerId": customerId}
-    });
+    }
 
-};
+    util.inherits(CustomerEventService, base);
 
-module.exports = CustomerEventService;
+    CustomerEventService.prototype.getEventsForCustomer = function (customerId) {
+        console.log('From Customer Event Service');
+        this.test.log();
+        return ({"data": [
+            {"eventId": 20, "eventName": 'Event For Customer', "customerId": customerId},
+            {"eventId": 30, "eventName": 'Event For Customer', "customerId": customerId}
+        ]});
+
+    };
+
+    CustomerEventService.prototype.getEvent = function (customerId, eventId) {
+        return ({"data": {"eventId": eventId, "eventName": 'Event For Customer', "customerId": customerId}
+        });
+
+    };
+
+    module.exports = CustomerEventService;
+
+})(
+        require('util'),
+        require(Injector.getBasePath() + '/services/baseService')
+    );

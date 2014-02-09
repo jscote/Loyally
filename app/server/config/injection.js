@@ -12,6 +12,7 @@
         global.Injector = require(baseDir + '/Injector/Injector');
         global.Injector.setBasePath(baseDir);
         require(baseDir + '/Injector/Configuration');
+        require(baseDir + '/config/DependencyInjection')();
     };
 
 })();
