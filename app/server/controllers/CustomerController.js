@@ -20,13 +20,14 @@
     CustomerController.prototype.annotations =
         [new PermissionAnnotation()
             .addRequiredPermission(new Permission(permissionEnum().CanLogin))
-            ];
+        ];
 
     CustomerController.prototype.index = function (request, response) {
-        response.send({"data": [
-            {"customerId": 10, "customerName": 'My Address'},
-            {"customerId": 20, "customerName": 'My Address'}
-        ]});
+        return { "statusCode": '200',
+            "data": [
+                {"customerId": 10, "customerName": 'My Address'},
+                {"customerId": 20, "customerName": 'My Address'}
+            ]};
     };
 
     CustomerController.prototype.index.annotations =
@@ -35,9 +36,10 @@
 
     CustomerController.prototype.get = function (request, response) {
         var customerId = request.params.customer;
-        response.send({"data": [
-            {"customerId": customerId, "customerName": 'My Address'}
-        ]});
+        return { "statusCode": '200',
+            "data": [
+                {"customerId": customerId, "customerName": 'My Address'}
+            ]};
     };
 
 

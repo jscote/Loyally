@@ -2,7 +2,7 @@
  * Created by jscote on 10/20/13.
  */
 
-(function (util, base, Permission, PermissionAnnotation, permissionEnum) {
+(function (util, base, Permission, PermissionAnnotation, permissionEnum, NoAuthRequiredAnnotation) {
 
     'use strict';
 
@@ -19,15 +19,18 @@
 
     util.inherits(ItemController, base);
 
+    //If we want the entire controller methods to not require authentication, we would use the annotation at this level
+    //ItemController.prototype.annotations = [new NoAuthRequiredAnnotation()];
+
     ItemController.prototype.index = function (request, response) {
-        response.send(this.itemService.getItems());
+        return {"statusCode": '200', "data": this.itemService.getItems()};
     };
 
-    ItemController.prototype.index.annotations = [];
+    ItemController.prototype.index.annotations = [new NoAuthRequiredAnnotation()];
 
     ItemController.prototype.get = function (request, response) {
         var itemId = request.params.item;
-        response.send(this.itemService.getItem(itemId));
+        return {"statusCode": '200', "data": this.itemService.getItem(itemId)};
     };
 
 
@@ -37,4 +40,5 @@
         require(Injector.getBasePath() + '/controllers/baseController'),
         require(Injector.getBasePath() + '/Security/Permissions'),
         require(Injector.getBasePath() + '/Security/PermissionAnnotation'),
-        require(Injector.getBasePath() + '/Security/permissionEnum'));
+        require(Injector.getBasePath() + '/Security/permissionEnum'),
+        require(Injector.getBasePath() + '/Security/NoAuthRequiredAnnotation'));

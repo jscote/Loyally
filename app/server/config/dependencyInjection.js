@@ -30,7 +30,7 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
                     return function () {
                         console.log("logging from decorator 1");
                         var args = [].slice.call(arguments);
-                        delegateFn.apply(delegateClass, args)
+                        return delegateFn.apply(delegateClass, args)
                     };
                 });
 

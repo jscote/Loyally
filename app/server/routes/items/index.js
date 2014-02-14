@@ -12,11 +12,17 @@
         }
 
         var index = function (request, response) {
-            controller.index(request, response);
+            var result = controller.index(request, response);
+
+            response.statusCode = result.statusCode || '200';
+            response.send(result.error || result.data);
         }
 
         var get = function (request, response) {
-            controller.get(request, response);
+            var result = controller.get(request, response);
+
+            response.statusCode = result.statusCode || '200';
+            response.send(result.error || result.data);
         }
 
 

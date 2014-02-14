@@ -25,14 +25,14 @@
     util.inherits(EventController, base);
 
     EventController.prototype.index = function (request, response) {
-        response.send(this.eventService.getEvents());
+        return {"statusCode": '200', "data": this.eventService.getEvents()};
     };
 
     EventController.prototype.index.annotations = [];
 
     EventController.prototype.get = function (request, response) {
         var eventId = request.params.event;
-        response.send(this.eventService.getEvent(eventId));
+        return {"statusCode": '200', "data": this.eventService.getEvent(eventId)};
     };
 
 
