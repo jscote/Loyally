@@ -34,7 +34,9 @@
             this.resource('events');
             this.resource('customers', function () {
                 this.resource('events')
+                this.resource('items')
             });
+            this.resource('items')
 
         });
 

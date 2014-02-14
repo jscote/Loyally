@@ -48,6 +48,8 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
             .register({dependency: '/services/CustomerEventService', name: 'eventService', resolutionName: '/:id/customers/:customer/events/:event?/:op?'})
             .register({dependency: '/controllers/test', name: 'test'})
             .register({dependency: '/controllers/CustomerController', name: 'CustomerController', resolutionName: '/:id/customers/:customer?/:op?'})
+            .register({dependency: '/controllers/ItemController', name: 'ItemController', resolutionName: '/:id/items/:item?/:op?'})
+            .register({dependency: '/services/ItemService', name: 'itemService', resolutionName: '/:id/items/:item?/:op?'})
 
     }
 })(lodash, decoratorHelper);
