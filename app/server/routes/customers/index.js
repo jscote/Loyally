@@ -3,7 +3,7 @@
  */
 
 (function (controllerResolver) {
-    "use strict"
+    "use strict";
     module.exports = (function customerRouteHandler() {
         var targetController = 'CustomerController';
         var controller = null;
@@ -15,16 +15,12 @@
 
         var index = function (request, response) {
             var result = controller.index(request, response);
-
-            response.statusCode = result.statusCode || '200';
-            response.send(result.error || result.data);
+            response.send(result.data);
         };
 
         var get = function (request, response) {
             var result = controller.get(request, response);
-
-            response.statusCode = result.statusCode || '200';
-            response.send(result.error || result.data);
+            response.send(result.data);
         };
 
 

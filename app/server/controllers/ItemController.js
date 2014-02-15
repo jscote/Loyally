@@ -23,14 +23,14 @@
     //ItemController.prototype.annotations = [new NoAuthRequiredAnnotation()];
 
     ItemController.prototype.index = function (request, response) {
-        return {"statusCode": '200', "data": this.itemService.getItems()};
+        return this.itemService.getItems();
     };
 
     ItemController.prototype.index.annotations = [new NoAuthRequiredAnnotation()];
 
     ItemController.prototype.get = function (request, response) {
         var itemId = request.params.item;
-        return {"statusCode": '200', "data": this.itemService.getItem(itemId)};
+        return this.itemService.getItem(itemId);
     };
 
 

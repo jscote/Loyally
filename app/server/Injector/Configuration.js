@@ -15,6 +15,24 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
         console.log('Configuring the injection container');
         console.log('dirname is: ' + Injector.getBasePath());
         Injector
+            .decorator(require(Injector.getBasePath() + '/controllers/apiController'), function (delegateClass) {
+                decoratorHelper.decorateFunctions(delegateClass, function (delegateFn) {
+                    //Decorate the class with a tail decoration to modify the returned object if it is not in the expected format
+
+                    return function () {
+                        var args = [].slice.call(arguments);
+                        var returnObject = {};
+                        var result = delegateFn.apply(delegateClass, args);
+
+                        returnObject.statusCode = result.statusCode || '200';
+                        returnObject.data = result.data || result;
+
+                        return returnObject;
+                    }
+                });
+
+                return delegateClass;
+            })
             .decorator(require(Injector.getBasePath() + '/controllers/permissionApiController'), function (delegateClass) {
                 decoratorHelper.decorateFunctions(delegateClass, function (delegateFn) {
 
@@ -55,7 +73,7 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
                         }
 
                         if (!isAuthRequired || hasPermission) {
-                            return delegateFn.apply(delegateClass, args)
+                            return delegateFn.apply(delegateClass, args);
                         } else {
                             return (function (request, response) {
                                 return {"statusCode": 401, "data": {"error": 'Permission Denied'} };

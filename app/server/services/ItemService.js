@@ -16,16 +16,14 @@
 
     ItemService.prototype.getItems = function () {
         console.log('From items service');
-        return {"data": [
+        return [
             {"itemId": 10, "itemName": 'General Item'},
             {"itemId": 20, "itemName": 'General Item'}
-        ]};
+        ];
     };
 
     ItemService.prototype.getItem = function (itemId) {
-        return {"data": [
-            {"itemId": itemId, "itemName": 'General Item'}
-        ]};
+        return {"itemId": itemId, "itemName": 'General Item'};
     };
 
     module.exports = ItemService;

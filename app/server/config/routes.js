@@ -2,16 +2,9 @@
  * Created by jscote on 2/2/14.
  */
 
-//TODO: review file structure to make it compliant with revealing module pattern
-//TODO: review mechanism to work with injected controllers
+//TODO: review mechanism to work with injected controllers for regular routes
 
 (function (auth) {
-
-    //TODO: instead of going to controllers folder, we would go to routes folder. The function there would simply be
-    //TODO: calling a real injected controller
-    //TODO: figure out how to get the authentication in that chain
-    //TODO: Figure a way to specify a starting path such as /api to use with resources.
-    //users = require('../controllers/users'),
 
     module.exports = function (app) {
 
@@ -33,8 +26,8 @@
         app.resource('api', function () {
             this.resource('events');
             this.resource('customers', function () {
-                this.resource('events')
-                this.resource('items')
+                this.resource('events');
+                this.resource('items');
             });
             this.resource('items')
 

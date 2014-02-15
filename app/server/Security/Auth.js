@@ -2,8 +2,6 @@
  * Created by jscote on 2/2/14.
  */
 
-//TODO: review mechanism to work with injected controlllers
-
 (function (passport) {
 
     exports.authenticate = function (req, res, next) {

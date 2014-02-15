@@ -26,7 +26,7 @@
 
     CustomerEventController.prototype.index = function (request, response) {
         var customerId = request.params.customer;
-        return {"statusCode": '200', "data": this.eventService.getEventsForCustomer(customerId)};
+        return this.eventService.getEventsForCustomer(customerId);
     };
 
     CustomerEventController.prototype.index.annotations =
@@ -37,7 +37,7 @@
     CustomerEventController.prototype.get = function (request, response) {
         var customerId = request.params.customer;
         var eventId = request.params.event;
-        return {"statusCode": '200', "data": this.eventService.getEvent(customerId, eventId)};
+        return this.eventService.getEvent(customerId, eventId);
     };
 
 

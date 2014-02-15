@@ -16,16 +16,15 @@
 
     EventService.prototype.getEvents = function () {
         console.log('From events service');
-        return {"data": [
+        return [
             {"eventId": 10, "eventName": 'General Events'},
             {"eventId": 10, "eventName": 'General Events'}
-        ]};
+        ];
     };
 
     EventService.prototype.getEvent = function (eventId) {
-        return {"data": [
-            {"eventId": eventId, "eventName": 'General Events'}
-        ]};
+        return {"eventId": eventId, "eventName": 'General Events'};
+
     };
 
     module.exports = EventService;
