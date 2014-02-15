@@ -37,7 +37,7 @@
     module.exports = ItemController;
 
 })(require('util'),
-        require(Injector.getBasePath() + '/controllers/baseController'),
+        require(Injector.getBasePath() + '/controllers/apiController'),
         require(Injector.getBasePath() + '/Security/Permissions'),
         require(Injector.getBasePath() + '/Security/PermissionAnnotation'),
         require(Injector.getBasePath() + '/Security/permissionEnum'),

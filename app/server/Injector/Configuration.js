@@ -15,7 +15,7 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
         console.log('Configuring the injection container');
         console.log('dirname is: ' + Injector.getBasePath());
         Injector
-            .decorator(require(Injector.getBasePath() + '/controllers/baseController'), function (delegateClass) {
+            .decorator(require(Injector.getBasePath() + '/controllers/permissionApiController'), function (delegateClass) {
                 decoratorHelper.decorateFunctions(delegateClass, function (delegateFn) {
 
                     //TODO: Consider refactoring to extract the way we obtain the method to know if a user is authenticated
