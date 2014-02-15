@@ -7,9 +7,10 @@ var permissionEnum = require(Injector.getBasePath() + '/Security/permissionEnum'
 var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper');
 var permissionHelper = require(Injector.getBasePath() + '/Helpers/permissionHelper');
 var annotationHelper = require(Injector.getBasePath() + '/Helpers/annotationHelper');
+var httpApiResponse = require(Injector.getBasePath() + '/Helpers/httpApiResponse');
 var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAuthRequiredAnnotation');
 
-(function (_, decoratorHelper, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation) {
+(function (_, decoratorHelper, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse) {
 
     module.exports = function () {
         console.log('Configuring the injection container');
@@ -24,10 +25,12 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
                         var returnObject = {};
                         var result = delegateFn.apply(delegateClass, args);
 
-                        returnObject.statusCode = result.statusCode || '200';
-                        returnObject.data = result.data || result;
+                        if (!(result instanceof httpApiResponse.HttpApiResponse)) {
+                            result = httpApiResponse.createHttpApiResponse('200', result.data || result);
+                        }
 
-                        return returnObject;
+                        return result;
+
                     }
                 });
 
@@ -51,9 +54,8 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
 
                         if (isAuthRequired && !req.isAuthenticated()) {
                             return (function (request, response) {
-                                return {"statusCode": 403, "data": {"error": 'Not Authenticated'} };
+                                return httpApiResponse.createHttpApiResponse('403', {"error": 'Not Authenticated'});
                             }).apply(delegateClass, args);
-
                         }
 
                         console.log("logging from decorator 2");
@@ -76,7 +78,7 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
                             return delegateFn.apply(delegateClass, args);
                         } else {
                             return (function (request, response) {
-                                return {"statusCode": 401, "data": {"error": 'Permission Denied'} };
+                                return httpApiResponse.createHttpApiResponse('401', {"error": 'Permission Denied'});
                             }).apply(delegateClass, args);
                         }
                     };
@@ -97,4 +99,4 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
             .register({dependency: '/Injector/StrategyResolver', name: 'strategyResolver'})
             .register({dependency: '/Injector/ControllerResolver', name: 'controllerResolver'})
     }()
-})(lodash, decoratorHelper, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation);
+})(lodash, decoratorHelper, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse);

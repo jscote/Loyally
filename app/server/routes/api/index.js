@@ -1,12 +1,10 @@
-
-
 (function () {
 
     'use strict'
 
-    module.exports = (function eventsRouteHandler () {
+    module.exports = (function eventsRouteHandler() {
 
-        var all = function(request, response, next) {
+        var all = function (request, response, next) {
             next()
         }
 
@@ -16,8 +14,9 @@
         }
 
         return {
-              options: {root: true},
-              index: index
+            options: {root: true},
+            index: index,
+            get: index
         }
     })();
 })();

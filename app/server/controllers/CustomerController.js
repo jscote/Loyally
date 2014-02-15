@@ -2,7 +2,7 @@
  * Created by jscote on 10/20/13.
  */
 
-(function (util, base, Permission, PermissionAnnotation, permissionEnum) {
+(function (util, base, Permission, PermissionAnnotation, permissionEnum, httpApiResponse) {
 
     'use strict';
 
@@ -25,11 +25,11 @@
     CustomerController.prototype.index = function (request, response) {
         //This demonstrate that if we want, we can return an object that has the shape of what the route handler is expecting
         //That would allow having more control on the status code when needed
-        return { "statusCode": '200',
-            "data": [
-                {"customerId": 10, "customerName": 'My Address'},
-                {"customerId": 20, "customerName": 'My Address'}
-            ]};
+
+        return httpApiResponse.createHttpApiResponse('200', [
+            {"customerId": 10, "customerName": 'My Address'},
+            {"customerId": 20, "customerName": 'My Address again'}
+        ]);
     };
 
     CustomerController.prototype.index.annotations =
@@ -40,10 +40,7 @@
         var customerId = request.params.customer;
         //This demonstrate that if we want, we can return an object that has the shape of what the route handler is expecting
         //That would allow having more control on the status code when needed
-        return { "statusCode": '200',
-            "data": [
-                {"customerId": customerId, "customerName": 'My Address'}
-            ]};
+        return httpApiResponse.createHttpApiResponse('201', {"customerId": 10, "customerName": 'My Address'});
     };
 
 
@@ -53,5 +50,7 @@
         require(Injector.getBasePath() + '/controllers/permissionApiController'),
         require(Injector.getBasePath() + '/Security/Permissions'),
         require(Injector.getBasePath() + '/Security/PermissionAnnotation'),
-        require(Injector.getBasePath() + '/Security/permissionEnum'));
+        require(Injector.getBasePath() + '/Security/permissionEnum'),
+        require(Injector.getBasePath() + '/Helpers/httpApiResponse')
+    );
 
