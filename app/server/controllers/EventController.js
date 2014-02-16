@@ -2,7 +2,7 @@
  * Created by jscote on 10/20/13.
  */
 
-(function (util, base, Permission, PermissionAnnotation, permissionEnum) {
+(function (util, base, Permission, PermissionAnnotation, permissionEnum, httpHelper) {
 
     'use strict';
 
@@ -27,14 +27,13 @@
     EventController.prototype.index = function (request, response) {
         return this.eventService.getEvents();
     };
-
-    EventController.prototype.index.annotations = [];
+    EventController.prototype.index.annotations = [new httpHelper.HttpStatusCode('200')];
 
     EventController.prototype.get = function (request, response) {
         var eventId = request.params.event;
         return this.eventService.getEvent(eventId);
     };
-
+    EventController.prototype.get.annotations = [];
 
     module.exports = EventController;
 
@@ -42,4 +41,6 @@
         require(Injector.getBasePath() + '/controllers/permissionApiController'),
         require(Injector.getBasePath() + '/Security/Permissions'),
         require(Injector.getBasePath() + '/Security/PermissionAnnotation'),
-        require(Injector.getBasePath() + '/Security/permissionEnum'));
+        require(Injector.getBasePath() + '/Security/permissionEnum'),
+        require(Injector.getBasePath() + '/Helpers/httpApiResponse')
+     );

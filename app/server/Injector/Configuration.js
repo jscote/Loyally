@@ -22,12 +22,26 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
 
                     return function () {
                         var args = [].slice.call(arguments);
-                        var returnObject = {};
                         var result = delegateFn.apply(delegateClass, args);
+                        var defaultStatusCode = '200';
+
+                        if (_.isUndefined(result)) {
+                            result = null;
+                        } else {
+                            result = result.data || result;
+                        }
+
+                        var annotations = annotationHelper.getCombinedAnnotations(delegateClass, delegateFn, httpApiResponse.HttpStatusCode);
+
+                        if(annotations.length > 0) {
+                            defaultStatusCode = annotations[0].statusCode;
+                        }
 
                         if (!(result instanceof httpApiResponse.HttpApiResponse)) {
-                            result = httpApiResponse.createHttpApiResponse('200', result.data || result);
+                            result = httpApiResponse.createHttpApiResponse(defaultStatusCode, result);
                         }
+
+                        result.statusCode = defaultStatusCode;
 
                         return result;
 
