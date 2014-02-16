@@ -103,9 +103,9 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
                 return delegateClass;
             })
             .decorator(require(Injector.getBasePath() + '/services/baseService'), function (delegateClass) {
-                decoratorHelper.decorateFunctions(delegateClass, function (delegateFn) {
+                decoratorHelper.decorateFunctions(delegateClass, function (delegateFn, delegateFnName) {
                     return function () {
-                        console.log("logging from decorator for all services");
+                        console.log("logging from decorator for all services:: function Name: " + delegateFnName);
                         var args = [].slice.call(arguments);
                         return delegateFn.apply(delegateClass, args)
                     };

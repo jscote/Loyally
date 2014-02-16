@@ -14,16 +14,28 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
         Injector
             .decorator('eventService', function (delegateClass) {
 
-                decoratorHelper.decorateFunction(delegateClass, 'getEventsForCustomer', function (delegateFn) {
+                decoratorHelper.decorateFunctions(delegateClass/*, 'getEventsForCustomer'*/, function (delegateFn) {
                     return function () {
-                        console.log("logging from decorator for getEventService");
+                        console.log("logging from decorator for EventService");
                         var args = [].slice.call(arguments);
                         return delegateFn.apply(delegateClass, args)
                     };
                 });
                 return delegateClass;
 
-            }, '/:id/customers/:customer/events/:event?/:op?')
+            })//, '/:id/customers/:customer/events/:event?/:op?')
+            .decorator('customerService', function (delegateClass) {
+
+                decoratorHelper.decorateFunctions(delegateClass/*, 'getEventsForCustomer'*/, function (delegateFn) {
+                    return function () {
+                        console.log("logging from decorator for CustomerService");
+                        var args = [].slice.call(arguments);
+                        return delegateFn.apply(delegateClass, args)
+                    };
+                });
+                return delegateClass;
+
+            })//, '/:id/customers/:customer/events/:event?/:op?')
             .decorator('EventController', function (delegateClass) {
 
                 decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn) {
@@ -68,7 +80,7 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
                     return function () {
 
                         var args = [].slice.call(arguments);
-                        var result =  delegateFn.apply(delegateClass, args)
+                        var result = delegateFn.apply(delegateClass, args);
 
                         console.log("logging from EventController post decorator 1");
                         return result;
@@ -79,13 +91,13 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
             }, '/:id/events/:event?/:op?', 4)
             .decorator('EventController', function (delegateClass) {
 
-                decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn) {
+                decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn, delegateFnName) {
                     return function () {
 
                         var args = [].slice.call(arguments);
-                        var result =  delegateFn.apply(delegateClass, args)
+                        var result = delegateFn.apply(delegateClass, args);
 
-                        console.log("logging from EventController post decorator 2");
+                        console.log("logging from EventController post decorator 2 " + delegateFnName);
                         return result;
                     };
                 });
@@ -102,11 +114,17 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
             })
             .register({dependency: '/controllers/EventController', name: 'EventController', resolutionName: '/:id/events/:event?/:op?'})
             .register({dependency: '/controllers/CustomerEventController', name: 'EventController', resolutionName: '/:id/customers/:customer/events/:event?/:op?'})
-            .register({dependency: '/services/EventService', name: 'eventService', resolutionName: '/:id/events/:event?/:op?'})
-            .register({dependency: '/services/EventService', name: 'eventService', resolutionName: '/:id/customers/:customer/events/:event?/:op?'})
+            .register({dependency: '/services/EventService', name: 'eventService'})
+            .register({dependency: '/services/CustomerService', name: 'customerService'})
+            .register({dependency: '/services/CustomerService', name: 'customerService', resolutionName: '/:id/customers/:customer?/:op?'})
+
+
+            //Use this if you want to inject the same service only to specific resolution name. It makes more sense to use that to inject a different service for the same
+            //parameter with a different resolution name. If you are going to inject the same implementation anyway, there is no need to specify a resolution name.
+            //.register({dependency: '/services/EventService', name: 'eventService', resolutionName: '/:id/events/:event?/:op?'})
+            //.register({dependency: '/services/EventService', name: 'eventService', resolutionName: '/:id/customers/:customer/events/:event?/:op?'})
             .register({dependency: '/controllers/test', name: 'test'})
             .register({dependency: '/controllers/CustomerController', name: 'CustomerController', resolutionName: '/:id/customers/:customer?/:op?'})
-            .register({dependency: '/services/CustomerService', name: 'customerService', resolutionName: '/:id/customers/:customer?/:op?'})
             .register({dependency: '/controllers/ItemController', name: 'ItemController', resolutionName: '/:id/items/:item?/:op?'})
             .register({dependency: '/services/ItemService', name: 'itemService', resolutionName: '/:id/items/:item?/:op?'})
 

@@ -6,7 +6,7 @@ var lodash = require('lodash');
 
 (function (_) {
 
-    'use strict'
+    'use strict';
 
     function validateDecorateFunctionParameters(delegate, copyToFunction) {
         if (!_.isFunction(copyToFunction)) {
@@ -29,7 +29,7 @@ var lodash = require('lodash');
         }
 
         var annotations = delegate[copyFromFunction].annotations;
-        delegate[copyFromFunction] = copyToFunction(fn);
+        delegate[copyFromFunction] = copyToFunction(fn, copyFromFunction);
         delegate[copyFromFunction].annotations = annotations;
     }
 

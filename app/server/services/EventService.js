@@ -6,12 +6,12 @@
 
     'use strict';
 
-    function EventService(test) {
+    function EventService(customerService) {
         if (!(this instanceof EventService)) return new EventService();
 
         base.call(this);
 
-        this.test = test;
+        this.customerService = customerService;
     }
 
     util.inherits(EventService, base);
@@ -29,17 +29,17 @@
     };
 
     EventService.prototype.getEventsForCustomer = function (customerId) {
-        console.log('From Customer Event Service');
-        this.test.log();
+        var customer = this.customerService.getCustomer(customerId);
         return [
-            {"eventId": 20, "eventName": 'Event For Customer', "customerId": customerId},
-            {"eventId": 30, "eventName": 'Event For Customer', "customerId": customerId}
+            {"eventId": 20, "eventName": 'Event For Customer', "customer": customer},
+            {"eventId": 30, "eventName": 'Event For Customer', "customer": customer}
         ];
 
     };
 
     EventService.prototype.getEventForCustomer = function (customerId, eventId) {
-        return {"eventId": eventId, "eventName": 'Event For Customer', "customerId": customerId};
+        var customer = this.customerService.getCustomer(customerId);
+        return {"eventId": eventId, "eventName": 'Event For Customer', "customer": customer};
     };
 
 

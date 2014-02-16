@@ -221,6 +221,7 @@
                 var item = _dependencies[value];
                 var decorators = getDecorators({target: value, resolutionName: resolutionName});
                 if (util.isArray(item)) {
+                    var fallbackDependency = null;
                     for (var i = 0; i < item.length; i++) {
                         if (item[i].resolutionName == resolutionName) {
 
@@ -233,7 +234,22 @@
 
                             return {dependency: convertedItem, decorators: decorators};
                         }
+                        if(item[i].resolutionName === defaultDependency) {
+                            var convertedFallbackItem = null;
+                            try {
+                                convertedFallbackItem = require(item[i].target);
+                            } catch (e) {
+                                convertedFallbackItem = item[i].target;
+                            }
+
+                            fallbackDependency = convertedFallbackItem;
+                        }
                     }
+
+                    if(fallbackDependency !== null) {
+                        return {dependency: fallbackDependency, decorators: decorators};
+                    }
+
                     return {dependency: null, decorators: null};
 
                 }
@@ -351,4 +367,4 @@
     })
         (util, lodash);
 
-})()
+})();
