@@ -22,7 +22,7 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
 
                     return function () {
                         var args = [].slice.call(arguments);
-                        var returnObject = {};
+
                         var result = delegateFn.apply(delegateClass, args);
 
                         if (!(result instanceof httpApiResponse.HttpApiResponse)) {
@@ -98,5 +98,5 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
             })
             .register({dependency: '/Injector/StrategyResolver', name: 'strategyResolver'})
             .register({dependency: '/Injector/ControllerResolver', name: 'controllerResolver'})
-    }()
+    }
 })(lodash, decoratorHelper, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse);
