@@ -43,6 +43,8 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
 
                         result.statusCode = defaultStatusCode;
 
+                        console.log("logging from response transformation decorator");
+
                         return result;
 
                     }
@@ -72,7 +74,7 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
                             }).apply(delegateClass, args);
                         }
 
-                        console.log("logging from decorator 2");
+                        console.log("logging from permission decorator");
 
                         var hasPermission = true;
 

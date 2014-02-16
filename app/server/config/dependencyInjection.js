@@ -36,6 +36,64 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
 
                 return delegateClass;
             }, '/:id/customers/:customer/events/:event?/:op?', 2)
+
+
+            .decorator('EventController', function (delegateClass) {
+
+                decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn) {
+                    return function () {
+                        console.log("logging from EventController pre decorator 1");
+                        var args = [].slice.call(arguments);
+                        return delegateFn.apply(delegateClass, args)
+                    };
+                });
+
+                return delegateClass;
+            }, '/:id/events/:event?/:op?', 1)
+            .decorator('EventController', function (delegateClass) {
+
+                decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn) {
+                    return function () {
+                        console.log("logging from EventController pre decorator 2");
+                        var args = [].slice.call(arguments);
+                        return delegateFn.apply(delegateClass, args)
+                    };
+                });
+
+                return delegateClass;
+            }, '/:id/events/:event?/:op?', 2)
+            .decorator('EventController', function (delegateClass) {
+
+                decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn) {
+                    return function () {
+
+                        var args = [].slice.call(arguments);
+                        var result =  delegateFn.apply(delegateClass, args)
+
+                        console.log("logging from EventController post decorator 1");
+                        return result;
+                    };
+                });
+
+                return delegateClass;
+            }, '/:id/events/:event?/:op?', 4)
+            .decorator('EventController', function (delegateClass) {
+
+                decoratorHelper.decorateFunction(delegateClass, 'index', function (delegateFn) {
+                    return function () {
+
+                        var args = [].slice.call(arguments);
+                        var result =  delegateFn.apply(delegateClass, args)
+
+                        console.log("logging from EventController post decorator 2");
+                        return result;
+                    };
+                });
+
+                return delegateClass;
+            }, '/:id/events/:event?/:op?', 3)
+
+
             .decorator('fs', function (delegateClass) {
                 delegateClass.myFunction = function () {
                     console.log("from fs myFunction");

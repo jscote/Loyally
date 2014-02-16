@@ -25,6 +25,7 @@
     util.inherits(EventController, base);
 
     EventController.prototype.index = function (request, response) {
+        console.log('from the controller itself')
         return this.eventService.getEvents();
     };
     EventController.prototype.index.annotations = [new httpHelper.HttpStatusCode('200')];
