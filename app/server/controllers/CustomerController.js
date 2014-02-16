@@ -7,10 +7,12 @@
     'use strict';
 
 
-    function CustomerController() {
+    function CustomerController(customerService) {
         if (!(this instanceof CustomerController)) return new CustomerController();
 
         base.call(this);
+
+        this.customerService = customerService;
 
     }
 
@@ -26,10 +28,7 @@
         //This demonstrate that if we want, we can return an object that has the shape of what the route handler is expecting
         //That would allow having more control on the status code when needed
 
-        return httpApiResponse.createHttpApiResponse('200', [
-            {"customerId": 10, "customerName": 'My Address'},
-            {"customerId": 20, "customerName": 'My Address again'}
-        ]);
+        return httpApiResponse.createHttpApiResponse('200', this.customerService.getCustomers());
     };
 
     CustomerController.prototype.index.annotations =
@@ -40,7 +39,7 @@
         var customerId = request.params.customer;
         //This demonstrate that if we want, we can return an object that has the shape of what the route handler is expecting
         //That would allow having more control on the status code when needed
-        return httpApiResponse.createHttpApiResponse('201', {"customerId": 10, "customerName": 'My Address'});
+        return httpApiResponse.createHttpApiResponse('201', this.customerService.getCustomer(customerId));
     };
 
 

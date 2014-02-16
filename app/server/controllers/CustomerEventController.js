@@ -37,7 +37,7 @@
     CustomerEventController.prototype.get = function (request, response) {
         var customerId = request.params.customer;
         var eventId = request.params.event;
-        return this.eventService.getEvent(customerId, eventId);
+        return this.eventService.getEventForCustomer(customerId, eventId);
     };
 
 
