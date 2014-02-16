@@ -9,7 +9,7 @@
   "contributors": [
     {
       "name": "anil",
-      "email": ""
+      "email": "anilsjunk@gmail.com"
     },
     {
       "name": "JS",
@@ -17,7 +17,15 @@
     }
   ],
   "dependencies": {
-    "express": "3.3.4"
+    "express": "~3.4.8",
+    "lodash": "~2.4.1",
+    "express-resource-new": "~0.1.1",
+    "passport": "~0.2.0",
+    "passport-local": "~0.1.6",
+    "mongoose": "~3.8.7",
+    "sequelize": "~1.7.0-rc6",
+    "sequelize-postgres": "~2.0.0-beta.2",
+    "ejs": "~0.8.5"
   },
   "repository": {
     "type": "git",
