@@ -2,9 +2,7 @@
  * Created by jscote on 1/31/14.
  */
 
-var lodash = require('lodash');
-
-(function (_) {
+(function (_, argumentListAnnotation, annotationHelper) {
 
     'use strict';
 
@@ -24,12 +22,40 @@ var lodash = require('lodash');
 
         var fn = delegate[copyFromFunction];
 
+
         if (fn === undefined || fn === null) {
             throw("The function to decorate doesn't exist on the object to be decorated.");
         }
 
+        var argsList = annotationHelper.getFunctionAnnotations(delegate[copyFromFunction], argumentListAnnotation);
         var annotations = delegate[copyFromFunction].annotations;
-        delegate[copyFromFunction] = copyToFunction(fn, copyFromFunction);
+
+        var args;
+
+        if (argsList.length === 0) {
+
+            var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+            var FN_ARG_SPLIT = /,/;
+
+            var text = fn.toString();
+            args = text.match(FN_ARGS)[1].split(FN_ARG_SPLIT).map(function (value) {
+                return value.trim()
+            });
+
+            if (_.isUndefined(annotations)) {
+                annotations = [];
+            }
+
+            var argumentList = new argumentListAnnotation(args);
+            annotations.push(argumentList);
+            args = argumentList.argumentList;
+
+        } else {
+            args = argsList[0].argumentList;
+        }
+
+
+        delegate[copyFromFunction] = copyToFunction(fn, copyFromFunction, args);
         delegate[copyFromFunction].annotations = annotations;
     }
 
@@ -62,4 +88,4 @@ var lodash = require('lodash');
         decorateFunction: decorateFunction
     }
 
-})(lodash);
+})(require('lodash'), require(Injector.getBasePath() + '/Helpers/argumentListAnnotation'), require(Injector.getBasePath() + '/Helpers/annotationHelper'));

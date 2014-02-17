@@ -10,7 +10,7 @@ var annotationHelper = require(Injector.getBasePath() + '/Helpers/annotationHelp
 var httpApiResponse = require(Injector.getBasePath() + '/Helpers/httpApiResponse');
 var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAuthRequiredAnnotation');
 
-(function (_, decoratorHelper, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse) {
+(function (_, decoratorHelper, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse, message) {
 
     module.exports = function () {
         console.log('Configuring the injection container');
@@ -33,7 +33,7 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
 
                         var annotations = annotationHelper.getCombinedAnnotations(delegateClass, delegateFn, httpApiResponse.HttpStatusCode);
 
-                        if(annotations.length > 0) {
+                        if (annotations.length > 0) {
                             defaultStatusCode = annotations[0].statusCode;
                         }
 
@@ -103,16 +103,61 @@ var NoAuthRequiredAnnotation = require(Injector.getBasePath() + '/Security/NoAut
                 return delegateClass;
             })
             .decorator(require(Injector.getBasePath() + '/services/baseService'), function (delegateClass) {
-                decoratorHelper.decorateFunctions(delegateClass, function (delegateFn, delegateFnName) {
-                    return function () {
-                        console.log("logging from decorator for all services:: function Name: " + delegateFnName);
-                        var args = [].slice.call(arguments);
-                        return delegateFn.apply(delegateClass, args)
-                    };
-                });
+                decoratorHelper.decorateFunctions(delegateClass, function (delegateFn, delegateFnName, argsName) {
+                        return function () {
+                            //TODO - Move this code in some other places so it is easier to maintain and refactor in smaller methods
+                            console.log("logging from decorator for all services:: function Name: " + delegateFnName);
+                            var args = [].slice.call(arguments);
+
+                            //Check if the arguments are of type ServiceMessage. If not, then create a service message
+                            //TODO - Move this in its own helper method.
+                            var parameters = {};
+
+                            var msg = _.find(args, function (item) {
+                                return item instanceof message.ServiceMessage
+                            });
+
+                            if (_.isUndefined(msg)) {
+                                msg = new message.ServiceMessage();
+                                for (var i = 0; i < argsName.length; i++) {
+                                    if (!_.isUndefined(args[i])) {
+                                        parameters[argsName[i]] = args[i];
+                                    }
+                                }
+
+                                msg.data = parameters;
+                            }
+
+                            //TODO - Check if the serviceMessage has a correlationId, if not, give it one
+                            //TODO - by first checking if the service has one, if not, create a new one
+                            //TODO - and also assign to the service
+
+                            //TODO - Check if the method has annotations to validate the message.
+                            //TODO - If so, execute the validation method.
+                            //TODO - If the message is not valid, return a response with the validation errors
+
+                            //surround call with a try catch
+                            //TODO - if there is an error, make sure to create a response and set the errors based on the exception
+                            try {
+                                var result = delegateFn.apply(delegateClass, args);
+                            } catch (exception) {
+
+                            }
+
+                            //TODO - check if the result is of type ServiceResponse.
+
+
+                            return result;
+                        };
+                    }
+                )
+                ;
                 return delegateClass;
-            })
+            }
+        )
             .register({dependency: '/Injector/StrategyResolver', name: 'strategyResolver'})
             .register({dependency: '/Injector/ControllerResolver', name: 'controllerResolver'})
-    }()
-})(lodash, decoratorHelper, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse);
+    }
+        ()
+})
+    (lodash, decoratorHelper, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse, require(Injector.getBasePath() + '/services/serviceMessage'));
