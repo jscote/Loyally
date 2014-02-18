@@ -33,7 +33,7 @@
 
         var customerMessage = new this.messaging.ServiceMessage({data: {"customerId": message.data.customerId}});
 
-        var customer = this.customerService.getCustomer(customerMessage);
+        var customer = this.customerService.getCustomer(customerMessage).data;
         return [
             {"eventId": 20, "eventName": 'Event For Customer', "customer": customer},
             {"eventId": 30, "eventName": 'Event For Customer', "customer": customer}
@@ -42,8 +42,10 @@
     };
 
     EventService.prototype.getEventForCustomer = function (message) {
+        throw('let us see if there is an error');
+
         var customerMessage = new this.messaging.ServiceMessage({data: {"customerId": message.data.customerId}});
-        var customer = this.customerService.getCustomer(customerMessage);
+        var customer = this.customerService.getCustomer(customerMessage).data;
 
         return {"eventId": message.data.eventId, "eventName": 'Event For Customer', "customer": customer};
     };

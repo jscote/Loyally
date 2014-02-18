@@ -27,7 +27,7 @@
 
     CustomerEventController.prototype.index = function (request, response) {
         var message = new this.messaging.ServiceMessage({data: {customerId: request.params.customer}});
-        return this.eventService.getEventsForCustomer(message);
+        return this.eventService.getEventsForCustomer(message).data;
     };
 
     CustomerEventController.prototype.index.annotations =
@@ -37,7 +37,7 @@
 
     CustomerEventController.prototype.get = function (request, response) {
         var message = new this.messaging.ServiceMessage({data: {customerId: request.params.customer, eventId: request.params.event}});
-        return this.eventService.getEventForCustomer(message);
+        return this.eventService.getEventForCustomer(message).data;
     };
 
 

@@ -27,13 +27,13 @@
 
     EventController.prototype.index = function (request, response) {
         console.log('from the controller itself')
-        return this.eventService.getEvents();
+        return this.eventService.getEvents().data;
     };
     EventController.prototype.index.annotations = [new httpHelper.HttpStatusCode('200')];
 
     EventController.prototype.get = function (request, response) {
         var message = new this.messaging.ServiceMessage({data: {eventId:  request.params.event}});
-        return this.eventService.getEvent(message);
+        return this.eventService.getEvent(message).data;
     };
     EventController.prototype.get.annotations = [];
 

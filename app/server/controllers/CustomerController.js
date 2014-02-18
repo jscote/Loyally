@@ -29,7 +29,7 @@
         //This demonstrate that if we want, we can return an object that has the shape of what the route handler is expecting
         //That would allow having more control on the status code when needed
 
-        return httpApiResponse.createHttpApiResponse('200', this.customerService.getCustomers());
+        return httpApiResponse.createHttpApiResponse('200', this.customerService.getCustomers().data);
     };
 
     CustomerController.prototype.index.annotations =
@@ -41,7 +41,7 @@
         //That would allow having more control on the status code when needed
 
         var message = new this.messaging.ServiceMessage({data: {customerId: request.params.customer}});
-        return httpApiResponse.createHttpApiResponse('201', this.customerService.getCustomer(message));
+        return httpApiResponse.createHttpApiResponse('201', this.customerService.getCustomer(message).data);
     };
 
 

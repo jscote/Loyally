@@ -16,15 +16,15 @@
 
         if (_.isUndefined(msg)) {
             msg = new message.ServiceMessage();
-/*            for (var i = 0; i < argsName.length; i++) {
-                //and copy original arguments to the data object of the message
-                if (!_.isUndefined(args[i])) {
-                    parameters[argsName[i]] = args[i];
-                }
-            }
+            /*            for (var i = 0; i < argsName.length; i++) {
+             //and copy original arguments to the data object of the message
+             if (!_.isUndefined(args[i])) {
+             parameters[argsName[i]] = args[i];
+             }
+             }
 
-            msg.data = parameters;
- */
+             msg.data = parameters;
+             */
         }
 
         return msg;
@@ -47,8 +47,8 @@
         //and also assign to the service
 
         //if message has a correlationId, let's use this one
-        if(_.isUndefined(msg.correlationId) || _.isNull(msg.correlationId)) {
-            if(_.isUndefined(service.correlationId) || _.isNull(service.correlationId)) {
+        if (_.isUndefined(msg.correlationId) || _.isNull(msg.correlationId)) {
+            if (_.isUndefined(service.correlationId) || _.isNull(service.correlationId)) {
                 msg.correlationId = correlationHandle.generateUUID();
                 service.correlationId = msg.correlationId;
             }
@@ -56,14 +56,22 @@
         }
 
         //Set the correlationId of all injected services to this service so that they share the same correlationId
-        for(var prop in service) {
-            if(service.hasOwnProperty(prop)) {
-                if(service[prop] instanceof baseService) {
+        for (var prop in service) {
+            if (service.hasOwnProperty(prop)) {
+                if (service[prop] instanceof baseService) {
                     service[prop].correlationId = service.correlationId;
                 }
             }
         }
 
+    }
+
+    function logExecution(msg, delegateFnName, eventName) {
+        console.log("%s, %s, correlationId: %s, message payload: %j", eventName, delegateFnName, msg.correlationId, msg.data);
+    }
+
+    function logExecutionError(msg, delegateFnName, eventName, error) {
+        console.log("%s, %s, correlationId: %s, message payload: %j, with error: %s", eventName, delegateFnName, msg.correlationId, msg.data, error);
     }
 
     module.exports = function (delegateClass) {
@@ -83,21 +91,48 @@
 
                 //surround call with a try catch
 
-                //TODO - Log before Call
+                //Log before Call
+                logExecution(msg, delegateFnName, "Before Execution");
+                var result = {data: null};
                 try {
-                    var result = delegateFn.call(delegateClass, msg);
+                    result = delegateFn.call(delegateClass, msg);
                 } catch (exception) {
 
                     //TODO - if there is an error, make sure to create a response and set the errors based on the exception
-                    //TODO - Log Error while calling
+                    //Log Error while calling
+                    logExecutionError(msg, delegateFnName, "Error Executing", exception);
+                    var errorResponse;
+                    if (!(result instanceof message.ServiceResponse)) {
+                        errorResponse = new message.ServiceResponse({data: result});
+                        errorResponse.isSuccess = false;
+                    } else {
+                        errorResponse = result;
+                        errorResponse.isSuccess = false;
+                    }
+
+                    errorResponse.errors.push(exception);
+
+                    logExecution(msg, delegateFnName, "After Execution");
+
+                    return errorResponse;
                 }
 
-                //TODO - Log after call
+                //Log after call
+                logExecution(msg, delegateFnName, "After Execution");
 
                 //TODO - check if the result is of type ServiceResponse.
+                var response;
+                if (!(result instanceof message.ServiceResponse)) {
+                    response = new message.ServiceResponse({data: result});
+                    response.isSuccess = true;
+                } else {
+                    response = result;
+                    response.isSuccess = true;
+                }
 
 
-                return result;
+                response.correlationId = msg.correlationId;
+                return response;
             };
         }
     }
