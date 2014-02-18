@@ -7,7 +7,7 @@
     'use strict';
 
     module.exports = function (delegateClass) {
-        return function (delegateFn, delegateFnName, argsName) {
+        return function (delegateFn, delegateFnName) {
 
             //TODO: Consider refactoring to extract the way we obtain the method to know if a user is authenticated
             //TODO: consider refactoring to extract the way we obtain the current permissions of a user

@@ -6,9 +6,11 @@
 
     'use strict';
 
-    function CustomerService() {
-        if (!(this instanceof CustomerService)) return new CustomerService(test);
+    function CustomerService(serviceMessage) {
+        if (!(this instanceof CustomerService)) return new CustomerService(serviceMessage);
         base.call(this);
+
+        this.messaging = serviceMessage;
     }
 
     util.inherits(CustomerService, base);
@@ -21,8 +23,8 @@
 
     };
 
-    CustomerService.prototype.getCustomer = function (customerId) {
-        return  {"customerId": customerId, "customerName": 'An even more important Customer', "Address": 'Somewhere around there'};
+    CustomerService.prototype.getCustomer = function (message) {
+        return  {"customerId": message.data.customerId, "customerName": 'An even more important Customer', "Address": 'Somewhere around there'};
     };
 
     module.exports = CustomerService;

@@ -7,7 +7,7 @@
 
     var MessageBase = function MessageBase(options) {
         options = options || { };
-        Object.defineProperty(this, "data", { writable: true, value: options.data || null });
+        Object.defineProperty(this, "data", { writable: true, value: options.data || {} });
         Object.defineProperty(this, "correlationId", {writable: true, value: null});
     };
 

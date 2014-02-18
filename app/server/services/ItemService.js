@@ -6,10 +6,11 @@
 
     'use strict';
 
-    function ItemService() {
-        if (!(this instanceof ItemService)) return new ItemService();
+    function ItemService(serviceMessage) {
+        if (!(this instanceof ItemService)) return new ItemService(serviceMessage);
 
         base.call(this);
+        this.messaging = serviceMessage;
     }
 
     util.inherits(ItemService, base);
@@ -22,8 +23,8 @@
         ];
     };
 
-    ItemService.prototype.getItem = function (itemId) {
-        return {"itemId": itemId, "itemName": 'General Item'};
+    ItemService.prototype.getItem = function (message) {
+        return {"itemId": message.data.itemId, "itemName": 'General Item'};
     };
 
     module.exports = ItemService;

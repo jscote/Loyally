@@ -27,9 +27,11 @@
             throw("The function to decorate doesn't exist on the object to be decorated.");
         }
 
-        var argsList = annotationHelper.getFunctionAnnotations(delegate[copyFromFunction], argumentListAnnotation);
-        var annotations = delegate[copyFromFunction].annotations;
 
+
+        var annotations = delegate[copyFromFunction].annotations;
+        /*
+        var argsList = annotationHelper.getFunctionAnnotations(delegate[copyFromFunction], argumentListAnnotation);
         var args;
 
         if (argsList.length === 0) {
@@ -54,8 +56,8 @@
             args = argsList[0].argumentList;
         }
 
-
-        delegate[copyFromFunction] = copyToFunction(fn, copyFromFunction, args);
+*/
+        delegate[copyFromFunction] = copyToFunction(fn, copyFromFunction);
         delegate[copyFromFunction].annotations = annotations;
     }
 

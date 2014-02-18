@@ -9,20 +9,22 @@
 
     var correlationHandle = new CorrelationHandle();
 
-    function initializeMessage(msg, args, argsName) {
+    function initializeMessage(msg, args) {
         var parameters = {};
 
         //Check if the arguments are of type ServiceMessage. If not, then create a service message
-        //and copy original arguments to the data object of the message
+
         if (_.isUndefined(msg)) {
             msg = new message.ServiceMessage();
-            for (var i = 0; i < argsName.length; i++) {
+/*            for (var i = 0; i < argsName.length; i++) {
+                //and copy original arguments to the data object of the message
                 if (!_.isUndefined(args[i])) {
                     parameters[argsName[i]] = args[i];
                 }
             }
 
             msg.data = parameters;
+ */
         }
 
         return msg;
@@ -83,7 +85,7 @@
 
                 //TODO - Log before Call
                 try {
-                    var result = delegateFn.apply(delegateClass, args);
+                    var result = delegateFn.call(delegateClass, msg);
                 } catch (exception) {
 
                     //TODO - if there is an error, make sure to create a response and set the errors based on the exception

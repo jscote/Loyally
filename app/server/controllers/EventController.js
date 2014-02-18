@@ -6,9 +6,9 @@
 
     'use strict';
 
-    function EventController(eventService, fs) {
+    function EventController(eventService, fs, serviceMessage) {
 
-        if (!(this instanceof EventController)) return new EventController(eventService, fs);
+        if (!(this instanceof EventController)) return new EventController(eventService, fs, serviceMessage);
 
 
         base.call(this);
@@ -19,6 +19,7 @@
         //so we can call our deoorated method
         fs.myFunction();
         this.eventService = eventService;
+        this.messaging = serviceMessage;
 
     }
 
@@ -31,8 +32,8 @@
     EventController.prototype.index.annotations = [new httpHelper.HttpStatusCode('200')];
 
     EventController.prototype.get = function (request, response) {
-        var eventId = request.params.event;
-        return this.eventService.getEvent(eventId);
+        var message = new this.messaging.ServiceMessage({data: {eventId:  request.params.event}});
+        return this.eventService.getEvent(message);
     };
     EventController.prototype.get.annotations = [];
 

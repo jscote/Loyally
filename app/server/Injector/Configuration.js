@@ -23,6 +23,7 @@
             }
         )
             .register({dependency: '/Injector/StrategyResolver', name: 'strategyResolver'})
+            .register({dependency: '/services/serviceMessage', name: 'serviceMessage'})
             .register({dependency: '/Injector/ControllerResolver', name: 'controllerResolver'})
     }
 })

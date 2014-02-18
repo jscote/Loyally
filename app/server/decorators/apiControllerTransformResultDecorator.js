@@ -6,7 +6,7 @@
     'use strict';
 
     module.exports = function (delegateClass) {
-        return function (delegateFn, delegateFnName, argsName) {
+        return function (delegateFn, delegateFnName) {
             //Decorate the class with a tail decoration to modify the returned object if it is not in the expected format
 
             return function () {
