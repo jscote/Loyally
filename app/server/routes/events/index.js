@@ -30,7 +30,7 @@
 
 (function (controllerResolver) {
 
-    'use strict'
+    'use strict';
 
     module.exports = (function eventsRouteHandler () {
         var targetController = 'EventController';
@@ -39,7 +39,7 @@
          var all = function (request, response, next) {
             controller = controllerResolver.getController({targetController: targetController, parameters: request});
             next();
-        }
+        };
 
         var index = function (request, response) {
 
@@ -49,14 +49,14 @@
             f.myFunction();
 
             var result = controller.index(request, response);
-            response.send(result.data);
+            response.send(result.statusCode, result.data);
 
-        }
+        };
 
         var get = function(request, response){
             var result = controller.get(request, response);
-            response.send(result.data);
-        }
+            response.send(result.statusCode, result.data);
+        };
 
 
         return {

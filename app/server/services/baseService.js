@@ -9,7 +9,7 @@
     'use strict';
 
     function baseService() {
-
+        Object.defineProperty(this, "errors", { writable: true, value: [] });
     }
 
     module.exports = baseService;

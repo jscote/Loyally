@@ -6,14 +6,14 @@
 
     'use strict';
 
-    function ItemController(itemService, fs) {
+    function ItemController(itemService, serviceMessage) {
 
-        if (!(this instanceof ItemController)) return new ItemController(eventService, fs);
-
+        if (!(this instanceof ItemController)) return new ItemController(eventService, serviceMessage);
 
         base.call(this);
 
         this.itemService = itemService;
+        this.messaging = serviceMessage;
 
     }
 
@@ -29,8 +29,8 @@
     ItemController.prototype.index.annotations = [new NoAuthRequiredAnnotation()];
 
     ItemController.prototype.get = function (request, response) {
-        var itemId = request.params.item;
-        return this.itemService.getItem(itemId);
+        var message = new this.messaging.ServiceMessage({data: {itemId: request.params.item}});
+        return this.itemService.getItem(message);
     };
 
 
