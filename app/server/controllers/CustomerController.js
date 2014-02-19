@@ -41,7 +41,14 @@
         //That would allow having more control on the status code when needed
 
         var message = new this.messaging.ServiceMessage({data: {customerId: request.params.customer}});
-        return httpApiResponse.createHttpApiResponse('201', this.customerService.getCustomer(message).data);
+        var result = this.customerService.getCustomer(message);
+
+        if (result.isSuccess) {
+            return httpApiResponse.createHttpApiResponse('201', this.customerService.getCustomer(message).data);
+        } else {
+            return httpApiResponse.createHttpApiResponse('400', result.errors);
+        }
+
     };
 
 

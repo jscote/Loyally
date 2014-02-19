@@ -19,7 +19,7 @@
 
     var ServiceResponse = function ServiceResponse(options) {
         MessageBase.call(this, options);
-        Object.defineProperty(this, "isSuccess", { writable: true, value: false });
+        Object.defineProperty(this, "isSuccess", { writable: true, value: true });
         Object.defineProperty(this, "errors", { writable: true, value: [] });
     };
 

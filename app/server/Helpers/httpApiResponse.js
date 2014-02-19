@@ -36,4 +36,12 @@
         this.statusCode = statusCode;
     };
 
+    module.exports.HttpErrorStatusCode = function (statusCode) {
+        if (!isStatusCodeValid(statusCode)) {
+            throw('Status Code "' + statusCode.toString() + '" is Invalid.')
+        }
+
+        this.statusCode = statusCode;
+    };
+
 })(require('lodash'), require('http'));

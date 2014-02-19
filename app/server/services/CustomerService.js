@@ -24,7 +24,12 @@
     };
 
     CustomerService.prototype.getCustomer = function (message) {
-        return  {"customerId": message.data.customerId, "customerName": 'An even more important Customer', "Address": 'Somewhere around there'};
+
+        //For testing purposes
+        if (message.data.customerId > 1000) {
+            throw('beurk')
+        }
+        return new this.messaging.ServiceResponse({data: {"customerId": message.data.customerId, "customerName": 'An even more important Customer', "Address": 'Somewhere around there'}});
     };
 
     module.exports = CustomerService;

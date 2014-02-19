@@ -23,8 +23,10 @@
              }
              }
 
-             msg.data = parameters;
+
              */
+
+            msg.data = args[0] || args[0].data || {};
         }
 
         return msg;
@@ -56,14 +58,31 @@
         }
 
         //Set the correlationId of all injected services to this service so that they share the same correlationId
-        for (var prop in service) {
-            if (service.hasOwnProperty(prop)) {
-                if (service[prop] instanceof baseService) {
-                    service[prop].correlationId = service.correlationId;
+        copyPropertiesToInjectedService(service, ['correlationId']);
+    }
+
+    function copyErrorsFromInjectedService(owner) {
+        for (var prop in owner) {
+            if (owner.hasOwnProperty(prop)) {
+                if (owner[prop] instanceof baseService) {
+                    if(owner.errors.length == 0){
+                        owner.errors = owner[prop].errors;
+                    }
                 }
             }
         }
+    }
 
+    function copyPropertiesToInjectedService(owner, propNameList) {
+        for (var prop in owner) {
+            if (owner.hasOwnProperty(prop)) {
+                if (owner[prop] instanceof baseService) {
+                    for (var i = 0; i < propNameList.length; i++) {
+                        owner[prop][propNameList[i]] = owner[propNameList[i]];
+                    }
+                }
+            }
+        }
     }
 
     function logExecution(msg, delegateFnName, eventName) {
@@ -74,7 +93,30 @@
         console.log("%s, %s, correlationId: %s, message payload: %j, with error: %s", eventName, delegateFnName, msg.correlationId, msg.data, error);
     }
 
+    function setErrorsInPipeline(klass, response) {
+        //Set the errors from the response into the current service
+        klass.errors = klass.errors.concat(response.errors);
+
+        //Copy errors from services injected into the service
+        copyErrorsFromInjectedService(klass, ['errors']);
+        response.errors = klass.errors;
+        response.isSuccess = response.errors.length == 0;
+    }
+
+    function createResponseFromResult(result, response, isSuccess) {
+        if (!(result instanceof message.ServiceResponse)) {
+            response = new message.ServiceResponse({data: result});
+            response.isSuccess = isSuccess;
+        } else {
+            response = result;
+            response.isSuccess = response.isSuccess == false ? false : isSuccess;
+        }
+        return response;
+    }
+
     module.exports = function (delegateClass) {
+
+
         return function (delegateFn, delegateFnName, argsName) {
             return function () {
 
@@ -89,47 +131,31 @@
                 //TODO - If so, execute the validation method.
                 //TODO - If the message is not valid, return a response with the validation errors
 
-                //surround call with a try catch
-
                 //Log before Call
                 logExecution(msg, delegateFnName, "Before Execution");
+
                 var result = {data: null};
+                var response;
                 try {
                     result = delegateFn.call(delegateClass, msg);
+
+                    response = createResponseFromResult(result, response, true);
+
                 } catch (exception) {
 
-                    //TODO - if there is an error, make sure to create a response and set the errors based on the exception
+                    //if there is an error, make sure to create a response and set the errors based on the exception
                     //Log Error while calling
                     logExecutionError(msg, delegateFnName, "Error Executing", exception);
-                    var errorResponse;
-                    if (!(result instanceof message.ServiceResponse)) {
-                        errorResponse = new message.ServiceResponse({data: result});
-                        errorResponse.isSuccess = false;
-                    } else {
-                        errorResponse = result;
-                        errorResponse.isSuccess = false;
-                    }
 
-                    errorResponse.errors.push(exception);
+                    response = createResponseFromResult(result, response, false);
 
-                    logExecution(msg, delegateFnName, "After Execution");
-
-                    return errorResponse;
+                    response.errors.push(exception);
                 }
 
                 //Log after call
                 logExecution(msg, delegateFnName, "After Execution");
 
-                //TODO - check if the result is of type ServiceResponse.
-                var response;
-                if (!(result instanceof message.ServiceResponse)) {
-                    response = new message.ServiceResponse({data: result});
-                    response.isSuccess = true;
-                } else {
-                    response = result;
-                    response.isSuccess = true;
-                }
-
+                setErrorsInPipeline(delegateClass, response);
 
                 response.correlationId = msg.correlationId;
                 return response;

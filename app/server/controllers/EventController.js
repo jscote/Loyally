@@ -33,9 +33,9 @@
 
     EventController.prototype.get = function (request, response) {
         var message = new this.messaging.ServiceMessage({data: {eventId:  request.params.event}});
-        return this.eventService.getEvent(message).data;
+        return this.eventService.getEvent(message);
     };
-    EventController.prototype.get.annotations = [];
+    EventController.prototype.get.annotations = [new httpHelper.HttpErrorStatusCode('401')];
 
     module.exports = EventController;
 
