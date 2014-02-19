@@ -21,7 +21,6 @@
             response.send(result.data);
         };
 
-
         return {
             all: all,
             index: index,
