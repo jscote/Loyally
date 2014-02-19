@@ -3,7 +3,7 @@
  */
 
 
-(function (_, baseService, message, CorrelationHandle) {
+(function (_, baseService, message, CorrelationHandle, q) {
 
     'use strict';
 
@@ -149,6 +149,12 @@
                 try {
                     result = delegateFn.call(delegateClass, msg);
 
+                    if(q.isPromise(result)){
+                        result.then(function(promiseResult){
+                            console.log(promiseResult);
+                        });
+                    }
+
                     response = createResponseFromResult(result, response, true);
 
                 } catch (exception) {
@@ -176,5 +182,6 @@
         require('lodash'),
         require(Injector.getBasePath() + '/services/baseService'),
         require(Injector.getBasePath() + '/services/serviceMessage'),
-        require(Injector.getBasePath() + '/services/CorrelationHandle')
+        require(Injector.getBasePath() + '/services/CorrelationHandle'),
+        require('q')
     );

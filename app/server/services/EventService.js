@@ -2,7 +2,7 @@
  * Created by jscote on 10/20/13.
  */
 
-(function (util, base) {
+(function (util, base, q) {
 
     'use strict';
 
@@ -46,13 +46,19 @@
 
         var self = this;
 
+        var deferred = q.defer();
+
+
         process.nextTick(function () {
             var customer = self.customerService.getCustomer({"customerId": message.data.customerId}).data;
-            return [
+            deferred.resolve([
                 {"eventId": 20, "eventName": 'Event For Customer', "customer": customer},
                 {"eventId": 30, "eventName": 'Event For Customer', "customer": customer}
-            ];
+            ]);
+
         })
+
+        return deferred.promise;
     };
 
     EventService.prototype.getEventForCustomer = function (message) {
@@ -76,5 +82,6 @@
 
 })(
         require('util'),
-        require(Injector.getBasePath() + '/services/baseService')
+        require(Injector.getBasePath() + '/services/baseService'),
+        require('q')
     );
