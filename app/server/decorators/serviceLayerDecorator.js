@@ -26,7 +26,17 @@
 
              */
 
-            msg.data = args[0] || args[0].data || {};
+            if (!_.isUndefined(args[0])) {
+                if (!_.isUndefined(args[0].data)) {
+                    msg.data = args[0].data;
+                } else {
+                    msg.data = args[0];
+                }
+            }
+            else {
+                msg.data = {};
+            }
+
         }
 
         return msg;
@@ -65,7 +75,7 @@
         for (var prop in owner) {
             if (owner.hasOwnProperty(prop)) {
                 if (owner[prop] instanceof baseService) {
-                    if(owner.errors.length == 0){
+                    if (owner.errors.length == 0) {
                         owner.errors = owner[prop].errors;
                     }
                 }

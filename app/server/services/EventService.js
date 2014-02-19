@@ -18,6 +18,7 @@
     util.inherits(EventService, base);
 
     EventService.prototype.getEvents = function () {
+        this.errors.push('Well that did not go well');
         console.log('From events service');
         return [
             {"eventId": 10, "eventName": 'General Events'},
