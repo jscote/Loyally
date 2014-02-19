@@ -25,7 +25,8 @@
     "mongoose": "~3.8.7",
     "sequelize": "~1.7.0-rc6",
     "sequelize-postgres": "~2.0.0-beta.2",
-    "ejs": "~0.8.5"
+    "ejs": "~0.8.5",
+    "q": "~1.0.0"
   },
   "repository": {
     "type": "git",

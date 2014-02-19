@@ -27,7 +27,7 @@
     };
 
     EventService.prototype.getEvent = function (message) {
-        if(message.data.eventId > 1000) {
+        if (message.data.eventId > 1000) {
             var msg = new this.messaging.ServiceResponse();
             msg.errors.push('Error from Get Event For a customer - triggered on purpose for testing');
             msg.isSuccess = false;
@@ -43,18 +43,22 @@
         //var customerMessage = new this.messaging.ServiceMessage({data: {"customerId": message.data.customerId}});
 
         //var customer = this.customerService.getCustomer(customerMessage).data;
-        var customer = this.customerService.getCustomer({"customerId": message.data.customerId}).data;
-        return [
-            {"eventId": 20, "eventName": 'Event For Customer', "customer": customer},
-            {"eventId": 30, "eventName": 'Event For Customer', "customer": customer}
-        ];
 
+        var self = this;
+
+        process.nextTick(function () {
+            var customer = self.customerService.getCustomer({"customerId": message.data.customerId}).data;
+            return [
+                {"eventId": 20, "eventName": 'Event For Customer', "customer": customer},
+                {"eventId": 30, "eventName": 'Event For Customer', "customer": customer}
+            ];
+        })
     };
 
     EventService.prototype.getEventForCustomer = function (message) {
         //throw('let us see if there is an error');
 
-        if(message.data.eventId > 1000) {
+        if (message.data.eventId > 1000) {
             var msg = new this.messaging.ServiceResponse();
             msg.errors.push('Error from Get Event For a customer - triggered on purpose for testing');
             msg.isSuccess = false;
