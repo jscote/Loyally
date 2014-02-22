@@ -50,7 +50,9 @@
 
             controller.index(request, response).then(function (result) {
                 response.send(result.statusCode, result.data);
-            });
+            }).fail(function(result) {
+                    response.send(result.statusCode, result.errors);
+                });
 
         };
 

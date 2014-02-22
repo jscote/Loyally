@@ -2,7 +2,7 @@
  * Created by jscote on 10/20/13.
  */
 
-(function (util, base, Permission, PermissionAnnotation, permissionEnum, httpApiResponse) {
+(function (util, base, Permission, PermissionAnnotation, permissionEnum, httpApiResponse, q) {
 
     'use strict';
 
@@ -28,13 +28,18 @@
     CustomerEventController.prototype.index = function (request, response) {
         var message = new this.messaging.ServiceMessage({data: {customerId: request.params.customer}});
 
-        var result = this.eventService.getEventsForCustomer(message);
+        var dfd = q.defer();
 
-        if (result.isSuccess) {
-            return result.data;
-        }
-        return httpApiResponse.createHttpApiResponse('400', result.errors);
+        this.eventService.getEventsForCustomer(message).then(function (result) {
 
+            if (result.isSuccess) {
+                dfd.resolve(result.data);
+            } else {
+                dfd.resolve(httpApiResponse.createHttpApiResponse('400', result.errors));
+            }
+        });
+
+        return dfd.promise;
     };
 
     CustomerEventController.prototype.index.annotations =
@@ -44,8 +49,13 @@
 
     CustomerEventController.prototype.get = function (request, response) {
         var message = new this.messaging.ServiceMessage({data: {customerId: request.params.customer, eventId: request.params.event}});
-        return this.eventService.getEventForCustomer(message);
+        var dfd = q.defer();
 
+        this.eventService.getEventForCustomer(message).then(function(result) {
+            dfd.resolve(result);
+        });
+
+        return dfd.promise;
     };
 
 
@@ -57,6 +67,7 @@
         require(Injector.getBasePath() + '/Security/Permissions'),
         require(Injector.getBasePath() + '/Security/PermissionAnnotation'),
         require(Injector.getBasePath() + '/Security/permissionEnum'),
-        require(Injector.getBasePath() + '/Helpers/httpApiResponse')
+        require(Injector.getBasePath() + '/Helpers/httpApiResponse'),
+        require('q')
     );
 

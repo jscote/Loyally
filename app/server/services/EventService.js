@@ -48,13 +48,13 @@
 
         var deferred = q.defer();
 
-
         process.nextTick(function () {
-            var customer = self.customerService.getCustomer({"customerId": message.data.customerId}).data;
-            deferred.resolve([
-                {"eventId": 20, "eventName": 'Event For Customer', "customer": customer},
-                {"eventId": 30, "eventName": 'Event For Customer', "customer": customer}
-            ]);
+            self.customerService.getCustomer({"customerId": message.data.customerId}).then(function (customerResponse) {
+                deferred.resolve([
+                    {"eventId": 20, "eventName": 'Event For Customer', "customer": customerResponse.data},
+                    {"eventId": 30, "eventName": 'Event For Customer', "customer": customerResponse.data}
+                ]);
+            });
 
         })
 
@@ -65,17 +65,28 @@
     EventService.prototype.getEventForCustomer = function (message) {
         //throw('let us see if there is an error');
 
-        if (message.data.eventId > 1000) {
-            var msg = new this.messaging.ServiceResponse();
-            msg.errors.push('Error from Get Event For a customer - triggered on purpose for testing');
-            msg.isSuccess = false;
-            return msg;
-        }
+        var self = this;
+        var dfd = q.defer();
 
-        var customerMessage = new this.messaging.ServiceMessage({data: {"customerId": message.data.customerId}});
-        var customer = this.customerService.getCustomer(customerMessage).data;
 
-        return {"eventId": message.data.eventId, "eventName": 'Event For Customer', "customer": customer};
+        process.nextTick(function () {
+            if (message.data.eventId > 1000) {
+                var msg = new self.messaging.ServiceResponse();
+                msg.errors.push('Error from Get Event For a customer - triggered on purpose for testing');
+                msg.isSuccess = false;
+                dfd.resolve(msg);
+            } else {
+
+                var customerMessage = new self.messaging.ServiceMessage({data: {"customerId": message.data.customerId}});
+                self.customerService.getCustomer(customerMessage).then(function (customerResponse) {
+
+                    dfd.resolve({"eventId": message.data.eventId, "eventName": 'Event For Customer', "customer": customerResponse.data});
+                });
+            }
+
+        });
+
+        return dfd.promise;
     };
 
 

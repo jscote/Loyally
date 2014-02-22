@@ -58,7 +58,7 @@
                     console.log("logging from response transformation decorator");
 
                     dfd.resolve(result);
-                });
+                }).fail(function(result) {dfd.resolve(result)});
 
                 return dfd.promise;
             }

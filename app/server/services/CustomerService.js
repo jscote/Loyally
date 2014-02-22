@@ -37,7 +37,8 @@
 
             //For testing purposes
             if (message.data.customerId > 1000) {
-                dfd.reject('beurk');
+                dfd.reject(new Error('beurk'));
+                return;
             }
             dfd.resolve(
                 new this.messaging.ServiceResponse({data: {"customerId": message.data.customerId, "customerName": 'An even more important Customer', "Address": 'Somewhere around there'}}));
