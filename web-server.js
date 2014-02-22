@@ -31,6 +31,9 @@ require('./app/server/config/injection')(config.rootPath);
 //Configure mongoose
 require('./app/server/config/mongoose')(config);
 
+//Configure postgres
+//require('./app/server/config/postgres')(config);
+
 //Configure all models
 require('./app/server/config/models')(config);
 
