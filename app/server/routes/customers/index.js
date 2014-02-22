@@ -2,7 +2,7 @@
  * Created by jscote on 10/20/13.
  */
 
-(function (controllerResolver) {
+(function (controllerResolver, q) {
     "use strict";
     module.exports = (function customerRouteHandler() {
         var targetController = 'CustomerController';
@@ -14,15 +14,17 @@
         };
 
         var index = function (request, response) {
-            var result = controller.index(request, response);
-            response.send(result.statusCode, result.data);
+            controller.index(request, response).then(function (result) {
+                response.send(result.statusCode, result.data);
+            })
         };
 
         var get = function (request, response) {
-            var result = controller.get(request, response);
-            response.send(result.statusCode, result.data);
-        };
+            controller.get(request, response).then(function (result) {
+                response.send(result.statusCode, result.data);
+            });
 
+        };
 
         return {
             all: all,
@@ -31,4 +33,7 @@
             edit: get
         }
     })();
-})(Injector.resolve({target: 'controllerResolver', resolutionName: 'CustomerController'}));
+})(
+        Injector.resolve({target: 'controllerResolver', resolutionName: 'CustomerController'}),
+        require('q')
+    );

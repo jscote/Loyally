@@ -2,7 +2,7 @@
  * Created by jscote on 2/17/14.
  */
 
-(function (_, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse) {
+(function (_, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse, q) {
 
     'use strict';
 
@@ -15,6 +15,8 @@
 
             return function () {
 
+                var dfd = q.defer();
+
                 var isAuthRequired = annotationHelper.getCombinedAnnotations(delegateClass, delegateFn, NoAuthRequiredAnnotation).length === 0;
 
                 var args = [].slice.call(arguments);
@@ -23,9 +25,8 @@
                 var user = req.user;
 
                 if (isAuthRequired && !req.isAuthenticated()) {
-                    return (function (request, response) {
-                        return httpApiResponse.createHttpApiResponse('403', {"error": 'Not Authenticated'});
-                    }).apply(delegateClass, args);
+                    dfd.resolve( httpApiResponse.createHttpApiResponse('403', {"error": 'Not Authenticated'}));
+                    return dfd.promise;
                 }
 
                 console.log("logging from permission decorator");
@@ -45,12 +46,12 @@
                 }
 
                 if (!isAuthRequired || hasPermission) {
-                    return delegateFn.apply(delegateClass, args);
+                    dfd.resolve(delegateFn.apply(delegateClass, args));
                 } else {
-                    return (function (request, response) {
-                        return httpApiResponse.createHttpApiResponse('401', {"error": 'Permission Denied'});
-                    }).apply(delegateClass, args);
+                    dfd.resolve( httpApiResponse.createHttpApiResponse('401', {"error": 'Not Authorized'}));
                 }
+
+                return dfd.promise;
             };
         }
     }
@@ -60,5 +61,6 @@
         require(Injector.getBasePath() + '/Security/permissionEnum'),
         require(Injector.getBasePath() + '/Helpers/annotationHelper'),
         require(Injector.getBasePath() + '/Security/NoAuthRequiredAnnotation'),
-        require(Injector.getBasePath() + '/Helpers/httpApiResponse')
+        require(Injector.getBasePath() + '/Helpers/httpApiResponse'),
+        require('q')
     );

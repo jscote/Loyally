@@ -145,17 +145,39 @@
                 logExecution(msg, delegateFnName, "Before Execution");
 
                 var result = {data: null};
+                var dfd = q.defer();
                 var response;
                 try {
                     result = delegateFn.call(delegateClass, msg);
 
-                    if(q.isPromise(result)){
-                        result.then(function(promiseResult){
-                            console.log(promiseResult);
-                        });
-                    }
+                    if (q.isPromise(result)) {
+                        result.then(function (promiseResult) {
 
-                    response = createResponseFromResult(result, response, true);
+                            response = createResponseFromResult(promiseResult, response, true);
+                            logExecution(msg, delegateFnName, "After Execution");
+
+                            //TODO -Revise this... most likely won't work in async code
+                            setErrorsInPipeline(delegateClass, response);
+
+                            response.correlationId = msg.correlationId;
+
+                            dfd.resolve(response);
+                        }).fail(function (error) {
+                                logExecutionError(msg, delegateFnName, "Error Executing", exception);
+                                response = createResponseFromResult(error, response, false);
+                                response.errors.push(error);
+                                dfd.reject(response);
+
+                            }
+                        );
+                    } else {
+                        response = createResponseFromResult(result, response, true);
+                        logExecution(msg, delegateFnName, "After Execution");
+
+                        setErrorsInPipeline(delegateClass, response);
+
+                        response.correlationId = msg.correlationId;
+                    }
 
                 } catch (exception) {
 
@@ -163,18 +185,16 @@
                     //Log Error while calling
                     logExecutionError(msg, delegateFnName, "Error Executing", exception);
 
+
                     response = createResponseFromResult(result, response, false);
 
                     response.errors.push(exception);
                 }
 
                 //Log after call
-                logExecution(msg, delegateFnName, "After Execution");
 
-                setErrorsInPipeline(delegateClass, response);
-
-                response.correlationId = msg.correlationId;
-                return response;
+                //return response;
+                return dfd.promise;
             };
         }
     }
