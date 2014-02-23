@@ -3,7 +3,7 @@
  */
 
 
-(function (_, decoratorHelper, apiControllerTransformResultDecorator, controllerPermissionDecorator, serviceDecorator) {
+(function (_, decoratorHelper, apiControllerTransformResultDecorator, controllerPermissionDecorator, baseControllerDecorator, serviceDecorator) {
 
     module.exports = function () {
         console.log('Configuring the injection container');
@@ -15,6 +15,10 @@
             })
             .decorator(require(Injector.getBasePath() + '/controllers/permissionApiController'), function (delegateClass) {
                 decoratorHelper.decorateFunctions(delegateClass, controllerPermissionDecorator(delegateClass));
+                return delegateClass;
+            })
+            .decorator(require(Injector.getBasePath() + '/controllers/baseController'), function (delegateClass) {
+                decoratorHelper.decorateFunctions(delegateClass, baseControllerDecorator(delegateClass));
                 return delegateClass;
             })
             .decorator(require(Injector.getBasePath() + '/services/baseService'), function (delegateClass) {
@@ -32,5 +36,6 @@
         require(Injector.getBasePath() + '/Helpers/decoratorHelper'),
         require(Injector.getBasePath() + '/decorators/apiControllerTransformResultDecorator'),
         require(Injector.getBasePath() + '/decorators/controllerPermissionDecorator'),
+        require(Injector.getBasePath() + '/decorators/baseControllerDecorator'),
         require(Injector.getBasePath() + '/decorators/serviceLayerDecorator')
     );

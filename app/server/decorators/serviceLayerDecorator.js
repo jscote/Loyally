@@ -148,8 +148,7 @@
                 var dfd = q.defer();
                 var response;
                 try {
-                    var p = delegateFn.call(delegateClass, msg);
-                    p.then(function (promiseResult) {
+                    var p = delegateFn.call(delegateClass, msg).done(function (promiseResult) {
 
                         response = createResponseFromResult(promiseResult, response, true);
                         logExecution(msg, delegateFnName, "After Execution");
@@ -160,13 +159,12 @@
                         response.correlationId = msg.correlationId;
 
                         dfd.resolve(response);
-                    });
-                    p.fail(function (error) {
+                    }, function (error) {
                         logExecutionError(msg, delegateFnName, "Error Executing", error);
                         response = createResponseFromResult(error, response, false);
                         response.errors.push(error);
                         response.correlationId = msg.correlationId;
-                        dfd.reject(response);
+                        dfd.resolve(response);
 
                     });
 

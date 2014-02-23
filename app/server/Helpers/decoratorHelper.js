@@ -30,6 +30,7 @@
 
 
         var annotations = delegate[copyFromFunction].annotations;
+        var identity = delegate[copyFromFunction].identity;
         /*
         var argsList = annotationHelper.getFunctionAnnotations(delegate[copyFromFunction], argumentListAnnotation);
         var args;
@@ -59,6 +60,7 @@
 */
         delegate[copyFromFunction] = copyToFunction(fn, copyFromFunction);
         delegate[copyFromFunction].annotations = annotations;
+        delegate[copyFromFunction].identity = identity;
     }
 
     function decorateFunctions(delegate, copyToFunction) {

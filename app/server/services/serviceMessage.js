@@ -9,6 +9,7 @@
         options = options || { };
         Object.defineProperty(this, "data", { writable: true, value: options.data || {} });
         Object.defineProperty(this, "correlationId", {writable: true, value: null});
+        Object.defineProperty(this, "identity", {writable: true, value: null});
     };
 
     var ServiceMessage = function ServiceMessage(options) {

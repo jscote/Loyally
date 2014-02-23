@@ -2,7 +2,7 @@
  * Created by jscote on 2/17/14.
  */
 
-(function (_, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse, q) {
+(function (_, permissionHelper, permissionEnum, annotationHelper, NoAuthRequiredAnnotation, httpApiResponse, baseController, baseService, q) {
 
     'use strict';
 
@@ -15,6 +15,7 @@
 
             return function () {
 
+
                 var dfd = q.defer();
 
                 var isAuthRequired = annotationHelper.getCombinedAnnotations(delegateClass, delegateFn, NoAuthRequiredAnnotation).length === 0;
@@ -25,7 +26,7 @@
                 var user = req.user;
 
                 if (isAuthRequired && !req.isAuthenticated()) {
-                    dfd.resolve( httpApiResponse.createHttpApiResponse('403', {"error": 'Not Authenticated'}));
+                    dfd.resolve(httpApiResponse.createHttpApiResponse('403', {"error": 'Not Authenticated'}));
                     return dfd.promise;
                 }
 
@@ -48,7 +49,7 @@
                 if (!isAuthRequired || hasPermission) {
                     dfd.resolve(delegateFn.apply(delegateClass, args));
                 } else {
-                    dfd.resolve( httpApiResponse.createHttpApiResponse('401', {"error": 'Not Authorized'}));
+                    dfd.resolve(httpApiResponse.createHttpApiResponse('401', {"error": 'Not Authorized'}));
                 }
 
                 return dfd.promise;
@@ -62,5 +63,7 @@
         require(Injector.getBasePath() + '/Helpers/annotationHelper'),
         require(Injector.getBasePath() + '/Security/NoAuthRequiredAnnotation'),
         require(Injector.getBasePath() + '/Helpers/httpApiResponse'),
+        require(Injector.getBasePath() + '/controllers/baseController'),
+        require(Injector.getBasePath() + '/services/baseService'),
         require('q')
     );

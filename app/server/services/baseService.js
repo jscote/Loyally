@@ -10,6 +10,7 @@
 
     function baseService() {
         Object.defineProperty(this, "errors", { writable: true, value: [] });
+        Object.defineProperty(this, "identity", {writable: true, value: null});
     }
 
     module.exports = baseService;

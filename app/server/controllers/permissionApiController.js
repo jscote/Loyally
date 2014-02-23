@@ -6,7 +6,7 @@
     'use strict'
 
     function permissionApiController() {
-
+        Object.defineProperty(this, "identity", {writable: true, value: null});
     }
 
     util.inherits(permissionApiController, apiController);
