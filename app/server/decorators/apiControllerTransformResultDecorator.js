@@ -17,7 +17,7 @@
 
                 var dfd = q.defer();
 
-                promise.then(function (result) {
+                promise.done(function (result) {
 
                     if (_.isUndefined(result)) {
                         result = null;
@@ -58,7 +58,11 @@
                     console.log("logging from response transformation decorator");
 
                     dfd.resolve(result);
-                }).fail(function(result) {dfd.resolve(result)});
+                }, function (error) {
+
+
+                    dfd.resolve(httpApiResponse.createHttpApiResponse(defaultErrorStatusCode, {error: error.message || error} ))
+                });
 
                 return dfd.promise;
             }

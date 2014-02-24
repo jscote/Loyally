@@ -153,7 +153,6 @@
                         response = createResponseFromResult(promiseResult, response, true);
                         logExecution(msg, delegateFnName, "After Execution");
 
-                        //TODO -Revise this... most likely won't work in async code
                         setErrorsInPipeline(delegateClass, response);
 
                         response.correlationId = msg.correlationId;
@@ -161,8 +160,13 @@
                         dfd.resolve(response);
                     }, function (error) {
                         logExecutionError(msg, delegateFnName, "Error Executing", error);
+
                         response = createResponseFromResult(error, response, false);
-                        response.errors.push(error);
+                        response.errors.push({error: error.message || error});
+
+                        setErrorsInPipeline(delegateClass, response);
+
+
                         response.correlationId = msg.correlationId;
                         dfd.resolve(response);
 

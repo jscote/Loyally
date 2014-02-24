@@ -72,7 +72,7 @@
         process.nextTick(function () {
             if (message.data.eventId > 1000) {
                 var msg = new self.messaging.ServiceResponse();
-                msg.errors.push('Error from Get Event For a customer - triggered on purpose for testing');
+                msg.errors.push({error: 'Error from Get Event For a customer - triggered on purpose for testing'});
                 msg.isSuccess = false;
                 dfd.resolve(msg);
             } else {
