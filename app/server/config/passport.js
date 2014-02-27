@@ -2,17 +2,17 @@
  * Created by jscote on 2/2/14.
  */
 
-(function (express, passport, mongoose, LocalStrategy) {
+(function (express, passport, Sequelize, postgres, LocalStrategy) {
 
     'use strict';
 
-    var User = mongoose.model('User');
+    var User = global.sequelize.model('User');
 
     module.exports = function () {
         passport.use
             (new LocalStrategy(
                 function (username, password, done) {
-                    User.findOne({username: username}).exec(function (err, user) {
+                    User.find({username: username}).success(function (user) {
                         if (user && user.authenticate(password)) {
                             return done(null, user);
                         } else {
@@ -24,12 +24,12 @@
 
         passport.serializeUser(function (user, done) {
             if (user) {
-                done(null, user._id);
+                done(null, user.id);
             }
         });
 
         passport.deserializeUser(function (id, done) {
-            User.findOne({_id: id}).exec(function (err, user) {
+            User.find({id: id}).exec(function (err, user) {
                 if (user) {
                     return done(null, user);
                 } else {
@@ -43,6 +43,7 @@
 })(
         require('express'),
         require('passport'),
-        require('mongoose'),
+        require('sequelize-postgres').sequelize,
+        require('sequelize-postgres').postgres,
         require('passport-local').Strategy
     );
