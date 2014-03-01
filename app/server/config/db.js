@@ -13,4 +13,7 @@
         });
     };
 
+    module.exports.sequelize = global.sequelize;
+
+
 })(require('sequelize-postgres').sequelize, require('sequelize-postgres').postgres);

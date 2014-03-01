@@ -12,7 +12,7 @@
         passport.use
             (new LocalStrategy(
                 function (username, password, done) {
-                    User.find({username: username}).success(function (user) {
+                    User.find({username: username}).done(function (err, user) {
                         if (user && user.authenticate(password)) {
                             return done(null, user);
                         } else {
@@ -29,7 +29,7 @@
         });
 
         passport.deserializeUser(function (id, done) {
-            User.find({id: id}).exec(function (err, user) {
+            User.find({id: id}).done(function (err, user) {
                 if (user) {
                     return done(null, user);
                 } else {

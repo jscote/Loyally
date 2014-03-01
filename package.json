@@ -22,7 +22,6 @@
     "express-resource-new": "~0.1.1",
     "passport": "~0.2.0",
     "passport-local": "~0.1.6",
-    "mongoose": "~3.8.7",
     "sequelize": "~1.7.0-rc6",
     "sequelize-postgres": "~2.0.0-beta.2",
     "ejs": "~0.8.5",

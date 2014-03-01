@@ -28,16 +28,12 @@ var config = require('./app/server/config/config')[env];
 //Configure Injection
 require('./app/server/config/injection')(config.rootPath);
 
-//Configure mongoose
-//require('./app/server/config/mongoose')(config);
-
 //Configure postgres
-require('./app/server/config/postgres')(config);
+require('./app/server/config/db')(config);
 
 //Configure all models
-//require('./app/server/config/models')(config);
+require('./app/server/config/models')(config);
 
-require('./app/server/config/postgresModels')(config);
 
 //Configure Express
 var app = require('./app/server/config/express')({root: config.rootPath});

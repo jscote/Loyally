@@ -10,10 +10,10 @@
 
     module.exports = {
         development: {
-            db: 'mongodb://localhost/loyally',
             rootPath: rootPath,
             port: process.env.PORT || 8000,
 
+            //db
             dbhost: 'localhost',
             dbPort: 5432,
             dbName:'loyally',
@@ -22,9 +22,9 @@
         },
         production: {
             rootPath: rootPath,
-            db: 'mongodb://localhost/loyally',
             port: process.env.PORT || 80,
 
+            //db
             dbhost: 'localhost',
             dbPort: 5432,
             dbName:'loyally',
