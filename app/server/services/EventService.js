@@ -18,23 +18,40 @@
     util.inherits(EventService, base);
 
     EventService.prototype.getEvents = function () {
-        this.errors.push('Well that did not go well');
-        console.log('From events service');
-        return [
-            {"eventId": 10, "eventName": 'General Events'},
-            {"eventId": 10, "eventName": 'General Events'}
-        ];
+
+        var dfd = q.defer();
+        var self = this;
+
+        process.nextTick(function(){
+            self.errors.push('Well that did not go well');
+            console.log('From events service');
+            dfd.resolve( [
+                {"eventId": 10, "eventName": 'General Events'},
+                {"eventId": 10, "eventName": 'General Events'}
+            ]);
+        });
+
+        return dfd.promise;
+
     };
 
     EventService.prototype.getEvent = function (message) {
-        if (message.data.eventId > 1000) {
-            var msg = new this.messaging.ServiceResponse();
-            msg.errors.push('Error from Get Event For a customer - triggered on purpose for testing');
-            msg.isSuccess = false;
-            return msg;
-        }
 
-        return {"eventId": message.data.eventId, "eventName": 'General Events'};
+        var dfd = q.defer();
+
+        process.nextTick(function() {
+            if (message.data.eventId > 1000) {
+                var msg = new this.messaging.ServiceResponse();
+                msg.errors.push('Error from Get Event For a customer - triggered on purpose for testing');
+                msg.isSuccess = false;
+                dfd.resolve( msg);
+                return;
+            }
+
+            dfd.resolve({"eventId": message.data.eventId, "eventName": 'General Events'});
+        });
+
+        return dfd.promise;
     };
 
     EventService.prototype.getEventsForCustomer = function (message) {
