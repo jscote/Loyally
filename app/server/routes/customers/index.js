@@ -2,7 +2,7 @@
  * Created by jscote on 10/20/13.
  */
 
-(function (controllerResolver, q) {
+(function (controllerResolver, baseRoute) {
     "use strict";
     module.exports = (function customerRouteHandler() {
         var targetController = 'CustomerController';
@@ -26,14 +26,16 @@
 
         };
 
-        return {
+
+        return baseRoute.createRoutes({
             all: all,
             index: index,
             show: get,
             edit: get
-        }
+        });
+
     })();
 })(
         Injector.resolve({target: 'controllerResolver', resolutionName: 'CustomerController'}),
-        require('q')
+        require(Injector.getBasePath() + '/routes/baseRoute')
     );

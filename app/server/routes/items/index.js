@@ -1,4 +1,4 @@
-(function (controllerResolver) {
+(function (controllerResolver, baseRoute) {
 
     'use strict';
 
@@ -21,11 +21,11 @@
             response.send(result.statusCode, result.data);
         };
 
-        return {
+        return baseRoute.createRoutes({
             all: all,
             index: index,
             show: get,
             edit: get
-        }
+        });
     })();
-})(Injector.resolve({target: 'controllerResolver', resolutionName: 'ItemsController'}));
+})(Injector.resolve({target: 'controllerResolver', resolutionName: 'ItemsController'}), require(Injector.getBasePath() + '/routes/baseRoute'));

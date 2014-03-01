@@ -28,7 +28,7 @@
  * verifying that the injected object does indeed have the expected functions on it.
  */
 
-(function (controllerResolver) {
+(function (controllerResolver, baseRoute) {
 
     'use strict';
 
@@ -63,11 +63,14 @@
         };
 
 
-        return {
+        return baseRoute.createRoutes({
             all: all,
             index: index,
             show: get,
             edit: get
-        }
+        });
     })();
-})(Injector.resolve({target: 'controllerResolver', resolutionName: 'EventsController'}));
+})(
+        Injector.resolve({target: 'controllerResolver', resolutionName: 'EventsController'}),
+        require(Injector.getBasePath() + '/routes/baseRoute')
+    );
