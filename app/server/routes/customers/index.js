@@ -14,13 +14,13 @@
         };
 
         var index = function (request, response) {
-            controller.index(request, response).then(function (result) {
+            controller.index(request).then(function (result) {
                 response.send(result.statusCode, result.data);
             })
         };
 
         var get = function (request, response) {
-            controller.get(request, response).then(function (result) {
+            controller.get(request).then(function (result) {
                 response.send(result.statusCode, result.data);
             });
 

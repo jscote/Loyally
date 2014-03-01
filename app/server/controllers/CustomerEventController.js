@@ -25,7 +25,7 @@
             .addRequiredPermission(new Permission(permissionEnum().CanLogin))
         ];
 
-    CustomerEventController.prototype.index = function (request, response) {
+    CustomerEventController.prototype.index = function (request) {
         var message = new this.messaging.ServiceMessage({data: {customerId: request.params.customer}});
 
         var dfd = q.defer();
@@ -47,7 +47,7 @@
             .addRequiredPermission(new Permission(permissionEnum().CanGetEvent))
             .addRequiredPermission(new Permission(permissionEnum().CanGetCustomer))];
 
-    CustomerEventController.prototype.get = function (request, response) {
+    CustomerEventController.prototype.get = function (request) {
         var message = new this.messaging.ServiceMessage({data: {customerId: request.params.customer, eventId: request.params.event}});
         var dfd = q.defer();
 

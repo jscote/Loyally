@@ -25,7 +25,7 @@
             .addRequiredPermission(new Permission(permissionEnum().CanLogin))
         ];
 
-    CustomerController.prototype.index = function (request, response) {
+    CustomerController.prototype.index = function (request) {
         //This demonstrate that if we want, we can return an object that has the shape of what the route handler is expecting
         //That would allow having more control on the status code when needed
 
@@ -41,7 +41,7 @@
         [new PermissionAnnotation()
             .addRequiredPermission(new Permission(permissionEnum().CanGetCustomer))];
 
-    CustomerController.prototype.get = function (request, response) {
+    CustomerController.prototype.get = function (request) {
         //This demonstrate that if we want, we can return an object that has the shape of what the route handler is expecting
         //That would allow having more control on the status code when needed
 

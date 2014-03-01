@@ -48,7 +48,7 @@
             var f = Injector.resolve({target: 'fs'});
             f.myFunction();
 
-            controller.index(request, response).then(function (result) {
+            controller.index(request).then(function (result) {
                 response.send(result.statusCode, result.data);
             }).fail(function(result) {
                     response.send(result.statusCode, result.errors);
@@ -57,7 +57,7 @@
         };
 
         var get = function (request, response) {
-            controller.get(request, response).then(function (result) {
+            controller.get(request).then(function (result) {
                 response.send(result.statusCode, result.data);
             });
         };
