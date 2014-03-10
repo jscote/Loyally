@@ -1,13 +1,9 @@
 ﻿var Predicate = function Predicate(fn, type) {
 
-    if (!fn) {
-        throw Error("The predicate function is not specified.");
-    }
+    this.type = type;
+    this.fn = fn;
 
-    if (!fn instanceof Function) {
-        throw Error("The predicate constructor expects a function that returns a boolean.");
-    }
-    return function(item) {
+    this.getEvaluationFn = function (item) {
         if (type) {
             if (typeof(item) == 'object') {
                 if (!(item instanceof type)) {
@@ -24,4 +20,18 @@
 
 };
 
+var predicateFactory = function predicateFactory(fn, type) {
+    if (!fn) {
+        throw Error("The predicate function is not specified.");
+    }
+
+    if (!fn instanceof Function) {
+        throw Error("The predicate constructor expects a function that returns a boolean.");
+    }
+    return new Predicate(fn, type);
+
+};
+
+
+exports.predicateFactory = predicateFactory;
 exports.Predicate = Predicate;

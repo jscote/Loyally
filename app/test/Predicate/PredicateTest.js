@@ -5,7 +5,8 @@
 var p = require('path');
 var util = require('util');
 
-var predicate = require(p.resolve(__dirname + '../../../server/Predicate/Predicate/')).Predicate;
+var Predicate = require(p.resolve(__dirname + '../../../server/Predicate/Predicate/')).Predicate;
+var predicateFactory = require(p.resolve(__dirname + '../../../server/Predicate/Predicate/')).predicateFactory;
 
 module.exports = {
     setUp: function (callback) {
@@ -18,23 +19,23 @@ module.exports = {
     testTypeIsNotRequired: function (test) {
 
         test.doesNotThrow(function(){
-            var p = predicate(function() {return true;});
+            var p = predicateFactory(function() {return true;});
         });
 
         test.done();
     },
 
-    testPredicateReturnsAFunction: function (test) {
-        var p = predicate(function(item) {return true;});
+    testPredicateFactoryReturnsAPredicate: function (test) {
+        var p = predicateFactory(function(item) {return true;});
 
-        test.equal(typeof(p), 'function');
+        test.ok(p instanceof Predicate);
         test.done();
     },
 
     testPredicateExpectsAFunction: function (test) {
 
         test.throws(function(){
-            var p = predicate();
+            var p = predicateFactory();
         });
 
         test.done();
@@ -43,7 +44,7 @@ module.exports = {
     testPredicateExpectsAFunctionNotAString: function (test) {
 
         test.throws(function(){
-            var p = predicate('');
+            var p = predicateFactory('');
         });
 
         test.done();
@@ -57,9 +58,9 @@ module.exports = {
 
         var o = new klass();
 
-        var p = predicate(function(item) {return item.value}, klass);
+        var p = predicateFactory(function(item) {return item.value}, klass);
 
-        var result = p(o)(o);
+        var result = p.getEvaluationFn(o)(o);
 
         test.ok(result);
         test.done();
@@ -81,9 +82,9 @@ module.exports = {
 
         var o = new Klass();
 
-        var p = predicate(function(item) {return item.value}, Klass);
+        var p = predicateFactory(function(item) {return item.value}, Klass);
 
-        var result = p(o)(o);
+        var result = p.getEvaluationFn(o)(o);
 
         test.ok(result);
         test.done();
@@ -105,9 +106,9 @@ module.exports = {
 
         var o = new Klass();
 
-        var p = predicate(function(item) {return item.value}, ChildKlass);
+        var p = predicateFactory(function(item) {return item.value}, ChildKlass);
 
-        var result = p(o)(o);
+        var result = p.getEvaluationFn(o)(o);
 
         test.ok(result);
         test.done();
@@ -122,10 +123,10 @@ module.exports = {
 
         var o = '';
 
-        var p = predicate(function(item) {return item.value}, klass);
+        var p = predicateFactory(function(item) {return item.value}, klass);
 
         test.throws(function(){
-            var result = p(o)(o);
+            var result = p.getEvaluationFn(o)(o);
         });
 
         test.done();

@@ -1,4 +1,5 @@
 ﻿var Predicate = require('./Predicate.js').Predicate;
+var predicateFactory = require('./Predicate.js').predicateFactory;
 var util = require('util');
 //var PredicateSpecification = require('./PredicateSpecification.js').PredicateSpecification;
 
@@ -59,8 +60,8 @@ var PredicateSpecification = function PredicateSpecification(fn, type) {
         throw Error("The predicate must be specified.");
     }
 
-    if (fn && !(fn instanceof Function)) {
-        throw Error("The predicate should be a function that returns a boolean.");
+    if (fn && !(fn instanceof Predicate)) {
+        fn = predicateFactory(fn, type);
     }
 
     this.predicate = fn;
@@ -74,13 +75,7 @@ PredicateSpecification.prototype.isSatisfiedBy = function (item) {
         throw Error("You must specify an item to evaluate the predicate");
     }
 
-    var result = this.predicate(item);
-
-    if(result instanceof Function){
-        return result(item);}
-    else {
-        return result;
-    }
+   return this.predicate.getEvaluationFn(item)(item);
 
 };
 
