@@ -2,6 +2,7 @@
 var util = require('util');
 var PredicateSpecification = require('../Predicate/Specification.js').PredicateSpecification;
 var Predicate = require('../Predicate/Predicate.js').Predicate;
+var _ = require('lodash');
 
 var Rule = function Rule(options) {
     options = options || {};
@@ -25,19 +26,17 @@ var Rule = function Rule(options) {
         }
     });
 
-    Object.defineProperty(this, "hasRun", { value: false, writable: true, enumerable: true });
-
-    var _problemState;
-    Object.defineProperty(this, "problemState", {
+    var _evaluationContext;
+    Object.defineProperty(this, "evaluationContext", {
         get: function () {
-            return _problemState;
+            return _evaluationContext;
         },
         set: function (value) {
             if (_condition) {
-                _condition.problemState = value;
+                _condition.evaluationContext = value;
             }
 
-            _problemState = value;
+            _evaluationContext = value;
         }
     , enumerable: true
     });
@@ -59,11 +58,11 @@ var Rule = function Rule(options) {
     , enumerable: true
     });
 
-    options.condition = options.condition || {};
+    options.condition = options.condition || null;
 
     if (options.condition === null)
     //set a condition that returns true all the time
-        options.condition = new RuleCondition(new Predicate(function (item) {
+        options.condition = new RuleCondition(new Predicate(function () {
             return true;
         }));
 
@@ -72,9 +71,14 @@ var Rule = function Rule(options) {
     return this;
 };
 
-Rule.prototype.evaluateCondition = function () {
+Rule.prototype.evaluateCondition = function (evaluationContext) {
+
+    if(!_.isUndefined(evaluationContext)) {
+        this.evaluationContext = evaluationContext;
+    }
+
     if (this.condition) {
-        this.isTrue = this.condition.evaluateCondition();
+        this.isTrue = this.condition.evaluateCondition(this.evaluationContext);
     } else {
         this.isTrue = true;
     }
@@ -126,7 +130,7 @@ var BusinessRule = function BusinessRule(options) {
         writable: true
     });
 
-    this.businessAction = new BusinessAction({ problemState: this.problemState, action: options.action, executionContext: options.executionContext });
+    this.businessAction = new BusinessAction({ evaluationContext: this.evaluationContext, action: options.action, executionContext: options.executionContext });
 
     return this;
 };
@@ -134,17 +138,27 @@ var BusinessRule = function BusinessRule(options) {
 util.inherits(BusinessRule, Rule);
 
 
-var RuleCondition = function RuleCondition(predicate) {
-    PredicateSpecification.call(this, predicate);
-    Object.defineProperty(this, "problemState", { writable: true });
+var RuleCondition = function RuleCondition(predicate, type) {
+
+    if(predicate instanceof PredicateSpecification) {
+        predicate = predicate.predicate;
+    }
+
+    PredicateSpecification.call(this, predicate, type);
+    Object.defineProperty(this, "evaluationContext", { writable: true });
 
     return this;
 };
 
 util.inherits(RuleCondition, PredicateSpecification);
 
-RuleCondition.prototype.evaluateCondition = function () {
-    return this.isSatisfiedBy(this.problemState);
+RuleCondition.prototype.evaluateCondition = function (evaluationContext) {
+
+    if(!_.isUndefined(evaluationContext)) {
+        this.evaluationContext = evaluationContext;
+    }
+
+    return this.isSatisfiedBy(this.evaluationContext);
 };
 
 var BusinessAction = function BusinessAction(options) {
@@ -167,17 +181,17 @@ var BusinessAction = function BusinessAction(options) {
 
     this.action = options.action || null;
 
-    var _problemState;
-    Object.defineProperty(this, "problemState", {
+    var _evaluationContext;
+    Object.defineProperty(this, "evaluationContext", {
         get: function () {
-            return _problemState;
+            return _evaluationContext;
         },
         set: function (value) {
-            _problemState = value;
+            _evaluationContext = value;
         }
     });
 
-    this.problemState = options.problemState || null;
+    this.evaluationContext = options.evaluationContext || null;
 
     var _executionContext;
     Object.defineProperty(this, "executionContext", {
@@ -194,7 +208,7 @@ var BusinessAction = function BusinessAction(options) {
 
 BusinessAction.prototype.execute = function () {
     if (this.action) {
-        this.action(this.problemState, this.executionContext);
+        this.action(this.evaluationContext, this.executionContext);
     }
 };
 

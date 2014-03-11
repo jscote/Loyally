@@ -29,17 +29,17 @@ var RuleEvaluator = function RuleEvaluator(options) {
     } .bind(this));
 
 
-    var _problemState = null;
-    Object.defineProperty(this, "problemState", {
+    var _evaluationContext = null;
+    Object.defineProperty(this, "evaluationContext", {
         get: function () {
-            return _problemState;
+            return _evaluationContext;
         },
         set: function (value) {
-            _problemState = value;
+            _evaluationContext = value;
         }
     });
 
-    this.problemState = options.problemState || null;
+    this.evaluationContext = options.evaluationContext || null;
 
     this.emit('ready');
 
@@ -59,9 +59,7 @@ RuleEvaluator.prototype.evaluateItem = function (rule) {
         this.emit('error', "The rule to evaluate is not a rule object.");
     }
 
-    var result = rule.evaluateCondition();
-    
-    return result;
+    return rule.evaluateCondition();
 };
 
 RuleEvaluator.prototype.evaluate = function () {
@@ -73,7 +71,7 @@ RuleEvaluator.prototype.evaluate = function () {
     this.emit("evaluationStarting");
     var async_evaluate = function (callback) {
         process.nextTick(function () {
-            if (!this.problemState) {
+            if (!this.evaluationContext) {
                 this.emit('error', "A rule needs a problem state to operate on.");
             }
 
@@ -136,10 +134,10 @@ RuleEvaluator.prototype.addRule = function (rule) {
             if (this.rules) {
                 this.rules[rule.ruleName] = rule;
 
-                rule.problemState = this.problemState;
+                rule.evaluationContext = this.evaluationContext;
 
-                if (rule.condition.problemState) {
-                    rule.condition.problemState.rules = this.rules;
+                if (rule.condition.evaluationContext) {
+                    rule.condition.evaluationContext.rules = this.rules;
                 }
 
             } else {
@@ -223,13 +221,13 @@ BusinessRuleEvaluator.prototype.addRule = function (rule) {
             if (this.rules) {
                 this.rules[rule.ruleName] = rule;
 
-                rule.problemState = this.problemState;
+                rule.evaluationContext = this.evaluationContext;
                 if (rule.businessAction) {
-                    rule.businessAction.problemState = this.problemState;
+                    rule.businessAction.evaluationContext = this.evaluationContext;
                 }
 
-                if (rule.condition.problemState) {
-                    rule.condition.problemState.rules = this.rules;
+                if (rule.condition.evaluationContext) {
+                    rule.condition.evaluationContext.rules = this.rules;
                 }
 
             } else {
@@ -288,7 +286,7 @@ var RuleSetEvaluator = function RuleSetEvaluator(options) {
         this.addRule(this.ruleSet.rules[prop]);
     }
 
-    this.problemState = this.ruleSet.problemState;
+    this.evaluationContext = this.ruleSet.evaluationContext;
     this.haltOnException = this.ruleSet.haltOnException;
     this.haltOnFirstInvalidRule = this.ruleSet.haltOnFirstInvalidRule;
 
@@ -307,17 +305,17 @@ var RuleSet = function RuleSet(options) {
     Object.defineProperty(this, "haltOnException", { writable: true, value: options.haltOnException || true });
     Object.defineProperty(this, "haltOnFirstInvalidRule", { writable: true, value: options.haltOnFirstInvalidRule || false });
 
-    var _problemState = null;
-    Object.defineProperty(this, "problemState", {
+    var _evaluationContext = null;
+    Object.defineProperty(this, "evaluationContext", {
         get: function () {
-            return _problemState;
+            return _evaluationContext;
         },
         set: function (value) {
-            _problemState = value;
+            _evaluationContext = value;
         }
     });
 
-    this.problemState = options.problemState || null;
+    this.evaluationContext = options.evaluationContext || null;
 };
 
 RuleSet.prototype.addRule = function (rule, addedRuleCallback) {
@@ -335,10 +333,10 @@ RuleSet.prototype.addRule = function (rule, addedRuleCallback) {
             if (this.rules) {
                 this.rules[rule.ruleName] = rule;
 
-                rule.problemState = this.problemState;
+                rule.evaluationContext = this.evaluationContext;
 
-                if (rule.condition.problemState) {
-                    rule.condition.problemState.rules = this.rules;
+                if (rule.condition.evaluationContext) {
+                    rule.condition.evaluationContext.rules = this.rules;
                 }
 
             } else {

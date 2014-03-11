@@ -8,6 +8,7 @@ var Predicate = require(p.resolve(__dirname + '../../../server/Predicate/Predica
 var predicateFactory = require(p.resolve(__dirname + '../../../server/Predicate/Predicate/')).predicateFactory;
 var PredicateSpecification = require(p.resolve(__dirname + '../../../server/Predicate/Specification/')).PredicateSpecification;
 var Specification = require(p.resolve(__dirname + '../../../server/Predicate/Specification/')).Specification;
+var q = require('q');
 
 module.exports = {
     setUp: function (callback) {
@@ -19,180 +20,315 @@ module.exports = {
     },
 
 
-    testSpecificationIsSatisfiedWithPredicate: function(test) {
+    testSpecificationIsSatisfiedWithPredicate: function (test) {
+        test.expect(1);
 
-        var klass = function() {
+        var klass = function () {
             this.value = true;
         }
 
         var o = new klass();
 
-        var sp =  new PredicateSpecification(predicateFactory(function(item) {return item.value}, klass));
+        var sp = new PredicateSpecification(predicateFactory(function (item) {
 
-        var result = sp.isSatisfiedBy(o);
+            var dfd = q.defer();
 
-        test.ok(result);
-        test.done();
+            process.nextTick(function () {
+                dfd.resolve(item.value);
+            });
+            return dfd.promise
+        }, klass));
+
+        try {
+            sp.isSatisfiedBy(o).then(function (result) {
+                    test.ok(result);
+
+                }
+            ).fin(function () {
+                    test.done()
+                });
+        } catch (e) {
+            console.log('error ' + e);
+        }
 
     },
 
-    testSpecificationIsSatisfiedWithFunctionAndClass: function(test) {
-
-        var klass = function() {
+    testSpecificationIsSatisfiedWithFunctionAndClass: function (test) {
+        test.expect(1);
+        var klass = function () {
             this.value = true;
         }
 
         var o = new klass();
 
-        var sp =  new PredicateSpecification(function(item) {
-            return item.value
+        var sp = new PredicateSpecification(function (item) {
+
+            var dfd = q.defer();
+
+            process.nextTick(function () {
+                dfd.resolve(item.value);
+            });
+            return dfd.promise
         }, klass);
 
-        var result = sp.isSatisfiedBy(o);
 
-        test.ok(result);
-        test.done();
+        try {
+            sp.isSatisfiedBy(o).then(function (result) {
+                    test.ok(result);
+
+                }
+            ).fin(function () {
+                    test.done()
+                });
+        } catch (e) {
+            console.log('error ' + e);
+        }
 
     },
 
-    testSpecificationThrowsWhenFunctionAndTypeDontMatch: function(test) {
+    testSpecificationThrowsWhenFunctionAndTypeDontMatch: function (test) {
 
-        var klass = function() {
+        var klass = function () {
             this.value = true;
         }
 
-        var klass1 = function() {
+        var klass1 = function () {
             this.value = true;
         }
 
         var o = new klass();
 
-        var sp =  new PredicateSpecification(function(item) {
+        var sp = new PredicateSpecification(function (item) {
             return item.value
         }, klass1);
 
-        test.throws(function() {
-            var result =  sp.isSatisfiedBy(o);
+
+        var result = sp.isSatisfiedBy(o);
+
+        result.then(function (r) {
+            test.ok(false, 'expected to fail');
+        }).catch(function (error) {
+                test.ok(true, 'expected to fail');
+
+            }).fin(test.done());
+
+
+    },
+
+    testSpecificationIsSatisfiedWithFunction: function (test) {
+
+        var sp = new PredicateSpecification(function (item) {
+            return true
         });
 
-        test.done();
+        sp.isSatisfiedBy({}).then(function (result) {
+            test.ok(result);
+            test.done();
+        });
+
 
     },
 
-    testSpecificationIsSatisfiedWithFunction: function(test) {
+    testNotSpecificationIsSatisfiedWithFunction: function (test) {
 
-        var sp =  new PredicateSpecification(function(item) {return true});
-
-        var result = sp.isSatisfiedBy({});
-
-        test.ok(result);
-        test.done();
-
-    },
-
-    testNotSpecificationIsSatisfiedWithFunction: function(test) {
-
-        var isGreaterThan5 = new Predicate(function(item) {
+        var isGreaterThan5 = new Predicate(function (item) {
             return item > 5;
         });
 
-        var sp =  new PredicateSpecification(isGreaterThan5);
+        var sp = new PredicateSpecification(isGreaterThan5);
 
         var notSpec = Specification.not(sp);
 
-        var result = notSpec.isSatisfiedBy(5);
+        notSpec.isSatisfiedBy(5).then(function (result) {
+            test.ok(result);
+            test.done();
+        });
 
-        test.ok(result);
-        test.done();
 
     },
 
-    testAndSpecificationIsSatisfiedWithFunction: function(test) {
+    testAndSpecificationIsSatisfiedWithFunction: function (test) {
 
-        var spLeft =  new PredicateSpecification(function(item) {return item.value;});
-        var spRight =  new PredicateSpecification(function(item) {return item.value;});
+        var spLeft = new PredicateSpecification(function (item) {
+            return item.value;
+        });
+        var spRight = new PredicateSpecification(function (item) {
+            return item.value;
+        });
 
 
-        var result = Specification.and(spLeft, spRight).isSatisfiedBy({value: true});
+        Specification.and(spLeft, spRight).isSatisfiedBy({value: true}).then(function (result) {
+            test.ok(result);
+            test.done();
+        });
+    },
 
-        test.ok(result);
-        test.done();
+    testAndSpecificationIsNotSatisfiedWithFunction: function (test) {
+
+        var spLeft = new PredicateSpecification(function (item) {
+            return item.value;
+        });
+        var spRight = new PredicateSpecification(function (item) {
+            return !item.value;
+        });
+
+
+        Specification.and(spLeft, spRight).isSatisfiedBy({value: true}).then(function (result) {
+            test.ok(!result);
+            test.done();
+        });
 
     },
 
-    testAndSpecificationIsNotSatisfiedWithFunction: function(test) {
+    testOrSpecificationIsSatisfiedWithFunction: function (test) {
 
-        var spLeft =  new PredicateSpecification(function(item) {return item.value;});
-        var spRight =  new PredicateSpecification(function(item) {return !item.value;});
-
-
-        var result = Specification.and(spLeft, spRight).isSatisfiedBy({value: true});
-
-        test.ok(!result);
-        test.done();
-
-    },
-
-    testOrSpecificationIsSatisfiedWithFunction: function(test) {
-
-        var spLeft =  new PredicateSpecification(function(item) {return item.value;});
-        var spRight =  new PredicateSpecification(function(item) {return !item.value;});
+        var spLeft = new PredicateSpecification(function (item) {
+            return item.value;
+        });
+        var spRight = new PredicateSpecification(function (item) {
+            return !item.value;
+        });
 
 
-        var result = Specification.or(spLeft, spRight).isSatisfiedBy({value: true});
-
-        test.ok(result);
-        test.done();
+        Specification.or(spLeft, spRight).isSatisfiedBy({value: true}).then(function (result) {
+            test.ok(result);
+            test.done();
+        });
 
     },
 
-    testOrSpecificationIsNotSatisfiedWithFunction: function(test) {
+    testOrSpecificationIsNotSatisfiedWithFunction: function (test) {
 
-        var spLeft =  new PredicateSpecification(function(item) {return !item.value;});
-        var spRight =  new PredicateSpecification(function(item) {return !item.value;});
+        var spLeft = new PredicateSpecification(function (item) {
+            return !item.value;
+        });
+        var spRight = new PredicateSpecification(function (item) {
+            return !item.value;
+        });
 
 
-        var result = Specification.or(spLeft, spRight).isSatisfiedBy({value: true});
-
-        test.ok(!result);
-        test.done();
+        Specification.or(spLeft, spRight).isSatisfiedBy({value: true}).then(function (result) {
+            test.ok(!result);
+            test.done();
+        });
 
     },
 
-    testCombineSpecificationAreSatisfied: function(test){
+    testCombineSpecificationAreSatisfied: function (test) {
 
-        var Person = function(age, gender){
+        var Person = function (age, gender) {
             this.age = age;
             this.gender = gender;
         }
 
-        var genderSpec = new PredicateSpecification(function(item){
+        var genderSpec = new PredicateSpecification(function (item) {
             return item.gender == 'M';
         }, Person);
 
-        var ageGreaterThanOrEqual20Spec = new PredicateSpecification(function(item) {
-           return item.age >= 20;
+        var ageGreaterThanOrEqual20Spec = new PredicateSpecification(function (item) {
+            return item.age >= 20;
         }, Person);
 
-        var ageLessThanOrEqual40Spec = new PredicateSpecification(function(item){
-           return item.age <= 40;
+        var ageLessThanOrEqual40Spec = new PredicateSpecification(function (item) {
+            return item.age <= 40;
         }, Person);
 
-        var ageBetween20And40Spec = new PredicateSpecification(function(item) {
-           return Specification.and(ageGreaterThanOrEqual20Spec, ageLessThanOrEqual40Spec).isSatisfiedBy(item);
+        var ageBetween20And40Spec = new PredicateSpecification(function (item) {
+            return Specification.and(ageGreaterThanOrEqual20Spec, ageLessThanOrEqual40Spec).isSatisfiedBy(item);
         }, Person);
 
 
-        var femaleBetweenAge20And40Spec = new PredicateSpecification(function(item){
-            return Specification.and(ageBetween20And40Spec, Specification.not(genderSpec)).isSatisfiedBy(item);
+        var notMale = Specification.not(genderSpec);
+
+        var femaleBetweenAge20And40Spec = new PredicateSpecification(function (item) {
+
+            return Specification.and(ageBetween20And40Spec, notMale).isSatisfiedBy(item);
         }, Person);
 
-        test.ok(femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(30, 'F')));
-        test.ok(!femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(30, 'M')));
+        femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(30, 'F')).then(function (result) {
+            test.ok(result);
+            test.done();
+        });
+
+
+
+        /*test.ok(!femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(30, 'M')));
         test.ok(!femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(19, 'M')));
         test.ok(!femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(19, 'F')));
         test.ok(!femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(41, 'F')));
         test.ok(!femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(41, 'M')));
-        test.done();
+        test.done();*/
+    },
+    testAnotherCombineSpecificationAreSatisfied: function (test) {
+
+        var Person = function (age, gender) {
+            this.age = age;
+            this.gender = gender;
+        }
+
+        var genderSpec = new PredicateSpecification(function (item) {
+            return item.gender == 'M';
+        }, Person);
+
+        var ageGreaterThanOrEqual20Spec = new PredicateSpecification(function (item) {
+            return item.age >= 20;
+        }, Person);
+
+        var ageLessThanOrEqual40Spec = new PredicateSpecification(function (item) {
+            return item.age <= 40;
+        }, Person);
+
+        var ageBetween20And40Spec = new PredicateSpecification(function (item) {
+            return Specification.and(ageGreaterThanOrEqual20Spec, ageLessThanOrEqual40Spec).isSatisfiedBy(item);
+        }, Person);
+
+
+        var notMale = Specification.not(genderSpec);
+
+        var femaleBetweenAge20And40Spec = new PredicateSpecification(function (item) {
+
+            return Specification.and(ageBetween20And40Spec, notMale).isSatisfiedBy(item);
+        }, Person);
+
+        femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(30, 'M')).then(function (result) {
+            test.ok(!result);
+            test.done();
+        });
+    },
+    testAnotherOneCombineSpecificationAreSatisfied: function (test) {
+
+        var Person = function (age, gender) {
+            this.age = age;
+            this.gender = gender;
+        }
+
+        var genderSpec = new PredicateSpecification(function (item) {
+            return item.gender == 'M';
+        }, Person);
+
+        var ageGreaterThanOrEqual20Spec = new PredicateSpecification(function (item) {
+            return item.age >= 20;
+        }, Person);
+
+        var ageLessThanOrEqual40Spec = new PredicateSpecification(function (item) {
+            return item.age <= 40;
+        }, Person);
+
+        var ageBetween20And40Spec = new PredicateSpecification(function (item) {
+            return Specification.and(ageGreaterThanOrEqual20Spec, ageLessThanOrEqual40Spec).isSatisfiedBy(item);
+        }, Person);
+
+
+        var notMale = Specification.not(genderSpec);
+
+        var femaleBetweenAge20And40Spec = new PredicateSpecification(function (item) {
+
+            return Specification.and(ageBetween20And40Spec, notMale).isSatisfiedBy(item);
+        }, Person);
+
+        femaleBetweenAge20And40Spec.isSatisfiedBy(new Person(19, 'F')).then(function (result) {
+            test.ok(!result);
+            test.done();
+        });
     }
 };

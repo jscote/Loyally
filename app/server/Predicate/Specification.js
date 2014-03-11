@@ -1,6 +1,7 @@
 ﻿var Predicate = require('./Predicate.js').Predicate;
 var predicateFactory = require('./Predicate.js').predicateFactory;
 var util = require('util');
+var q = require('q');
 //var PredicateSpecification = require('./PredicateSpecification.js').PredicateSpecification;
 
 var Specification = function Specification() {
@@ -21,7 +22,13 @@ Specification.and = function (left, right) {
     }
 
     return new PredicateSpecification(new Predicate(function (item) {
-        return left.isSatisfiedBy(item) && right.isSatisfiedBy(item);
+        var dfd = q.defer();
+
+        q.spread([left.isSatisfiedBy(item), right.isSatisfiedBy(item)], function(l, r) {
+            dfd.resolve(l && r);
+        });
+
+        return dfd.promise;
     }));
 };
 
@@ -39,7 +46,14 @@ Specification.or = function (left, right) {
     }
 
     return new PredicateSpecification(new Predicate(function (item) {
-        return left.isSatisfiedBy(item) || right.isSatisfiedBy(item);
+
+        var dfd = q.defer();
+
+        q.spread([left.isSatisfiedBy(item), right.isSatisfiedBy(item)], function(l, r) {
+            dfd.resolve(l || r);
+        });
+
+        return dfd.promise;
     }));
 };
 
@@ -49,7 +63,13 @@ Specification.not = function (spec) {
     }
 
     return new PredicateSpecification(new Predicate(function (item) {
-        return !spec.isSatisfiedBy(item);
+        var dfd = q.defer();
+
+        spec.isSatisfiedBy(item).then(function(result){
+           dfd.resolve(!result);
+        });
+
+        return dfd.promise;
     }));
 };
 
@@ -75,7 +95,21 @@ PredicateSpecification.prototype.isSatisfiedBy = function (item) {
         throw Error("You must specify an item to evaluate the predicate");
     }
 
-   return this.predicate.getEvaluationFn(item)(item);
+    var dfd = q.defer();
+
+    try {
+        q.when(this.predicate.getEvaluationFn(item)(item), function (result) {
+            dfd.resolve(result);
+        }, function (error) {
+            dfd.reject(error);
+        });
+    } catch (e) {
+        dfd.reject(e);
+    }
+
+    return dfd.promise;
+
+    //return this.predicate.getEvaluationFn(item)(item);
 
 };
 

@@ -7,6 +7,7 @@ var util = require('util');
 
 var Predicate = require(p.resolve(__dirname + '../../../server/Predicate/Predicate/')).Predicate;
 var predicateFactory = require(p.resolve(__dirname + '../../../server/Predicate/Predicate/')).predicateFactory;
+var q = require('q');
 
 module.exports = {
     setUp: function (callback) {
@@ -18,15 +19,19 @@ module.exports = {
     },
     testTypeIsNotRequired: function (test) {
 
-        test.doesNotThrow(function(){
-            var p = predicateFactory(function() {return true;});
+        test.doesNotThrow(function () {
+            var p = predicateFactory(function () {
+                return true;
+            });
         });
 
         test.done();
     },
 
     testPredicateFactoryReturnsAPredicate: function (test) {
-        var p = predicateFactory(function(item) {return true;});
+        var p = predicateFactory(function (item) {
+            return true;
+        });
 
         test.ok(p instanceof Predicate);
         test.done();
@@ -34,7 +39,7 @@ module.exports = {
 
     testPredicateExpectsAFunction: function (test) {
 
-        test.throws(function(){
+        test.throws(function () {
             var p = predicateFactory();
         });
 
@@ -43,22 +48,24 @@ module.exports = {
 
     testPredicateExpectsAFunctionNotAString: function (test) {
 
-        test.throws(function(){
+        test.throws(function () {
             var p = predicateFactory('');
         });
 
         test.done();
     },
 
-    testPredicateReturnsAFunctionWithProperItem: function(test) {
+    testPredicateReturnsAFunctionWithProperItem: function (test) {
 
-        var klass = function() {
+        var klass = function () {
             this.value = true;
         }
 
         var o = new klass();
 
-        var p = predicateFactory(function(item) {return item.value}, klass);
+        var p = predicateFactory(function (item) {
+            return item.value
+        }, klass);
 
         var result = p.getEvaluationFn(o)(o);
 
@@ -67,13 +74,13 @@ module.exports = {
 
     },
 
-    testPredicateReturnsAFunctionWithProperInheritedItem: function(test) {
+    testPredicateReturnsAFunctionWithProperInheritedItem: function (test) {
 
-        var Klass = function() {
+        var Klass = function () {
             this.value = true;
         }
 
-        var ChildKlass = function() {
+        var ChildKlass = function () {
             Klass.call(this);
             this.somethingElse = true;
         }
@@ -82,7 +89,9 @@ module.exports = {
 
         var o = new Klass();
 
-        var p = predicateFactory(function(item) {return item.value}, Klass);
+        var p = predicateFactory(function (item) {
+            return item.value
+        }, Klass);
 
         var result = p.getEvaluationFn(o)(o);
 
@@ -91,13 +100,13 @@ module.exports = {
 
     },
 
-    testPredicateReturnsAFunctionWithUsingInheritedItem: function(test) {
+    testPredicateReturnsAFunctionWithUsingInheritedItem: function (test) {
 
-        var Klass = function() {
+        var Klass = function () {
             this.value = true;
         }
 
-        var ChildKlass = function() {
+        var ChildKlass = function () {
             Klass.call(this);
             this.somethingElse = true;
         }
@@ -106,7 +115,9 @@ module.exports = {
 
         var o = new Klass();
 
-        var p = predicateFactory(function(item) {return item.value}, ChildKlass);
+        var p = predicateFactory(function (item) {
+            return item.value
+        }, ChildKlass);
 
         var result = p.getEvaluationFn(o)(o);
 
@@ -115,21 +126,82 @@ module.exports = {
 
     },
 
-    testPredicateReturnsAFunctionWithWrongItemType: function(test) {
+    testPredicateReturnsAFunctionWithWrongItemType: function (test) {
 
-        var klass = function() {
+        var klass = function () {
             this.value = true;
         }
 
         var o = '';
 
-        var p = predicateFactory(function(item) {return item.value}, klass);
+        var p = predicateFactory(function (item) {
+            return item.value
+        }, klass);
 
-        test.throws(function(){
+        test.throws(function () {
             var result = p.getEvaluationFn(o)(o);
         });
 
         test.done();
+
+    },
+    testWhenPredicateIsAPromiseReturnsAFunctionWithUsingInheritedItem: function (test) {
+
+        var Klass = function () {
+            this.value = true;
+        }
+
+        var ChildKlass = function () {
+            Klass.call(this);
+            this.somethingElse = true;
+        }
+
+        util.inherits(Klass, ChildKlass);
+
+        var o = new Klass();
+
+        var p = predicateFactory(function (item) {
+
+            var dfd = q.defer();
+            process.nextTick(function () {
+                dfd.resolve(item.value);
+            });
+            return dfd.promise;
+        }, ChildKlass);
+
+        var result = p.getEvaluationFn(o)(o);
+
+        result.then(function (pResult) {
+            test.ok(pResult);
+            test.done();
+        });
+
+    },
+    testWhenPredicateMayBeAPromiseReturnsAFunctionWithUsingInheritedItem: function (test) {
+
+        var Klass = function () {
+            this.value = true;
+        }
+
+        var ChildKlass = function () {
+            Klass.call(this);
+            this.somethingElse = true;
+        }
+
+        util.inherits(Klass, ChildKlass);
+
+        var o = new Klass();
+
+        var p = predicateFactory(function (item) {
+            return item.value;
+        }, ChildKlass);
+
+        var result = p.getEvaluationFn(o)(o);
+
+        q.when(result, function (pResult) {
+            test.ok(pResult);
+            test.done();
+        });
 
     }
 };
