@@ -1,3 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project version="4" />
+<project version="4">
+  <component name="JavaScriptLibraryMappings">
+    <file url="file://$PROJECT_DIR$/app/server/Predicate/Specification.js" libraries="{Node.js v0.10.21 Core Modules}" />
+    <file url="file://$PROJECT_DIR$/app/server/RuleEvaluator/RuleEvaluator.js" libraries="{Node.js Globals}" />
+  </component>
+</project>
 
