@@ -9,6 +9,13 @@
  * Postgre is listening on the default installation port which is 5432
  */
 
+/*require('nodetime').profile({
+    accountKey: 'd6fdfec48ef06e090eb24ed7bb2d6b1e0c423b83',
+    appName: 'Node.js Application',
+    debug: true
+});*/
+
+
 
 var cluster = require('cluster');
 var numCpus = require('os').cpus().length;
@@ -58,7 +65,6 @@ if (!module.parent) {
     var host = process.env.HOST || '0.0.0.0';
 
 
-
     //using only one core while developing as it is not debuggable with multiple core running
     if (env !== 'development') {
         if (cluster.isMaster) {
@@ -79,3 +85,12 @@ if (!module.parent) {
         startListening(app);
     }
 }
+
+setInterval(function () {
+    if (global.gc) {
+        console.log('garbage collection');
+        //Injector = null;
+       global.gc();
+
+    }
+}, 25000)

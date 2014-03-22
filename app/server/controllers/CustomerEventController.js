@@ -34,8 +34,10 @@
 
             if (result.isSuccess) {
                 dfd.resolve(result.data);
+                this.eventService = null;
             } else {
                 dfd.resolve(httpApiResponse.createHttpApiResponse('400', result.errors));
+                this.eventService = null;
             }
         });
 
@@ -53,6 +55,7 @@
 
         this.eventService.getEventForCustomer(message).then(function(result) {
             dfd.resolve(result);
+            this.eventService = null;
         });
 
         return dfd.promise;

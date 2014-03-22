@@ -1,4 +1,4 @@
-﻿(function (util, Rule, BusinessRule, EventEmitter) {
+﻿(function (util, Rule, BusinessRule, EventEmitter, q) {
 
     'use strict';
 
@@ -120,42 +120,49 @@
 
     RuleEvaluator.prototype.addRule = function (rule) {
 
-        var async_addRule = function (rule, callback) {
-            process.nextTick(function () {
-                if (!rule) {
-                    this.emit('error', "The rule should be specified for evaluation.");
-                }
 
-                if (!(rule instanceof Rule)) {
-                    this.emit('error', "The rule to evaluate is not a rule object.");
-                }
+        var dfd = q.defer();
 
-                if (this.rules) {
-                    this.rules[rule.ruleName] = rule;
+        if (!rule) {
+            this.emit('ruleError', "The rule should be specified for evaluation.");
+            dfd.reject("The rule should be specified for evaluation.");
 
-                    rule.evaluationContext = this.evaluationContext;
+        } else {
 
-                    if (rule.condition.evaluationContext) {
-                        rule.condition.evaluationContext.rules = this.rules;
+            if (!(rule instanceof Rule)) {
+                this.emit('ruleError', "The rule to evaluate is not a rule object.");
+                dfd.reject("The rule to evaluate is not a rule object.");
+            } else {
+
+                process.nextTick(function () {
+
+                    if (this.rules) {
+                        this.rules[rule.ruleName] = rule;
+
+                        rule.evaluationContext = this.evaluationContext;
+
+                        if (rule.condition.evaluationContext) {
+                            rule.condition.evaluationContext.rules = this.rules;
+                        }
+
+                        dfd.resolve(rule);
+                        this.emit('ruleAdded', rule);
+
+                    } else {
+                        this.emit('error', "The rule list is not initialized.");
+                        dfd.reject("The rule list is not initialized.");
                     }
 
-                } else {
-                    this.emit('error', "The rule list is not initialized.");
-                }
-                callback();
-            }.bind(this));
-        }.bind(this);
+                }.bind(this));
 
-        var addRuleCompleted = function () {
-
-            this.emit('ruleAdded', rule);
-        }.bind(this);
-
-        async_addRule(rule, addRuleCompleted);
+            }
+        }
+        return dfd.promise;
     };
 
 
     var BusinessRuleEvaluator = function BusinessRuleEvaluator(options) {
+        options = options || {};
         RuleEvaluator.call(this, options);
 
         Object.defineProperty(this, "executeActionsOnCompletion", { writable: true, value: options.executeActionsOnCompletion === undefined ? false : options.executeActionsOnCompletion });
@@ -207,44 +214,52 @@
 
     BusinessRuleEvaluator.prototype.addRule = function (rule) {
 
-        var async_addRule = function (rule, callback) {
-            process.nextTick(function () {
-                if (!rule) {
-                    this.emit('error', "The rule should be specified for evaluation.");
-                }
+        var dfd = q.defer();
 
-                if (!(rule instanceof BusinessRule)) {
-                    this.emit('error', "The rule to evaluate is not a rule object.");
-                }
+        if (!rule) {
+            this.emit('ruleError', "The rule should be specified for evaluation.");
+            dfd.reject("The rule should be specified for evaluation.");
 
-                if (this.rules) {
-                    this.rules[rule.ruleName] = rule;
+        } else {
 
-                    rule.evaluationContext = this.evaluationContext;
-                    if (rule.businessAction) {
-                        rule.businessAction.evaluationContext = this.evaluationContext;
+            if (!(rule instanceof BusinessRule)) {
+                this.emit('ruleError', "The rule to evaluate is not a rule object.");
+                dfd.reject("The rule to evaluate is not a rule object.");
+            } else {
+
+                process.nextTick(function () {
+
+                    if (this.rules) {
+                        this.rules[rule.ruleName] = rule;
+
+                        rule.evaluationContext = this.evaluationContext;
+
+                        if (rule.businessAction) {
+                            rule.businessAction.evaluationContext = this.evaluationContext;
+                        }
+
+                        if (rule.condition.evaluationContext) {
+                            rule.condition.evaluationContext.rules = this.rules;
+                        }
+
+                        dfd.resolve(rule);
+                        this.emit('ruleAdded', rule);
+
+                    } else {
+                        this.emit('error', "The rule list is not initialized.");
+                        dfd.reject("The rule list is not initialized.");
                     }
 
-                    if (rule.condition.evaluationContext) {
-                        rule.condition.evaluationContext.rules = this.rules;
-                    }
+                }.bind(this));
 
-                } else {
-                    this.emit('error', "The rule list is not initialized.");
-                }
-                callback();
-            }.bind(this));
-        }.bind(this);
+            }
+        }
+        return dfd.promise;
 
-        var addRuleCompleted = function () {
-
-            this.emit('ruleAdded', rule);
-        }.bind(this);
-
-        async_addRule(rule, addRuleCompleted);
     };
 
     var RuleSetEvaluator = function RuleSetEvaluator(options) {
+        options = options || {};
         RuleEvaluator.call(this, options);
 
         var self = this;
@@ -364,5 +379,6 @@
         require('util'),
         require('../Rule/Rule').Rule,
         require('../Rule/Rule').BusinessRule,
-        require('events').EventEmitter
+        require('events').EventEmitter,
+        require('q')
     );

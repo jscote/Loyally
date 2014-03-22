@@ -52,14 +52,14 @@
                 response.send(result.statusCode, result.data);
             }).fail(function(result) {
                     response.send(result.statusCode, result.errors);
-                });
+                }). fin(function(){controller = null;});
 
         };
 
         var get = function (request, response) {
             controller.get(request).then(function (result) {
                 response.send(result.statusCode, result.data);
-            });
+            }). fin(function(){controller = null;});
         };
 
 
