@@ -67,30 +67,44 @@
         this.isValidated = false;
         this.isValid = true;
 
-        this.emit("evaluationStarting");
-        var async_evaluate = function (callback) {
+        if (!this.evaluationContext) {
+            this.emit('evaluationError', "A rule needs a problem state to operate on.");
+        } else {
+
+
+            this.emit("evaluationStarting");
+
+            var dfd = q.defer();
+
+            //var async_evaluate = function (callback) {
             process.nextTick(function () {
-                if (!this.evaluationContext) {
-                    this.emit('error', "A rule needs a problem state to operate on.");
-                }
+
+                var self = this;
+                var hasErrors = false;
 
                 if (this.rules) {
                     for (var prop in this.rules) {
                         try {
-                            var result = this.evaluateItem(this.rules[prop]);
-                            //Keep track of broken rules. Instead of implementing this code in the evaluateItem function, it's done
-                            //here because evaluateItem is most likely to be overridden by other type of evaluators and we want to preserve most of the code
-                            if (!result) {
-                                console.log("adding broken rule " + this.rules[prop].ruleFriendlyName);
-                                this.brokenRules.push(this.rules[prop].ruleFriendlyName);
 
-                                if (this.haltOnFirstInvalidRule) {
-                                    this.emit('ruleEvaluated', this.rules[prop]);
-                                    break;
+                            this.evaluateItem(this.rules[prop]).then(function (result) {
+                                //Keep track of broken rules. Instead of implementing this code in the evaluateItem function, it's done
+                                //here because evaluateItem is most likely to be overridden by other type of evaluators and we want to preserve most of the code
+                                if (!result.isTrue) {
+                                    console.log("adding broken rule " + result.rule.ruleFriendlyName);
+                                    self.brokenRules.push(result.rule.ruleFriendlyName);
+
+                                    if (self.haltOnFirstInvalidRule) {
+                                        self.emit('ruleEvaluated', result.rule);
+                                        dfd.reject('Stop evaluation on first error');
+                                    }
                                 }
-                            }
 
-                            this.emit('ruleEvaluated', this.rules[prop]);
+                                self.emit('ruleEvaluated', result.rule);
+                            }).fail(function (reason) {
+                                    self.hasExceptions = true;
+                                    self.exceptionMessages.push(reason);
+                                });
+
 
                         }
                         catch (e) {
@@ -98,16 +112,18 @@
                             this.exceptionMessages.push(e.message);
 
                             if (this.haltOnException) {
+                                dfd.reject('Exception');
                                 break;
                             }
                         }
                     }
+                    dfd.resolve();
                 } else {
-                    this.emit('error', "The rule list is not initialized.");
+                    this.emit('evaluationError', "The rule list is not initialized.");
                 }
-                callback();
             }.bind(this));
-        }.bind(this);
+            //}.bind(this);
+        }
 
         var evaluationCompleted = function () {
             this.isValidating = false;
@@ -115,7 +131,9 @@
             this.emit('allRulesEvaluated', this);
         }.bind(this);
 
-        async_evaluate(evaluationCompleted);
+        return dfd.promise;
+
+        //async_evaluate(evaluationCompleted);
     };
 
     RuleEvaluator.prototype.addRule = function (rule) {
@@ -149,7 +167,7 @@
                         this.emit('ruleAdded', rule);
 
                     } else {
-                        this.emit('error', "The rule list is not initialized.");
+                        this.emit('ruleError', "The rule list is not initialized.");
                         dfd.reject("The rule list is not initialized.");
                     }
 

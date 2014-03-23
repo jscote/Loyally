@@ -1,4 +1,4 @@
-﻿(function (util, PredicateSpecification, Predicate, _) {
+﻿(function (util, PredicateSpecification, Predicate, _, q) {
 
 
     var Rule = function Rule(options) {
@@ -73,13 +73,20 @@
             this.evaluationContext = evaluationContext;
         }
 
+        var self = this;
+        var dfd = q.defer();
+
         if (this.condition) {
-            this.isTrue = this.condition.evaluateCondition(this.evaluationContext);
+            this.condition.evaluateCondition(this.evaluationContext).then(function(result){
+                self.isTrue = result;
+                dfd.resolve({isTrue: self.isTrue, rule: self});
+            });
         } else {
             this.isTrue = true;
+            dfd.resolve({isTrue: self.isTrue, rule: self});
         }
 
-        return this.isTrue;
+        return dfd.promise;
     };
 
     var BusinessRule = function BusinessRule(options) {
@@ -181,5 +188,6 @@
         require('util'),
         require('../Predicate/Specification').PredicateSpecification,
         require('../Predicate/Predicate').Predicate,
-        require('lodash')
+        require('lodash'),
+        require('q')
     );

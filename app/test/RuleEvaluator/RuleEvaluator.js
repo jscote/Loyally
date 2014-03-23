@@ -145,6 +145,35 @@ module.exports = {
                 test.equal(result, 'The rule should be specified for evaluation.');
                 test.done();
             });
+    },
+    testRulesInEvaluatorAreEvaluatedSequentially: function (test) {
+        var ev = new RuleEvaluator();
+        var r = new Rule({ruleName: 'HasAName', condition: new RuleCondition(function (item) {
+            console.log('Evaluating Rule 1');
+            return item.value;
+        })});
+        var r1 = new Rule({ruleName: 'HasAnotherName', condition: new RuleCondition(function (item) {
+            console.log('Evaluating Rule 2');
+            return !item.value;
+        })});
+
+        ev.evaluationContext = {value: true};
+
+        ev.addRule(r).then(function (result) {
+            ev.addRule(r1).then(function(result){
+                ev.evaluate().then(function(result){
+                    test.ok(ev.isValid);
+                    test.equal(ev.brokenRules.length, 1)
+                    test.done();
+                });
+            });
+        });
+
+
+    },
+    testThatARuleCanBeAddedOnlyOnceWithSameName: function (test) {
+        //TODO - Implement this test
+        test.done();
     }
 
 };
