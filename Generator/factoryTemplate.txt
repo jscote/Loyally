@@ -1,0 +1,25 @@
+(function (DomainObject) {
+    'use strict';
+
+    var factory = function(%sDataAccess){
+
+        //TODO : Hide the dataAccess from consumers of the factory but make it visible only to prototype of the factory
+        Object.defineProperty(this, 'dataAccess', {enumerable: true, value: %sDataAccess, writable: false});
+
+    };
+
+    factory.prototype.GetPersister = function() {
+        return this.dataAccess.persister;
+    };
+
+    factory.prototype.get%sByIdentity = function(identity){
+        this.dataAccess.get%sByIdentity(identity);
+    };
+
+    factory.prototype.getNewInstance = function() {
+        var domainObject = new DomainObject();
+
+    };
+
+    module.exports = factory;
+})(require(Injector.getBasePath() + 'domainObjects/%s'));

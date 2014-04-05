@@ -1,0 +1,27 @@
+(function (DomainObject) {
+    'use strict';
+
+    var Persister = function () {
+
+    };
+
+    Persister.prototype.Save%s = function() {
+        //Save the %s domain object
+    }
+
+    var DataAccess = function(){
+
+        var _persister = new Persister();
+
+        Object.defineProperty(this, 'persister', {enumerable: true, value: _persister, writable: false});
+    };
+
+
+    DataAccess.prototype.get%sByIdentity = function(identity){
+
+    };
+
+%s
+
+    module.exports = DataAccess;
+})(require(Injector.getBasePath() + 'domainObjects/%s'));

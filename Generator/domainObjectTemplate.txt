@@ -1,0 +1,21 @@
+(function (util, entity) {
+    'use strict';
+
+    var %sDomainObject = function(parameters){
+
+        var parameters = parameters || {};
+
+        entity.call(this);
+
+        %s
+
+        %s
+
+    };
+
+    util.inherits(%sDomainObject, entity);
+
+    module.exports = %sDomainObject;
+
+    %s
+})(require('util'), require(Injector.getBasePath() + '/DomainObjects/Entity'));
