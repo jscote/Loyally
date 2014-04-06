@@ -7,15 +7,17 @@
 
         entity.call(this);
 
-        %s
+    %s
 
-        %s
+    %s
 
+    %s
     };
 
     util.inherits(%sDomainObject, entity);
 
+%s
+
     module.exports = %sDomainObject;
 
-    %s
-})(require('util'), require(Injector.getBasePath() + '/DomainObjects/Entity'));
+})(require('util'), require(Injector.getBasePath() + '/domainObjects/entity'));

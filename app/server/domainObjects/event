@@ -1,0 +1,76 @@
+(function (util, entity) {
+    'use strict';
+
+    var eventDomainObject = function(parameters){
+
+        var parameters = parameters || {};
+
+        entity.call(this);
+
+        var _customer = parameters.customer || null;
+        var _name = parameters.name || null;
+        var _startDate = parameters.startDate || null;
+        var _endDate = parameters.endDate || null;
+        var _location = parameters.location || null;
+
+
+        Object.defineProperty(this, 'customer', {
+            enumerable: true, get:
+                function() {
+                    return _customer;
+                }
+        });
+
+        Object.defineProperty(this, 'name', {
+            enumerable: true, get:
+                function() {
+                    return _name;
+                }
+        });
+
+        Object.defineProperty(this, 'startDate', {
+            enumerable: true, get:
+                function() {
+                    return _startDate;
+                }
+        });
+
+        Object.defineProperty(this, 'endDate', {
+            enumerable: true, get:
+                function() {
+                    return _endDate;
+                }
+        });
+
+        Object.defineProperty(this, 'location', {
+            enumerable: true, get:
+                function() {
+                    return _location;
+                }
+        });
+
+
+
+        this.setBasicInfo = function (name, startDate, endDate) {
+            _name = name || _name;
+            _startDate = startDate || _startDate;
+            _endDate = endDate || _endDate;
+
+            this.state = entity.EntityState.modified;
+        };
+        this.setLocation = function (parameters) {
+            _location = parameters.location || _location;
+
+            this.state = entity.EntityState.modified;
+        };
+
+    };
+
+    util.inherits(eventDomainObject, entity);
+
+
+
+    module.exports = eventDomainObject;
+
+})(require('util'), require(Injector.getBasePath() + '/domainObjects/entity'));
+

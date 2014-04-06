@@ -1,24 +1,25 @@
-(function (DomainObject) {
+(function (DomainObject, Entity) {
     'use strict';
 
-    var factory = function (eventDataAccess) {
+    module.exports = function (eventDataAccess) {
 
-        Object.defineProperty(this, 'dataAccess', {enumerable: true, value: eventDataAccess, writable: false});
+        var _dataAccess = eventDataAccess;
+
+        this.getPersister = function () {
+            return _dataAccess.persister;
+        };
+
+        this.getEventByIdentity = function (identity) {
+            return _dataAccess.getEventByIdentity(identity);
+        };
+
+        this.create = function (parameters) {
+            var domainObject = new DomainObject(parameters);
+            domainObject.state = Entity.EntityState.inserted;
+            return domainObject;
+        };
+
 
     };
 
-    factory.prototype.GetPersister = function () {
-        return this.dataAccess.persister;
-    };
-
-    factory.prototype.getEventByIdentity = function (identity) {
-        this.dataAccess.getEventByIdentity(identity);
-    };
-
-    factory.prototype.getNewInstance = function () {
-        var domainObject = new DomainObject();
-
-    };
-
-    module.exports = factory;
-})(require(Injector.getBasePath() + 'domainObjects/event'));
+})(require(Injector.getBasePath() + '/domainObjects/event'), require(Injector.getBasePath() + '/domainObjects/entity'));
