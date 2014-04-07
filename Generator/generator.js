@@ -12,22 +12,29 @@ var rl = readline.createInterface({
     output: process.stdout
 });
 
-function createFactoryFile(data, definition) {
+function createFactoryFile(definition) {
+    fs.readFile(__dirname + '/factoryTemplate.txt', {encoding: 'utf8'}, function (err, data) {
 
+        if (err) {
+            console.log(err);
+            return;
+        }
 
-    //Create the factory file
+        //Create the factory file
 
-    var methods = "";
+        var methods = "";
 
-    var factoryData = util.format(data, definition.objectName, definition.objectName, definition.uppercaseObjectName, definition.uppercaseObjectName, methods, definition.objectName);
+        var factoryData = util.format(data, definition.objectName, definition.objectName, definition.uppercaseObjectName, definition.uppercaseObjectName, methods, definition.objectName);
 
-    fs.writeFile(definition.objectName + 'Factory.js', factoryData, function (err) {
-        if (err) console.log("Unable to create factory file");
-        console.log("Factory generated for: " + definition.objectName);
+        fs.writeFile(definition.objectName + 'Factory.js', factoryData, function (err) {
+            if (err) console.log("Unable to create factory file");
+            console.log("Factory generated for: " + definition.objectName);
 
+        });
     });
 }
-function createDataAccessFile(definition) {
+
+function createRepositoryFile(definition) {
     fs.readFile(__dirname + '/dataAccessTemplate.txt', {encoding: 'utf8'}, function (err, data) {
 
         if (err) {
@@ -37,19 +44,104 @@ function createDataAccessFile(definition) {
 
         var methods = "";
 
+        var dtMultiTemplate = "\tvar entityList = [];\r\n" +
+        "\tvar dfd = q.defer();\r\n\r\n" +
+        "\tpg.connect(function(error, client, done){\r\n" +
+        "\t\tif(error) {\r\n" +
+        "\t\t\tdfd.reject(error);\r\n" +
+        "\t\t\t\tdone();\r\n" +
+            "\t\t\t\treturn;\r\n" +
+            "\t\t\t}\r\n\r\n" +
+            "\t\t\tclient.query('SELECT %s() %s', %s function(error, result){\r\n" +
+        "\t\t\t\tif(error) {\r\n" +
+            "\t\t\t\t\tdfd.reject(error);\r\n" +
+            "\t\t\t\t\tdone();\r\n" +
+            "\t\t\t\treturn;\r\n" +
+            "\t\t\t}\r\n\r\n" +
+            "\t\t\t\tif(result) {\r\n" +
+            "\t\t\t\t\tfor(var i = 0; i < result.rows.length; i++){\r\n" +
+            "\t\t\t\t\t\tvar row = result.rows[i];\r\n" +
+            "\t\t\t\t\t\tvar entity = new DomainObject({%s});\r\n" +
+            "\t\t\t\t\t\tentityList.push(entity);\r\n" +
+            "\t\t\t\t\t}\r\n" +
+            "\t\t\t\t}\r\n\r\n" +
+            "\t\t\tdfd.resolve(entityList);\r\n\r\n" +
+            "\t\t\});\r\n" +
+            "\t\});\r\n" +
+            "\treturn dfd.promise;\r\n";
+
+        var dtTemplate = "\tvar entity = null;\r\n" +
+            "\tvar dfd = q.defer();\r\n\r\n" +
+            "\tpg.connect(function(error, client, done){\r\n" +
+            "\t\tif(error) {\r\n" +
+            "\t\t\tdfd.reject(error);\r\n" +
+            "\t\t\t\tdone();\r\n" +
+            "\t\t\t\treturn;\r\n" +
+            "\t\t\t}\r\n\r\n" +
+            "\t\t\tclient.query('SELECT %s() %s', %s function(error, result){\r\n" +
+            "\t\t\t\tif(error) {\r\n" +
+            "\t\t\t\t\tdfd.reject(error);\r\n" +
+            "\t\t\t\t\tdone();\r\n" +
+            "\t\t\t\treturn;\r\n" +
+            "\t\t\t}\r\n\r\n" +
+            "\t\t\t\tif(result) {\r\n" +
+            "\t\t\t\t\tfor(var i = 0; i < result.rows.length; i++){\r\n" +
+            "\t\t\t\t\t\tvar row = result.rows[i];\r\n" +
+            "\t\t\t\t\t\tvar entity = new DomainObject({%s});\r\n" +
+            "\t\t\t\t\t}\r\n" +
+            "\t\t\t\t}\r\n\r\n" +
+            "\t\t\tdfd.resolve(entity);\r\n\r\n" +
+            "\t\t\});\r\n" +
+            "\t\});\r\n" +
+            "\treturn dfd.promise;\r\n";
+
         for (var prop in  definition.repositoryMethods) {
             var pa = "";
-            for (var p = 0; p < definition.repositoryMethods[prop].parameters.length; p++) {
-                pa = pa + definition.repositoryMethods[prop].parameters[p] + ( p == definition.repositoryMethods[prop].parameters.length - 1 ? '' : ', ');
+            var methodDef = definition.repositoryMethods[prop];
+            for (var p = 0; p < methodDef.parameters.length; p++) {
+                pa = pa + methodDef.parameters[p] + ( p == methodDef.parameters.length - 1 ? '' : ', ');
             }
-            methods = methods + '\tDataAccess.prototype.' + prop + ' = function (' + pa + ') {\r\n\t};\r\n\r\n';
+
+            var dbProcedure = "";
+            var dbProcParameters = "";
+            var dbProcParameterValues = "";
+            var domainParameters = "";
+            if(methodDef.dbProcedure) {
+                dbProcedure = methodDef.dbProcedure.name;
+
+                if(methodDef.dbProcedure.parameters) {
+                    for (var dbp = 0; dbp < methodDef.dbProcedure.parameters.length; dbp++) {
+                        dbProcParameters = dbProcParameters +  " $" + (dbp + 1) + ( dbp == methodDef.dbProcedure.parameters.length - 1 ? '': ', ');
+                        dbProcParameterValues = dbProcParameterValues + methodDef.dbProcedure.parameters[dbp] + ( dbp == methodDef.dbProcedure.parameters.length - 1 ? '': ', ');
+                    }
+                    dbProcParameterValues = "[" + dbProcParameterValues + "],";
+                }
+
+            }
+
+
+            for (var att in definition.attributes) {
+                //Currently only creating domain objects with primary data type. references will never get loaded like this
+                //They should be loaded on demand only (this should be done in the calling code, probably not in the repository as it would require to use the repository of the reference as well)
+                //Child relationship can be loaded but would have to be specified so that we can do lazy loading of them. Child should belong in the repository as the root.
+                if(!(definition.attributes[att])) {
+                    domainParameters = domainParameters + att + " : row." + att + ", ";
+                }
+            }
+
+            domainParameters = domainParameters.substring(0, domainParameters.lastIndexOf(','));
+
+
+            var method = util.format((methodDef.cardinality == 'single' ? dtTemplate : dtMultiTemplate), methodDef.dbProcedure.name,  dbProcParameters, dbProcParameterValues, domainParameters);
+
+            methods = methods + '\tRepository.prototype.' + prop + ' = function (' + pa + ') {\r\n\t' + method + '};\r\n\r\n';
         }
 
-        var dataAccessData = util.format(data, definition.uppercaseObjectName, definition.objectName, definition.uppercaseObjectName, methods, definition.objectName)
-        //Create the dataAccessFile
-        fs.writeFile(definition.objectName + 'DataAccess.js', dataAccessData, function (err) {
+        var RepositoryData = util.format(data, definition.uppercaseObjectName, definition.objectName, methods, definition.objectName)
+        //Create the RepositoryFile
+        fs.writeFile(definition.objectName + 'Repository.js', RepositoryData, function (err) {
             if (err) console.log("Unable to create data access file");
-            console.log("DataAccess generated for: " + definition.objectName);
+            console.log("Repository generated for: " + definition.objectName);
         });
     });
 }
@@ -107,18 +199,12 @@ rl.question("Provide definition filename: ", function (answer) {
 
     var definition = require (__dirname + '/definitions/' +  answer );
 
-    fs.readFile(__dirname + '/factoryTemplate.txt', {encoding: 'utf8'}, function (err, data) {
+        createFactoryFile(definition);
 
-        if(err) {
-            console.log(err);
-            return;
-        }
-        createFactoryFile(data, definition);
-
-        createDataAccessFile(definition);
+        createRepositoryFile(definition);
 
         createDomainObjectFile(definition);
-    });
+
 
     rl.close();
 });

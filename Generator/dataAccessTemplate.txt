@@ -1,4 +1,4 @@
-(function (DomainObject) {
+(function (q, pg, DomainObject) {
     'use strict';
 
     var Persister = function () {
@@ -9,19 +9,14 @@
         //Save the %s domain object
     }
 
-    var DataAccess = function(){
+    var Repository = function(){
 
         var _persister = new Persister();
 
         Object.defineProperty(this, 'persister', {enumerable: true, value: _persister, writable: false});
     };
 
-
-    DataAccess.prototype.get%sByIdentity = function(identity){
-
-    };
-
 %s
 
-    module.exports = DataAccess;
-})(require(Injector.getBasePath() + 'domainObjects/%s'));
+    module.exports = Repository;
+})(require('q'), require('pg'), require(Injector.getBasePath() + 'domainObjects/%s'));

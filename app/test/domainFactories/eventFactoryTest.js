@@ -19,13 +19,35 @@ module.exports = {
     },
     testSomething: function (test) {
 
-        pg.connect("pg://postgres:postgres@localhost:5432/loyally", function(error, client, done) {
+        pg.defaults.user = "postgres";
+        pg.defaults.password = "postgres";
+        pg.defaults.host = "localhost";
+        pg.defaults.port = "5432";
+        pg.defaults.database = "loyally";
+
+        pg.connect(function(error, client, done) {
 
             if(error) {
                 console.log(error);
             }
 
-            client.query('SELECT GetUsers()', function(error, results){
+            client.query('SELECT * FROM public."Users"', function(error, results){
+                if(error) {
+                    console.log(error);
+                }
+                console.log('we got results');
+                done();
+            });
+
+        });
+
+        pg.connect(function(error, client, done) {
+
+            if(error) {
+                console.log(error);
+            }
+
+            client.query('SELECT * FROM public."Users"', function(error, results){
                 if(error) {
                     console.log(error);
                 }

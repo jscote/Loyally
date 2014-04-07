@@ -1,19 +1,21 @@
 (function (DomainObject, Entity) {
     'use strict';
 
-    module.exports = function (%sDataAccess) {
+    module.exports = function (%sRepository) {
 
-        var _dataAccess = %sDataAccess;
+        var _repository = %sRepository;
 
         this.getPersister = function () {
-               return _dataAccess.persister;
+               return _repository.persister;
         };
 
         this.get%sByIdentity = function (identity) {
-            return _dataAccess.get%sByIdentity(identity);
+            return _repository.get%sByIdentity(identity);
         };
 
         this.create = function (parameters) {
+
+        //TODO consider returning a promise instead
                 var domainObject = new DomainObject(parameters);
                 domainObject.state = Entity.EntityState.inserted;
                 return domainObject;
