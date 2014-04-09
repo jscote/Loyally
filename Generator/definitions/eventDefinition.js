@@ -14,6 +14,10 @@ module.exports = {
         //TODO Determine how to retrieve the data. If in a different table, should we do lazy loading and determine how to apply and when
         "location": {"relationship": "child", "cardinality": "single"}
     },
+    //TODO: methods can be generated to getEntityById automatically
+    //TODO: methods can be generated to automatically get a list of entities by reference when the reference has a cardinality of single
+    //TODO: consider if we want to change the name from factory to service.
+    //TODO: Factory methods may mimic a lot of the repository methods, especially the auto-generated ones. The ones that aren't auto-generated would potentially be used in service that leverage business methods that can't also be generated.
     "repositoryMethods": {
         "getEventByIdentity": {"cardinality": "single", "returnType": "event", "parameters": ["id"], "dbProcedure": {"name": "getEventById", parameters: ["id"]}},
         "getEventByCustomerId": {"cardinality": "multiple", "returnType": "event", "parameters": ["customerId"], "dbProcedure": {"name": "getEventByCustomerId", parameters: ["customerId"]}},
@@ -23,6 +27,7 @@ module.exports = {
         //TODO: basic method can be generated based on the same rule that determine which parameters are passed to the constructor.
         "setBasicInfo": {parameters: ["name", "startDate", "endDate"], "propertiesToSetFromParameter": [{paramName: "name", "propName": "name"}, {paramName: "startDate", "propName": "startDate"},  {paramName: "endDate", "propName": "endDate"}]},
         //TODO: methods on attributes of the business objects can be generated automatically without needing to be defined
+        //If we apply these principles, then what's left is what cannot really be generated (other than a stub for the method).
         "setLocation": {parameters: ["parameters"], "propertiesToSetFromParameter": [ {paramName: "parameters.location", "propName": "location"}]}
     }
     //TODO: Determine methods that don't directly belong to the domain object but operates on a set of it to be part of a "service" related to the factory
