@@ -1,0 +1,31 @@
+
+    Repository.prototype.{methodName} = function({methodParameters}) {
+        var entity = null;
+
+        var dfd = q.defer();
+
+        pg.connect(function(error, client, done){
+            if(error) {
+                dfd.reject(error);
+                done();
+                return;
+            }
+
+            client.query('SELECT * FROM {dbProcedureName}({dbProcedureParameters}) ', {dbProcedureParameterValues} function(error, result){
+                if(error) {
+                    dfd.reject(error);
+                    done();
+                    return;
+                }
+                if(result) {
+                    for(var i = 0; i < result.rows.length; i){
+                        var row = result.rows[i];
+                        var entity = new DomainObject({{domainObjectConstructorParameters}});
+                        entity.state = Entity.EntityState.unchanged;
+                    }
+                }
+                dfd.resolve(entity);
+            });
+        });
+        return dfd.promise;
+    };

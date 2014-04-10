@@ -1,0 +1,10 @@
+
+    var _{propertyName} = parameters.{propertyName} || null;
+    Object.defineProperty(this, '{propertyName}', {
+            enumerable: true,
+            get: function() {
+                return _{propertyName};
+            }
+        }
+    );
+

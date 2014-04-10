@@ -44,56 +44,30 @@ function createRepositoryFile(definition) {
 
         var methods = "";
 
-        var dtMultiTemplate = "\tvar entityList = [];\r\n" +
-        "\tvar dfd = q.defer();\r\n\r\n" +
-        "\tpg.connect(function(error, client, done){\r\n" +
-        "\t\tif(error) {\r\n" +
-        "\t\t\tdfd.reject(error);\r\n" +
-        "\t\t\t\tdone();\r\n" +
-            "\t\t\t\treturn;\r\n" +
-            "\t\t\t}\r\n\r\n" +
-            "\t\t\tclient.query('SELECT %s() %s', %s function(error, result){\r\n" +
-        "\t\t\t\tif(error) {\r\n" +
-            "\t\t\t\t\tdfd.reject(error);\r\n" +
-            "\t\t\t\t\tdone();\r\n" +
-            "\t\t\t\treturn;\r\n" +
-            "\t\t\t}\r\n\r\n" +
-            "\t\t\t\tif(result) {\r\n" +
-            "\t\t\t\t\tfor(var i = 0; i < result.rows.length; i++){\r\n" +
-            "\t\t\t\t\t\tvar row = result.rows[i];\r\n" +
-            "\t\t\t\t\t\tvar entity = new DomainObject({%s});\r\n" +
-            "\t\t\t\t\t\tentityList.push(entity);\r\n" +
-            "\t\t\t\t\t}\r\n" +
-            "\t\t\t\t}\r\n\r\n" +
-            "\t\t\tdfd.resolve(entityList);\r\n\r\n" +
-            "\t\t\});\r\n" +
-            "\t\});\r\n" +
-            "\treturn dfd.promise;\r\n";
+        var methodDefinitions = definition.repositoryMethods || {};
 
-        var dtTemplate = "\tvar entity = null;\r\n" +
-            "\tvar dfd = q.defer();\r\n\r\n" +
-            "\tpg.connect(function(error, client, done){\r\n" +
-            "\t\tif(error) {\r\n" +
-            "\t\t\tdfd.reject(error);\r\n" +
-            "\t\t\t\tdone();\r\n" +
-            "\t\t\t\treturn;\r\n" +
-            "\t\t\t}\r\n\r\n" +
-            "\t\t\tclient.query('SELECT %s() %s', %s function(error, result){\r\n" +
-            "\t\t\t\tif(error) {\r\n" +
-            "\t\t\t\t\tdfd.reject(error);\r\n" +
-            "\t\t\t\t\tdone();\r\n" +
-            "\t\t\t\treturn;\r\n" +
-            "\t\t\t}\r\n\r\n" +
-            "\t\t\t\tif(result) {\r\n" +
-            "\t\t\t\t\tfor(var i = 0; i < result.rows.length; i++){\r\n" +
-            "\t\t\t\t\t\tvar row = result.rows[i];\r\n" +
-            "\t\t\t\t\t\tvar entity = new DomainObject({%s});\r\n" +
-            "\t\t\t\t\t}\r\n" +
-            "\t\t\t\t}\r\n\r\n" +
-            "\t\t\tdfd.resolve(entity);\r\n\r\n" +
-            "\t\t\});\r\n" +
-            "\t\});\r\n" +
-            "\treturn dfd.promise;\r\n";
+        //Create the default methods
+        var defaultGetByIdMethodName = 'get{objectName}ById'.supplant({objectName: definition.uppercaseObjectName});
+        methodDefinitions[defaultGetByIdMethodName] = {cardinality: 'single', returnType: definition.objectName, parameters: [definition.identity], dbProcedure: {name: defaultGetByIdMethodName, parameters : [definition.identity]}};
+
+        var methodDefinition = "";
+        var domainParameters = "";
+
+        //Build a list of parameters for constructor of domain object
+        //and a list of methods to automatically create based on the references
+        for (var att in definition.attributes) {
+
+            //Currently only creating domain objects with primary data type. references will never get loaded like this
+            //They should be loaded on demand only (this should be done in the calling code, probably not in the repository as it would require to use the repository of the reference as well)
+            //Child relationship can be loaded but would have to be specified so that we can do lazy loading of them. Child should belong in the repository as the root.
+            if(!(definition.attributes[att])) {
+                domainParameters = domainParameters + att + " : row." + att + ", ";
+            } else if((definition.attributes[att].cardinality == 'single') && (definition.attributes[att].relationship == 'reference')){
+                methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: definition.pluralizedUppercaseObjectName, fieldName: definition.attributes[att].referenceField});
+                methodDefinitions[methodDefinition] = {cardinality: 'multiple', returnType: definition.objectName, parameters: [definition.attributes[att].referenceField], dbProcedure: {name: methodDefinition, parameters : [definition.attributes[att].referenceField]}}
+            }
+        }
+        domainParameters = domainParameters.substring(0, domainParameters.lastIndexOf(','));
 
         for (var prop in  definition.repositoryMethods) {
             var pa = "";
@@ -105,7 +79,7 @@ function createRepositoryFile(definition) {
             var dbProcedure = "";
             var dbProcParameters = "";
             var dbProcParameterValues = "";
-            var domainParameters = "";
+
             if(methodDef.dbProcedure) {
                 dbProcedure = methodDef.dbProcedure.name;
 
@@ -119,22 +93,13 @@ function createRepositoryFile(definition) {
 
             }
 
-
-            for (var att in definition.attributes) {
-                //Currently only creating domain objects with primary data type. references will never get loaded like this
-                //They should be loaded on demand only (this should be done in the calling code, probably not in the repository as it would require to use the repository of the reference as well)
-                //Child relationship can be loaded but would have to be specified so that we can do lazy loading of them. Child should belong in the repository as the root.
-                if(!(definition.attributes[att])) {
-                    domainParameters = domainParameters + att + " : row." + att + ", ";
-                }
-            }
-
-            domainParameters = domainParameters.substring(0, domainParameters.lastIndexOf(','));
+            var methodTemplate = fs.readFileSync(__dirname + (methodDef.cardinality == 'single' ? '/dataAccessMethodTemplate.txt' : '/dataAccessMultiMethodTemplate.txt'), {encoding: 'utf8'});
+            var methodName = prop;
+            var methodParameters= pa;
+            var method = methodTemplate.supplant({methodName: methodName, methodParameters: methodParameters, dbProcedureName: methodDef.dbProcedure.name, dbProcedureParameters: dbProcParameters, dbProcedureParameterValues: dbProcParameterValues, domainObjectConstructorParameters: domainParameters});
 
 
-            var method = util.format((methodDef.cardinality == 'single' ? dtTemplate : dtMultiTemplate), methodDef.dbProcedure.name,  dbProcParameters, dbProcParameterValues, domainParameters);
-
-            methods = methods + '\tRepository.prototype.' + prop + ' = function (' + pa + ') {\r\n\t' + method + '};\r\n\r\n';
+            methods = methods + method;
         }
 
         var RepositoryData = util.format(data, definition.uppercaseObjectName, definition.objectName, methods, definition.objectName)
@@ -153,14 +118,15 @@ function createDomainObjectFile(definition) {
             return;
         }
 
-        var at = "";
-        var pat = "";
+        var properties = ""
         var proto = "";
         var methods = "";
 
+        var propertyTemplate = fs.readFileSync(__dirname + '/domainObjectPropertyTemplate.txt', {encoding: 'utf8'});
+
+
         for (var prop in definition.attributes) {
-            pat = pat + '\tvar _' + prop + ' = parameters.' + prop + ' || null;\r\n';
-            at = at + "\tObject.defineProperty(this, '" + prop + "', {\r\n\t\tenumerable: true, get:\r\n\tfunction() {\r\n\treturn _" + prop + ";\r\n}\r\n});\r\n\r\n";
+            properties = properties + propertyTemplate.supplant({propertyName: prop});
         }
 
         for(var m in definition.businessMethods) {
@@ -187,7 +153,7 @@ function createDomainObjectFile(definition) {
             methods = methods + "\tthis." + m + " = function (" + pa + ") {\r\n\t "+ setProp +"\r\n};\r\n";
         }
 
-        var domainObjectData = util.format(data, definition.objectName, pat, at, methods, definition.objectName, proto, definition.objectName)
+        var domainObjectData = data.supplant({objectName: definition.objectName, properties: properties, businessMethods: methods, proto: proto});
 
         fs.writeFile(definition.objectName + 'DomainObject.js', domainObjectData, function (err) {
             if (err) console.log("Unable to create Domain Object file");
@@ -195,6 +161,17 @@ function createDomainObjectFile(definition) {
         });
     });
 }
+
+if (!String.prototype.supplant) {
+    String.prototype.supplant = function (o) {
+        return this.replace(/\{([^{}]*)\}/g,
+            function (a, b) {
+                var r = o[b];
+                return typeof r === 'string' || typeof r === 'number' ? r : a;
+            });
+    };
+}
+
 rl.question("Provide definition filename: ", function (answer) {
 
     var definition = require (__dirname + '/definitions/' +  answer );
