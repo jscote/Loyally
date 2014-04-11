@@ -1,0 +1,20 @@
+(function (DomainObject, Entity) {
+    'use strict';
+
+    module.exports = function ({objectName}Repository) {
+
+        var _repository = {objectName}Repository;
+
+{getterMethods}
+
+        this.create = function (parameters) {
+
+        //TODO consider returning a promise instead
+                var domainObject = new DomainObject(parameters);
+                domainObject.state = Entity.EntityState.inserted;
+                return domainObject;
+        };
+
+    };
+
+})(require(Injector.getBasePath() + '/domainObjects/{objectName}'), require(Injector.getBasePath() + '/domainObjects/entity'));

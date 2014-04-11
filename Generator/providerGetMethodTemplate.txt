@@ -1,0 +1,4 @@
+
+        this.{methodName} = function ({parameters}) {
+            return _repository.{methodName}({parameters});
+        };

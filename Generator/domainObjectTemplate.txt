@@ -1,11 +1,14 @@
-(function (util, entity) {
+(function (util, q, entity) {
     'use strict';
 
-    var {objectName}DomainObject = function(parameters){
+    var {objectName}DomainObject = function({providerName}, parameters){
 
         var parameters = parameters || {};
 
         entity.call(this);
+
+        var _provider = {providerName};
+        Object.defineProperty(this, '{providerName}', {enumerable: true, writable: false, value: _provider});
 
 {properties}
 
@@ -18,4 +21,4 @@
 
     module.exports = {objectName}DomainObject;
 
-})(require('util'), require(Injector.getBasePath() + '/domainObjects/entity'));
+})(require('util'), require('q'), require(Injector.getBasePath() + '/domainObjects/entity'));

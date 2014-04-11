@@ -1,0 +1,17 @@
+
+    var _{propertyName} = null;
+    var _{propertyName}IsLoaded = false;
+    Object.defineProperty(this, '{propertyName}', {
+            enumerable: true,
+            get: function() {
+                if(!(_{propertyName}IsLoaded)) {
+                    q.allSettled({methodToLoad}({methodParameters})).then(function(result){
+                        _{propertyName} = result;
+                        _{propertyName}isLoaded = true;
+                    });
+                }
+                return _{propertyName};
+            }
+        }
+    );
+

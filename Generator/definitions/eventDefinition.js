@@ -1,23 +1,17 @@
 module.exports = {
     "objectName": "event",
-    "uppercaseObjectName": "Event",
     "pluralizedObjectName": "events",
-    "pluralizedUppercaseObjectName" : "Events",
     "identity": "id",
     "attributes": {
-        //TODO: if reference, and cardinality is single, we should automatically generate a property for the id of the reference
         "customer": {"relationship": "reference", "cardinality": "single", "referenceField": "customerId"},
         "name": null,
         "startDate": null,
         "endDate": null,
-        // If the cardinality is single, should we let creating additional table or just assume the same? I think we should
-        // assume different table by default. If configured to use the same table, then we will act accordingly
-        // Multiple cardinality will always go in a different table.
-        //TODO Determine how to retrieve the data. If in a different table, should we do lazy loading and determine how to apply and when
-        "location": {"relationship": "child", "cardinality": "single"}
+        //childIsInParentStructure means that the data is saved in the same structure as the parent instead of its own structure
+        "location": {"relationship": "child", "cardinality": "single", "childIsInParentStructure": true},
+        "venue": {"relationship": "child", "cardinality": "single", "childIsInParentStructure": false},
+        "eventSettings" : {"relationship": "child", "cardinality": "multiple"}
     },
-    //TODO: consider if we want to change the name from factory to service or manager.
-    //TODO: Factory methods may mimic a lot of the repository methods, especially the auto-generated ones. The ones that aren't auto-generated would potentially be used in service that leverage business methods that can't also be generated.
     "repositoryMethods": {
         "getEventByDateRange": {"cardinality": "multiple", "returnType": "event", "parameters": ["startDate", "endDate"], "dbProcedure": {"name": "getEventByDateRange", "parameters": ["startDate", "endDate"]}}
     },
