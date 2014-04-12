@@ -5,6 +5,7 @@
 var fs = require('fs');
 var readline = require('readline');
 var util = require('util');
+var inflection = require('inflection');
 
 
 var rl = readline.createInterface({
@@ -35,7 +36,7 @@ function createProviderFile(def) {
         for (var att in definition.attributes) {
             if (definition.attributes[att]) {
                 if (definition.attributes[att].relationship == 'reference') {
-                    methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: definition.pluralizedObjectName.capitalize(), fieldName: definition.attributes[att].referenceField.capitalize()});
+                    methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: inflection.pluralize(definition.objectName.capitalize()), fieldName: definition.attributes[att].referenceField.capitalize()});
                     methodDefinitions[methodDefinition] = {cardinality: definition.attributes[att].cardinality, returnType: definition.objectName, parameters: [definition.attributes[att].referenceField]};
                 } else if ((definition.attributes[att].relationship == 'child') && (!(definition.attributes[att].childIsInParentStructure) || (definition.attributes[att].cardinality == 'multiple'))) {
                     methodDefinition = 'get{childName}By{parent}{identity}'.supplant({childName: att.capitalize(), parent: definition.objectName.capitalize(), identity: definition.identity.capitalize()});
@@ -105,7 +106,7 @@ function createRepositoryFile(def) {
             } else {
 
                 if(definition.attributes[att].relationship == 'reference') {
-                    methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: definition.pluralizedObjectName.capitalize(), fieldName: definition.attributes[att].referenceField.capitalize()});
+                    methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: inflection.pluralize(definition.objectName.capitalize()), fieldName: definition.attributes[att].referenceField.capitalize()});
                     methodDefinitions[methodDefinition] = {cardinality: 'multiple', returnType: definition.objectName, parameters: [definition.attributes[att].referenceField], dbProcedure: {name: methodDefinition, parameters: [definition.attributes[att].referenceField]}}
                 } else if((definition.attributes[att].relationship == 'child') && (!(definition.attributes[att].childIsInParentStructure) || (definition.attributes[att].cardinality == 'multiple'))){
                     methodDefinition = 'get{childName}By{parent}{identity}'.supplant({childName: att.capitalize(), parent: definition.objectName.capitalize(), identity: definition.identity.capitalize()});
@@ -167,6 +168,13 @@ function createDomainObjectFile(def) {
 
         var definition = clone(def);
 
+        var providers = [];
+        var providerVar = "";
+        var providerConstructor="";
+
+        var providerVarTemplate = "\tvar _{providerName} = {providerName};\r\n";
+        providers.push('{objectName}Provider'.supplant({objectName: definition.objectName}));
+
         var properties = "";
         var proto = "";
         var methods = "";
@@ -186,17 +194,19 @@ function createDomainObjectFile(def) {
             } else{
 
                 if (definition.attributes[prop].relationship == 'reference') {
-                    methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: definition.pluralizedObjectName.capitalize(), fieldName: definition.attributes[prop].referenceField.capitalize()});
-                    properties = properties + propertyReferenceTemplate.supplant({propertyName: prop, methodToLoad: methodDefinition, methodParameters: definition.identity})
+                    methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: prop.capitalize(), fieldName: definition.identity.capitalize()});
+                    properties = properties + propertyReferenceTemplate.supplant({propertyName: prop, methodToLoad: methodDefinition, methodParameters: definition.identity, providerName: '_{providerName}Provider'.supplant({providerName: prop})})
+
+                    if(definition.attributes[prop].cardinality == 'single') {
+                        providers.push('{objectName}Provider'.supplant({objectName: prop}));
+                    }
+
                 } else if ((definition.attributes[prop].relationship == 'child') && (!(definition.attributes[prop].childIsInParentStructure) || (definition.attributes[prop].cardinality == 'multiple'))) {
                     methodDefinition = 'get{childName}By{parent}{identity}'.supplant({childName: prop.capitalize(), parent: definition.objectName.capitalize(), identity: definition.identity.capitalize()});
-                    properties = properties + propertyChildTemplate.supplant({propertyName: prop, methodToLoad: methodDefinition, methodParameters: definition.identity})
+                    properties = properties + propertyChildTemplate.supplant({propertyName: prop, methodToLoad: methodDefinition, methodParameters: definition.identity, providerName: '_' + definition.objectName + 'Provider'})
                 } else {
                     properties = properties + propertyTemplate.supplant({propertyName: prop});
                 }
-
-
-
             }
         }
 
@@ -222,7 +232,13 @@ function createDomainObjectFile(def) {
             methods = methods + "\tthis." + m + " = function (" + pa + ") {\r\n\t " + setProp + "\r\n};\r\n";
         }
 
-        var domainObjectData = data.supplant({objectName: definition.objectName, properties: properties, businessMethods: methods, proto: proto});
+
+        for (var idx = 0; idx < providers.length; idx++) {
+            providerConstructor = providerConstructor + providers[idx] + ( idx == providers.length - 1 ? '' : ', ');
+            providerVar = providerVar + providerVarTemplate.supplant({providerName: providers[idx]});
+        }
+
+        var domainObjectData = data.supplant({objectName: definition.objectName, properties: properties, businessMethods: methods, proto: proto, providerConstructor: providerConstructor, providerVar: providerVar, defaultProvider: providers[0]});
 
         fs.writeFile(definition.objectName + 'DomainObject.js', domainObjectData, function (err) {
             if (err) console.log("Unable to create Domain Object file");

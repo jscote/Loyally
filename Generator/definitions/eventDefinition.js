@@ -1,6 +1,5 @@
 module.exports = {
     "objectName": "event",
-    "pluralizedObjectName": "events",
     "identity": "id",
     "attributes": {
         "customer": {"relationship": "reference", "cardinality": "single", "referenceField": "customerId"},
@@ -8,8 +7,10 @@ module.exports = {
         "startDate": null,
         "endDate": null,
         //childIsInParentStructure means that the data is saved in the same structure as the parent instead of its own structure
+        //TODO: Handle properties of child object with single cardinality
         "location": {"relationship": "child", "cardinality": "single", "childIsInParentStructure": true},
         "venue": {"relationship": "child", "cardinality": "single", "childIsInParentStructure": false},
+        //TODO: Handle properties of child object with multiple cardinality as well as generating Add/Remove/Update methods
         "eventSettings" : {"relationship": "child", "cardinality": "multiple"}
     },
     "repositoryMethods": {
@@ -26,6 +27,7 @@ module.exports = {
     //TODO: Determine methods that don't directly belong to the domain object but operates on a set of it to be part of a "service" related to the factory
     //e.g.: mass updates on a business object, or conditional update (apply specification then updates if it matches). Additional services
     // will not be generated as they are too specific. For instance, sendTestEmail method (where does it go?)
+    //TODO: generate tables and stored procedures.
 
 
 };

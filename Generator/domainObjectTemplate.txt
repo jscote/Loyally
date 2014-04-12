@@ -1,18 +1,22 @@
 (function (util, q, entity) {
     'use strict';
 
-    var {objectName}DomainObject = function({providerName}, parameters){
+    var {objectName}DomainObject = function({providerConstructor}, parameters){
 
         var parameters = parameters || {};
 
         entity.call(this);
 
-        var _provider = {providerName};
-        Object.defineProperty(this, '{providerName}', {enumerable: true, writable: false, value: _provider});
+{providerVar}
 
 {properties}
 
 {businessMethods}
+
+        this.save = function() {
+            //TODO: Consider if we want to run pre-save validation
+            _{defaultProvider}.save(this);
+        }
     };
 
     util.inherits({objectName}DomainObject, entity);

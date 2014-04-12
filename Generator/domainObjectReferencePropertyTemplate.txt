@@ -8,7 +8,7 @@
             enumerable: true,
             get: function() {
                 if(!(_{propertyName}IsLoaded)) {
-                    q.allSettled({methodToLoad}({methodParameters})).then(function(result){
+                    q.allSettled({providerName}.{methodToLoad}({methodParameters})).then(function(result){
                         _{propertyName} = result;
                         _{propertyName}IsLoaded = true;
                     });

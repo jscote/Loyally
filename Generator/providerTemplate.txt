@@ -10,6 +10,7 @@
         this.create = function (parameters) {
 
         //TODO consider returning a promise instead
+        //TODO: pass an instance of providers when creating an instance of the domain object
                 var domainObject = new DomainObject(parameters);
                 domainObject.state = Entity.EntityState.inserted;
                 return domainObject;
