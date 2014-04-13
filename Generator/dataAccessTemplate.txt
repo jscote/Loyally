@@ -1,22 +1,11 @@
 (function (q, pg, DomainObject) {
     'use strict';
 
-    var Persister = function () {
-
-    };
-
-    Persister.prototype.Save%s = function() {
-        //Save the %s domain object
-    }
-
     var Repository = function(){
 
-        var _persister = new Persister();
-
-        Object.defineProperty(this, 'persister', {enumerable: true, value: _persister, writable: false});
     };
 
-%s
+{proto}
 
     module.exports = Repository;
-})(require('q'), require('pg'), require(Injector.getBasePath() + 'domainObjects/%s'));
+})(require('q'), require('pg'), require(Injector.getBasePath() + 'domainObjects/{objectName}'));

@@ -87,6 +87,25 @@ function createRepositoryFile(def) {
 
         var methodDefinitions = definition.repositoryMethods || {};
 
+        var providers = [];
+        var providerVar = "";
+        var providerConstructor="";
+
+        var providerVarTemplate = "\t\t\tvar _{providerName} = Injector.resolve({target: '{providerName}'});\r\n";
+        providers.push('{objectName}Provider'.supplant({objectName: definition.objectName}));
+
+
+        for(var attribute in definition.attributes){
+            if((definition.attributes[attribute]) && (definition.attributes[attribute].cardinality == 'single') && (definition.attributes[attribute].relationship == 'reference')) {
+                providers.push('{objectName}Provider'.supplant({objectName: attribute}));
+            }
+        }
+
+        for (var idx = 0; idx < providers.length; idx++) {
+            providerConstructor = providerConstructor + providers[idx] + ( idx == providers.length - 1 ? '' : ', ');
+            providerVar = providerVar + providerVarTemplate.supplant({providerName: providers[idx]});
+        }
+
         //Create the default methods
         var defaultGetByIdMethodName = 'get{objectName}ById'.supplant({objectName: definition.objectName.capitalize()});
         methodDefinitions[defaultGetByIdMethodName] = {cardinality: 'single', returnType: definition.objectName, parameters: [definition.identity], dbProcedure: {name: defaultGetByIdMethodName, parameters: [definition.identity]}};
@@ -108,7 +127,7 @@ function createRepositoryFile(def) {
                 if(definition.attributes[att].relationship == 'reference') {
                     methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: inflection.pluralize(definition.objectName.capitalize()), fieldName: definition.attributes[att].referenceField.capitalize()});
                     methodDefinitions[methodDefinition] = {cardinality: 'multiple', returnType: definition.objectName, parameters: [definition.attributes[att].referenceField], dbProcedure: {name: methodDefinition, parameters: [definition.attributes[att].referenceField]}}
-                } else if((definition.attributes[att].relationship == 'child') && (!(definition.attributes[att].childIsInParentStructure) || (definition.attributes[att].cardinality == 'multiple'))){
+                 } else if((definition.attributes[att].relationship == 'child') && (!(definition.attributes[att].childIsInParentStructure) || (definition.attributes[att].cardinality == 'multiple'))){
                     methodDefinition = 'get{childName}By{parent}{identity}'.supplant({childName: att.capitalize(), parent: definition.objectName.capitalize(), identity: definition.identity.capitalize()});
                     methodDefinitions[methodDefinition] = {cardinality: definition.attributes[att].cardinality, returnType: definition.objectName, parameters: [definition.identity],  dbProcedure: {name: methodDefinition, parameters: [definition.identity]}};
                 }
@@ -144,13 +163,13 @@ function createRepositoryFile(def) {
             var methodTemplate = fs.readFileSync(__dirname + (methodDef.cardinality == 'single' ? '/dataAccessMethodTemplate.txt' : '/dataAccessMultiMethodTemplate.txt'), {encoding: 'utf8'});
             var methodName = prop;
             var methodParameters = pa;
-            var method = methodTemplate.supplant({methodName: methodName, methodParameters: methodParameters, dbProcedureName: methodDef.dbProcedure.name, dbProcedureParameters: dbProcParameters, dbProcedureParameterValues: dbProcParameterValues, domainObjectConstructorParameters: domainParameters});
+            var method = methodTemplate.supplant({methodName: methodName, methodParameters: methodParameters, dbProcedureName: methodDef.dbProcedure.name, dbProcedureParameters: dbProcParameters, dbProcedureParameterValues: dbProcParameterValues, domainObjectConstructorParameters: domainParameters, providers: providerConstructor, providerVars: providerVar});
 
 
             methods = methods + method;
         }
 
-        var RepositoryData = util.format(data, definition.objectName.capitalize(), definition.objectName, methods, definition.objectName)
+        var RepositoryData = data.supplant({proto: methods, objectName: definition.objectName});
         //Create the RepositoryFile
         fs.writeFile(definition.objectName + 'Repository.js', RepositoryData, function (err) {
             if (err) console.log("Unable to create data access file");

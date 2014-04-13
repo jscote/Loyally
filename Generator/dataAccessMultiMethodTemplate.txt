@@ -18,9 +18,12 @@
                     return;
                 }
                 if(result) {
+
+{providerVars}
+
                     for(var i = 0; i < result.rows.length; i){
                         var row = result.rows[i];
-                        var entity = new DomainObject({{domainObjectConstructorParameters}});
+                        var entity = new DomainObject({providers}, {{domainObjectConstructorParameters}});
                         entity.state = Entity.EntityState.unchanged;
                         entityList.push(entity);
                     }
