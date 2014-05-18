@@ -23,7 +23,7 @@
 
                     for(var i = 0; i < result.rows.length; i){
                         var row = result.rows[i];
-                        var entity = new DomainObject({providers}, {{domainObjectConstructorParameters}});
+                        var entity = new {domainObject}({providers}, {{domainObjectConstructorParameters}});
                         entity.state = Entity.EntityState.unchanged;
                         entityList.push(entity);
                     }

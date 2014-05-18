@@ -13,10 +13,9 @@
 
 {businessMethods}
 
-        this.save = function() {
-            //TODO: Consider if we want to run pre-save validation
-            _{defaultProvider}.save(this);
-        }
+{saveMethod}
+
+
     };
 
     util.inherits({objectName}DomainObject, entity);

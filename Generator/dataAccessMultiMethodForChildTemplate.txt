@@ -1,6 +1,6 @@
 
     Repository.prototype.{methodName} = function({methodParameters}) {
-        var entity = null;
+        var entityList = [];
 
         var dfd = q.defer();
 
@@ -23,11 +23,12 @@
 
                     for(var i = 0; i < result.rows.length; i){
                         var row = result.rows[i];
-                        var entity = new {domainObject}({providers}, {{domainObjectConstructorParameters}});
+                        var entity = new {domainObject}({{domainObjectConstructorParameters}});
                         entity.state = Entity.EntityState.unchanged;
+                        entityList.push(entity);
                     }
                 }
-                dfd.resolve(entity);
+                dfd.resolve(entityList);
             });
         });
         return dfd.promise;
