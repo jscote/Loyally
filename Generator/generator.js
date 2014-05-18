@@ -89,14 +89,14 @@ function createRepositoryFile(def) {
 
         var providers = [];
         var providerVar = "";
-        var providerConstructor="";
+        var providerConstructor = "";
 
         var providerVarTemplate = "\t\t\tvar _{providerName} = Injector.resolve({target: '{providerName}'});\r\n";
         providers.push('{objectName}Provider'.supplant({objectName: definition.objectName}));
 
 
-        for(var attribute in definition.attributes){
-            if((definition.attributes[attribute]) && (definition.attributes[attribute].cardinality == 'single') && (definition.attributes[attribute].relationship == 'reference')) {
+        for (var attribute in definition.attributes) {
+            if ((definition.attributes[attribute]) && (definition.attributes[attribute].cardinality == 'single') && (definition.attributes[attribute].relationship == 'reference')) {
                 providers.push('{objectName}Provider'.supplant({objectName: attribute}));
             }
         }
@@ -117,22 +117,18 @@ function createRepositoryFile(def) {
         //and a list of methods to automatically create based on the references
         for (var att in definition.attributes) {
 
-            //Currently only creating domain objects with primary data type. references will never get loaded like this
-            //They should be loaded on demand only (this should be done in the calling code, probably not in the repository as it would require to use the repository of the reference as well)
-            //Child relationship can be loaded but would have to be specified so that we can do lazy loading of them. Child should belong in the repository as the root.
-            if (!(definition.attributes[att])) {
+
+            if (definition.attributes[att].relationship == 'reference') {
+                methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: inflection.pluralize(definition.objectName.capitalize()), fieldName: definition.attributes[att].referenceField.capitalize()});
+                methodDefinitions[methodDefinition] = {cardinality: 'multiple', returnType: definition.objectName, parameters: [definition.attributes[att].referenceField], dbProcedure: {name: methodDefinition, parameters: [definition.attributes[att].referenceField]}}
+            } else if ((definition.attributes[att].relationship == 'child') && (!(definition.attributes[att].childIsInParentStructure) || (definition.attributes[att].cardinality == 'multiple'))) {
+                methodDefinition = 'get{childName}By{parent}{identity}'.supplant({childName: att.capitalize(), parent: definition.objectName.capitalize(), identity: definition.identity.capitalize()});
+                methodDefinitions[methodDefinition] = {cardinality: definition.attributes[att].cardinality, returnType: definition.objectName, parameters: [definition.identity], dbProcedure: {name: methodDefinition, parameters: [definition.identity]}};
+            } else if (definition.attributes[att].relationship == 'primitive') {
                 domainParameters = domainParameters + att + " : row." + att + ", ";
-            } else {
-
-                if(definition.attributes[att].relationship == 'reference') {
-                    methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: inflection.pluralize(definition.objectName.capitalize()), fieldName: definition.attributes[att].referenceField.capitalize()});
-                    methodDefinitions[methodDefinition] = {cardinality: 'multiple', returnType: definition.objectName, parameters: [definition.attributes[att].referenceField], dbProcedure: {name: methodDefinition, parameters: [definition.attributes[att].referenceField]}}
-                 } else if((definition.attributes[att].relationship == 'child') && (!(definition.attributes[att].childIsInParentStructure) || (definition.attributes[att].cardinality == 'multiple'))){
-                    methodDefinition = 'get{childName}By{parent}{identity}'.supplant({childName: att.capitalize(), parent: definition.objectName.capitalize(), identity: definition.identity.capitalize()});
-                    methodDefinitions[methodDefinition] = {cardinality: definition.attributes[att].cardinality, returnType: definition.objectName, parameters: [definition.identity],  dbProcedure: {name: methodDefinition, parameters: [definition.identity]}};
-                }
-
             }
+
+
         }
         domainParameters = domainParameters.substring(0, domainParameters.lastIndexOf(','));
 
@@ -189,7 +185,7 @@ function createDomainObjectFile(def) {
 
         var providers = [];
         var providerVar = "";
-        var providerConstructor="";
+        var providerConstructor = "";
 
         var providerVarTemplate = "\tvar _{providerName} = {providerName};\r\n";
         providers.push('{objectName}Provider'.supplant({objectName: definition.objectName}));
@@ -203,20 +199,20 @@ function createDomainObjectFile(def) {
         var propertyChildTemplate = fs.readFileSync(__dirname + '/domainObjectChildPropertyTemplate.txt', {encoding: 'utf8'});
 
         //to add the identity as part of the attributes
-        definition.attributes[definition.identity] = null;
+        definition.attributes[definition.identity] = {relationship: 'primitive'};
 
         var methodDefinition = "";
 
         for (var prop in definition.attributes) {
-            if(!(definition.attributes[prop])) {
-                properties = properties + propertyTemplate.supplant({propertyName: prop});
-            } else{
+            //if (!(definition.attributes[prop])) {
+            //    properties = properties + propertyTemplate.supplant({propertyName: prop});
+            //} else {
 
                 if (definition.attributes[prop].relationship == 'reference') {
                     methodDefinition = 'get{methodName}By{fieldName}'.supplant({methodName: prop.capitalize(), fieldName: definition.identity.capitalize()});
                     properties = properties + propertyReferenceTemplate.supplant({propertyName: prop, methodToLoad: methodDefinition, methodParameters: definition.identity, providerName: '_{providerName}Provider'.supplant({providerName: prop})})
 
-                    if(definition.attributes[prop].cardinality == 'single') {
+                    if (definition.attributes[prop].cardinality == 'single') {
                         providers.push('{objectName}Provider'.supplant({objectName: prop}));
                     }
 
@@ -226,7 +222,7 @@ function createDomainObjectFile(def) {
                 } else {
                     properties = properties + propertyTemplate.supplant({propertyName: prop});
                 }
-            }
+//            }
         }
 
         for (var m in definition.businessMethods) {
@@ -262,6 +258,76 @@ function createDomainObjectFile(def) {
         fs.writeFile(definition.objectName + 'DomainObject.js', domainObjectData, function (err) {
             if (err) console.log("Unable to create Domain Object file");
             console.log("Domain Object generated for: " + definition.objectName);
+        });
+    });
+}
+
+function createTable(def) {
+    fs.readFile(__dirname + '/createTableTemplate.txt', {encoding: 'utf8'}, function (err, data) {
+
+        if (err) {
+            console.log(err);
+            return;
+        }
+
+        var definition = clone(def);
+
+        var columns = "";
+        var constraints = "";
+
+        //TODO: Generate FK constraints
+
+        //to add the identity as part of the attributes
+        definition.attributes[definition.identity] = {relationship: 'primitive', required: true, dbType: "SERIAL"};
+
+        var requiredStr = "NOT NULL";
+        var notRequiredStr = "";
+        var requiredRst = "";
+        var sqlDecTmpl = "{columnName} {type} {required},\r\n";
+        var colDec = "";
+
+        var uniqueTmpl = 'CONSTRAINT "{ukey}" UNIQUE ({uField}),\r\n';
+        var uniqueStr;
+
+        var pkey = 'CONSTRAINT "{pkeyName}" PRIMARY KEY ({pkField}),'.supplant({pkeyName: definition.objectName.capitalize() + "_pkey", pkField: definition.identity});
+        constraints = constraints + pkey + '\r\n';
+
+        for (var prop in definition.attributes) {
+
+            if(definition.attributes[prop].required) {
+                requiredRst = requiredStr;
+            } else
+            {
+                requiredRst = notRequiredStr;
+            }
+
+            if(definition.attributes[prop].unique) {
+                uniqueStr = uniqueTmpl.supplant({ukey: definition.objectName.capitalize() + "_" + prop + "_ukey", uField: prop});
+                constraints = constraints + uniqueStr;
+            }
+
+            if (definition.attributes[prop].relationship == 'reference' ) {
+                colDec = sqlDecTmpl.supplant({columnName: prop + "Id", type: "INT", required: requiredRst});
+                columns = columns + colDec;
+
+            } else if ((definition.attributes[prop].relationship == 'child') && (((definition.attributes[prop].childIsInParentStructure !== undefined)) && (definition.attributes[prop].childIsInParentStructure == false) && (definition.attributes[prop].cardinality == 'single'))) {
+
+                colDec = sqlDecTmpl.supplant({columnName: prop + "Id", type: "INT", required: requiredRst});
+                columns = columns + colDec;
+            } else if(definition.attributes[prop].relationship == 'primitive') {
+                colDec = sqlDecTmpl.supplant({columnName: prop, type: definition.attributes[prop].dbType, required: requiredRst});
+                columns = columns + colDec;
+            }
+        }
+
+        columns = columns.substring(0, columns.length - 3);
+        constraints = constraints.substring(0, constraints.length - 3);
+
+        var scriptData = data.supplant({objectName: definition.objectName.capitalize(), columns: columns, constraints: constraints});
+
+        fs.writeFile(definition.objectName + 'CreateTable.sql', scriptData, function (err) {
+            if (err) console.log("Unable to create table creation script");
+            console.log("Create Table Script generated for: " + definition.objectName);
         });
     });
 }
@@ -323,6 +389,8 @@ rl.question("Provide definition filename: ", function (answer) {
     createRepositoryFile(definition);
 
     createDomainObjectFile(definition);
+
+    createTable(definition);
 
 
     rl.close();

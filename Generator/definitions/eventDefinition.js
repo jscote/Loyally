@@ -2,14 +2,14 @@ module.exports = {
     "objectName": "event",
     "identity": "id",
     "attributes": {
-        "customer": {"relationship": "reference", "cardinality": "single", "referenceField": "customerId"},
-        "name": null,
-        "startDate": null,
-        "endDate": null,
+        "customer": {"relationship": "reference", "cardinality": "single", "referenceField": "customerId", "required": true},
+        "name": {"relationship": "primitive", "dbType": "varchar(255)", "require": true, "unique": true},
+        "startDate": {"relationship": "primitive", "dbType": "timestamp with time zone", "required": true},
+        "endDate": {"relationship": "primitive", "dbType": "timestamp with time zone", "required": false},
         //childIsInParentStructure means that the data is saved in the same structure as the parent instead of its own structure
         //TODO: Handle properties of child object with single cardinality
-        "location": {"relationship": "child", "cardinality": "single", "childIsInParentStructure": true},
-        "venue": {"relationship": "child", "cardinality": "single", "childIsInParentStructure": false},
+        "location": {"relationship": "child", "cardinality": "single", "childIsInParentStructure": true, required: false},
+        "venue": {"relationship": "child", "cardinality": "single", "childIsInParentStructure": false, required: false},
         //TODO: Handle properties of child object with multiple cardinality as well as generating Add/Remove/Update methods
         "eventSettings" : {"relationship": "child", "cardinality": "multiple"}
     },

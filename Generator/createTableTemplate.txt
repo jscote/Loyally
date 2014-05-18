@@ -1,0 +1,15 @@
+
+DROP TABLE {objectName};
+
+CREATE TABLE {objectName}
+(
+{columns},
+{constraints}
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE {objectName}
+ OWNER TO postgres;
+GRANT ALL ON TABLE {objectName} TO postgres;
+GRANT ALL ON TABLE {objectName} TO public;
