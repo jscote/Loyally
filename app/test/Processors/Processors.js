@@ -5,6 +5,8 @@
 var p = require('path');
 var Processor = require(p.resolve(__dirname + '../../../server/Processors/Processor')).Processor;
 var TaskNode = require(p.resolve(__dirname + '../../../server/Processors/Processor')).TaskNode;
+var ConditionNode = require(p.resolve(__dirname + '../../../server/Processors/Processor')).ConditionNode;
+var LoopNode = require(p.resolve(__dirname + '../../../server/Processors/Processor')).LoopNode;
 
 module.exports = {
     setUp: function (callback) {
@@ -29,13 +31,32 @@ module.exports = {
     },
     testTaskNodeCanOnlyHaveANodeObjectSuccessor: function(test) {
         test.doesNotThrow(function() {
-            var taskNode = new TaskNode(new TaskNode());
+            var taskNode = new TaskNode({successor: new TaskNode()});
         });
 
         test.throws(function() {
-            var taskNode = new TaskNode('something');
+            var taskNode = new TaskNode({successor: 'something'});
         });
 
+        test.done();
+    },
+    testConditionNodeHasMinimumRequirements: function (test) {
+
+        test.doesNotThrow(function() {
+            var conditionTask = new ConditionNode({condition: {} , trueSuccessor: new TaskNode()});
+        });
+
+        test.doesNotThrow(function() {
+            var conditionTask = new ConditionNode({condition: {} , trueSuccessor: new TaskNode(), successor: new TaskNode(), falseSuccessor: new TaskNode()});
+        });
+
+        test.throws(function() {
+            var conditionTask = new ConditionNode({condition : {}});
+        });
+
+        test.throws(function() {
+            var conditionTask = new ConditionNode();
+        });
         test.done();
     }
 };
