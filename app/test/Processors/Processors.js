@@ -3,10 +3,16 @@
  */
 
 var p = require('path');
+
+require(p.resolve(__dirname + '../../../server/config/injection'))(p.resolve(__dirname + '../../../server/'));
+
+
 var Processor = require(p.resolve(__dirname + '../../../server/Processors/Processor')).Processor;
+var NodeFactory = require(p.resolve(__dirname + '../../../server/Processors/Processor')).NodeFactory;
 var TaskNode = require(p.resolve(__dirname + '../../../server/Processors/Processor')).TaskNode;
 var ConditionNode = require(p.resolve(__dirname + '../../../server/Processors/Processor')).ConditionNode;
 var LoopNode = require(p.resolve(__dirname + '../../../server/Processors/Processor')).LoopNode;
+
 
 module.exports = {
     setUp: function (callback) {
@@ -22,20 +28,13 @@ module.exports = {
         test.ok(processor, "Processor is not properly created");
         test.done();
     },
-    testTaskNodeCallsBaseClass: function (test) {
-        var taskNode = new TaskNode();
-        var result = taskNode.execute();
-
-        test.ok(result == 'executed from TaskNode');
-        test.done();
-    },
     testTaskNodeCanOnlyHaveANodeObjectSuccessor: function(test) {
         test.doesNotThrow(function() {
-            var taskNode = new TaskNode({successor: new TaskNode()});
+            var taskNode = NodeFactory.create('TaskNode', {successor: NodeFactory.create('TaskNode')});
         });
 
         test.throws(function() {
-            var taskNode = new TaskNode({successor: 'something'});
+            var taskNode = NodeFactory.create('TaskNode', {successor: "something"});
         });
 
         test.done();
@@ -43,20 +42,60 @@ module.exports = {
     testConditionNodeHasMinimumRequirements: function (test) {
 
         test.doesNotThrow(function() {
-            var conditionTask = new ConditionNode({condition: {} , trueSuccessor: new TaskNode()});
+            var conditionTask = NodeFactory.create('ConditionNode', {
+                condition: {},
+                trueSuccessor: NodeFactory.create('TaskNode')
+            });
         });
 
         test.doesNotThrow(function() {
-            var conditionTask = new ConditionNode({condition: {} , trueSuccessor: new TaskNode(), successor: new TaskNode(), falseSuccessor: new TaskNode()});
+            var conditionTask = NodeFactory.create('ConditionNode', {
+                condition: {},
+                trueSuccessor: NodeFactory.create('TaskNode'),
+                successor: NodeFactory.create('TaskNode')
+            });
+
         });
 
         test.throws(function() {
-            var conditionTask = new ConditionNode({condition : {}});
+            var conditionTask = NodeFactory.create('ConditionNode', {
+                condition: {}
+            });
         });
 
         test.throws(function() {
-            var conditionTask = new ConditionNode();
+            var conditionTask = NodeFactory.create('ConditionNode');
         });
+        test.done();
+    },
+    testCanInjectTaskNode: function(test) {
+
+        var taskNode = Injector.resolve({target: 'TaskNode'});
+
+        test.ok(taskNode);
+        test.ok(taskNode instanceof TaskNode);
+
+        test.done();
+    },
+    testCanInjectConditionNode: function(test) {
+        var conditionNode = Injector.resolve({target: 'ConditionNode'})
+        test.done();
+    },
+    testTaskCanExecute: function (test) {
+        var taskNode = NodeFactory.create("TestTaskNode");
+        var result = taskNode.execute();
+
+        test.ok(result.data.length == 1);
+        test.ok(result.data[0] == "executed 1");
+        test.done();
+    },
+    testTaskCanExecuteSequence: function (test) {
+        var taskNode = NodeFactory.create("TestTaskNode",{successor: NodeFactory.create('Test2TaskNode')});
+        var result = taskNode.execute();
+
+        test.ok(result.data.length == 2);
+        test.ok(result.data[0] == "executed 1");
+        test.ok(result.data[1] == "executed 2");
         test.done();
     }
 };

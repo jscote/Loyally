@@ -22,8 +22,8 @@
 
      */
 
-    function Node(params) {
-        params = params || {};
+    function Node(serviceMessage) {
+
         var _successor;
         Object.defineProperty(this, "successor", {
             get: function () {
@@ -39,33 +39,99 @@
             }
         });
 
-        this.successor = params.successor;
+        this.messaging = serviceMessage;
 
         return this;
     }
 
-    Node.prototype.execute = function(request) {
-        return 'executed';
+
+    Node.prototype.initialize = function(params) {
+        params = params || {};
+        this.successor = params.successor;
     };
 
-    function TaskNode(params) {
-        params = params || {};
-        Node.call(this, {successor: params.successor});
+    Node.prototype.execute = function(request) {
+        var response;
+        try {
+            response = this.handleRequest(request);
+
+            if(!response instanceof this.messaging.ServiceResponse) {
+                response = new this.messaging.ServiceResponse();
+                response.isSuccess = false;
+                response.errors.push("Invalid response type");
+                return response;
+            }
+
+            if(response.errors.length > 1) {
+                response.isSuccess = false;
+                return response;
+
+            }
+        } catch (e) {
+            response.errors.push(e.message);
+            return response;
+        }
+
+        if(response.isSuccess && this.successor) {
+            var successorResponse = this.successor.execute(request);
+
+
+            if(!successorResponse instanceof this.messaging.ServiceResponse) {
+                response = new this.messaging.ServiceResponse();
+                response.isSuccess = false;
+                response.errors.push("Invalid response type");
+                return response;
+            }
+
+            response.errors.concat(successorResponse.errors);
+
+            if(Array.isArray(response.data) && Array.isArray(successorResponse.data)) {
+                response.data = response.data.concat(successorResponse.data);
+            } else {
+                for (var prop in successorResponse.data) {
+
+
+                    if (Array.isArray(response.data[prop]) && Array.isArray(successorResponse.data[prop])) {
+                        response.data = response.data[prop].concat(successorResponse.data[prop]);
+                    } else {
+                        response.data[prop] = successorResponse.data[prop];
+                    }
+                }
+            }
+
+            response;
+        }
+
+        return response;
+    };
+
+    Node.prototype.handleRequest = function(request) {
+
+        throw Error("HandleRequest is not implemented");
+
+    };
+
+
+    function TaskNode(serviceMessage) {
+
+        Node.call(this, serviceMessage);
 
         return this;
     }
 
     util.inherits(TaskNode, Node);
 
-
-    TaskNode.prototype.execute = function (request) {
-        var result = TaskNode.super_.prototype.execute(request);
-        return result + ' from TaskNode';
+    TaskNode.prototype.initialize = function(params) {
+        params = params || {};
+        TaskNode.super_.prototype.initialize.call(this, params);
     };
 
-    function ConditionNode(params) {
-        params = params || {};
-        Node.call(this, {successor: params.successor});
+
+
+
+
+    function ConditionNode(serviceMessage) {
+        Node.call(this, serviceMessage);
 
         var _trueSuccessor;
         Object.defineProperty(this, "trueSuccessor", {
@@ -80,7 +146,7 @@
                 }
             }
         });
-        this.trueSuccessor = params.trueSuccessor;
+
 
         var _falseSuccessor;
         Object.defineProperty(this, "falseSuccessor", {
@@ -96,7 +162,6 @@
                 }
             }
         });
-        this.falseSuccessor = params.falseSuccessor;
 
         var _condition;
         Object.defineProperty(this, "condition", {
@@ -112,7 +177,6 @@
                 //}
             }
         });
-        this.condition = params.condition;
 
 
         return this;
@@ -120,6 +184,13 @@
 
     util.inherits(ConditionNode, Node);
 
+    ConditionNode.prototype.initialize = function(params) {
+        params = params || {};
+        TaskNode.super_.prototype.initialize.call(this, params);
+        this.condition = params.condition;
+        this.trueSuccessor = params.trueSuccessor;
+        this.falseSuccessor = params.falseSuccessor;
+    };
 
     ConditionNode.prototype.execute = function (request) {
         var result = TaskNode.super_.prototype.execute(request);
@@ -157,6 +228,18 @@
     };
 
 
+    function NodeFactory() {
+
+    }
+
+    NodeFactory.create = function(nodeType, params, resolutionName) {
+        var node = Injector.resolve({target: nodeType, resolutionName: resolutionName});
+        if(node) {
+            node.initialize(params);
+        }
+        return node;
+    };
+
     function Processor() {
 
     }
@@ -165,6 +248,7 @@
     exports.TaskNode = TaskNode;
     exports.ConditionNode = ConditionNode;
     exports.BlockNode = BlockNode;
+    exports.NodeFactory = NodeFactory;
 
 })
 (
