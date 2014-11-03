@@ -227,7 +227,13 @@
 
                             var convertedItem = null;
                             try {
-                                convertedItem = require(item[i].target);
+                                var path = item[i].target.split("::");
+                                if(path.length > 1) {
+                                    convertedItem = require(path[0])[path[1]];
+                                } else {
+                                    convertedItem = require(path[0]);
+                                }
+
                             } catch (e) {
                                 convertedItem = item[i].target;
                             }
@@ -314,7 +320,12 @@
             }
 
             if (_.isString(dependency)) {
-                dependency = require(getBasePath() + dependency);
+                var path = dependency.split("::");
+                if(path.length > 1) {
+                    dependency = require(getBasePath() + path[0])[path[1]];
+                } else {
+                    dependency = require(getBasePath() + dependency);
+                }
             }
             makeCollection({collection: _dependencies, resolutionName: resolutionName, name: name, target: dependency});
             return this;

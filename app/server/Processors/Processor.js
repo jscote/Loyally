@@ -52,57 +52,74 @@
 
     Node.prototype.execute = function(request) {
         var response;
+        var self = this;
+        var dfd = q.defer();
         try {
-            response = this.handleRequest(request);
+            response = self.handleRequest(request);
 
-            if(!response instanceof this.messaging.ServiceResponse) {
-                response = new this.messaging.ServiceResponse();
+            if(!response instanceof self.messaging.ServiceResponse) {
+                response = new self.messaging.ServiceResponse();
                 response.isSuccess = false;
                 response.errors.push("Invalid response type");
                 return response;
             }
 
-            if(response.errors.length > 1) {
+            if(response.errors.length > 0) {
                 response.isSuccess = false;
-                return response;
+                dfd.resolve(response);
+                return;
 
             }
         } catch (e) {
+            response = new self.messaging.ServiceResponse();
+            response.isSuccess = false;
             response.errors.push(e.message);
-            return response;
+            dfd.resolve(response);
+            return dfd.promise;
         }
 
-        if(response.isSuccess && this.successor) {
-            var successorResponse = this.successor.execute(request);
+        if(response.isSuccess && self.successor) {
+            //Next tick will give a chance to other process to get a slice of the CPU
+            process.nextTick(function() {
+            var successorPromise = q.fcall(self.successor.execute.bind(self.successor), request);
 
+                successorPromise.then(function(successorResponse){
 
-            if(!successorResponse instanceof this.messaging.ServiceResponse) {
-                response = new this.messaging.ServiceResponse();
-                response.isSuccess = false;
-                response.errors.push("Invalid response type");
-                return response;
-            }
-
-            response.errors.concat(successorResponse.errors);
-
-            if(Array.isArray(response.data) && Array.isArray(successorResponse.data)) {
-                response.data = response.data.concat(successorResponse.data);
-            } else {
-                for (var prop in successorResponse.data) {
-
-
-                    if (Array.isArray(response.data[prop]) && Array.isArray(successorResponse.data[prop])) {
-                        response.data = response.data[prop].concat(successorResponse.data[prop]);
-                    } else {
-                        response.data[prop] = successorResponse.data[prop];
+                    if(!successorResponse instanceof self.messaging.ServiceResponse) {
+                        response = new self.messaging.ServiceResponse();
+                        response.isSuccess = false;
+                        response.errors.push("Invalid response type");
+                        return response;
                     }
-                }
-            }
 
-            response;
+                    response.errors = response.errors.concat(successorResponse.errors);
+
+                    if(Array.isArray(response.data) && Array.isArray(successorResponse.data)) {
+                        response.data = response.data.concat(successorResponse.data);
+                    } else {
+                        for (var prop in successorResponse.data) {
+
+
+                            if (Array.isArray(response.data[prop]) && Array.isArray(successorResponse.data[prop])) {
+                                response.data = response.data[prop].concat(successorResponse.data[prop]);
+                            } else {
+                                response.data[prop] = successorResponse.data[prop];
+                            }
+                        }
+                    }
+
+                    response.isSuccess = !response.isSuccess ? response.isSuccess : successorResponse.isSuccess;
+
+                    dfd.resolve(response);
+                    return;
+                });
+            });
+        } else {
+            dfd.resolve(response);
+            return dfd.promise;
         }
 
-        return response;
+        return dfd.promise;
     };
 
     Node.prototype.handleRequest = function(request) {

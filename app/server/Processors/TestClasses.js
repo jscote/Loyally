@@ -15,6 +15,8 @@
         if(!Array.isArray(response.data)) response.data = [];
         response.data.push("executed 1");
 
+        request.data.push("request data 1");
+
         return response;
 
     };
@@ -31,12 +33,46 @@
         if(!Array.isArray(response.data)) response.data = [];
         response.data.push("executed 2");
 
+        request.data.push("request data 2");
+
         return response;
 
     };
 
+    function Test3TaskNode(serviceMessage) {
+        base.TaskNode.call(this, serviceMessage)
+    }
+
+    util.inherits(Test3TaskNode, base.TaskNode);
+
+    Test3TaskNode.prototype.handleRequest = function(request) {
+        var response = new this.messaging.ServiceResponse();
+
+        if(!Array.isArray(response.data)) response.data = [];
+        response.data.push("executed 3");
+
+        request.data.push("request data 3");
+
+        return response;
+
+    };
+
+    function Test4TaskNode(serviceMessage) {
+        base.TaskNode.call(this, serviceMessage)
+    }
+
+    util.inherits(Test4TaskNode, base.TaskNode);
+
+    Test4TaskNode.prototype.handleRequest = function(request) {
+        throw Error("Test Error");
+
+        request.data.push("request data 4");
+    };
+
     module.exports.TestTaskNode = TestTaskNode;
     module.exports.Test2TaskNode = Test2TaskNode;
+    module.exports.Test3TaskNode = Test3TaskNode;
+    module.exports.Test4TaskNode = Test4TaskNode;
 
 })(
     require('util'),

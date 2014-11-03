@@ -2,7 +2,7 @@
  * Created by jscote on 3/8/14.
  */
 
-var p = require('path');
+/*var p = require('path');
 var pg = require('pg');
 
 require(p.resolve(__dirname + '../../../server/config/injection'))(p.resolve(__dirname + '../../../server/'));
@@ -72,4 +72,4 @@ module.exports = {
 
         test.done();
     }
-};
+};*/
