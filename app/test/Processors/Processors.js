@@ -16,13 +16,13 @@ var LoopNode = require(p.resolve(__dirname + '../../../server/Processors/Process
 
 module.exports = {
     setUp: function (callback) {
-        Injector
+        /*Injector
         .register({dependency: '/Processors/Processor::TaskNode', name: 'TaskNode'})
             .register({dependency: '/Processors/Processor::ConditionNode', name: 'ConditionNode'})
             .register({dependency: '/Processors/TestClasses::TestTaskNode', name: 'TestTaskNode'})
             .register({dependency: '/Processors/TestClasses::Test2TaskNode', name: 'Test2TaskNode'})
             .register({dependency: '/Processors/TestClasses::Test3TaskNode', name: 'Test3TaskNode'})
-            .register({dependency: '/Processors/TestClasses::Test4TaskNode', name: 'Test4TaskNode'});
+            .register({dependency: '/Processors/TestClasses::Test4TaskNode', name: 'Test4TaskNode'});*/
         callback();
     },
     tearDown: function (callback) {
@@ -187,7 +187,302 @@ module.exports = {
             test.done();
         });
 
+    },
+    testTaskCanInstantiateConditional: function(test) {
+
+        var node = NodeFactory.create('ConditionNode', {condition: true, successor: null, trueSuccessor : NodeFactory.create('TestTaskNode')});
+
+        test.ok(node);
+        test.done();
+    },
+    testTaskCanExecuteConditional: function(test) {
+
+        var node = NodeFactory.create('ConditionNode', {condition: true, successor: null, trueSuccessor : NodeFactory.create('TestTaskNode')});
+
+        var request = {data: []};
+
+        node.execute(request).then(function(response){
+
+            test.ok(response.data.length == 1);
+            test.ok(response.data[0] == "executed 1");
+
+            test.ok(request.data.length == 1, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 1");
+
+
+            test.done();
+        });
+    },
+    testTaskCanExecuteConditionalWithSuccessor: function(test) {
+
+        var node = NodeFactory.create('ConditionNode', {condition: true, successor: NodeFactory.create('Test2TaskNode'), trueSuccessor : NodeFactory.create('TestTaskNode')});
+
+        var request = {data: []};
+
+        node.execute(request).then(function(response){
+
+            test.ok(response.data.length == 2, "Unexpected response items");
+            test.ok(response.data[0] == "executed 1");
+            test.ok(response.data[1] == "executed 2");
+
+            console.log(response.data.join(', '));
+
+
+            test.ok(request.data.length == 2, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 1");
+            test.ok(request.data[1] == "request data 2");
+
+            console.log(request.data.join(', '));
+
+            test.done();
+        });
+    },
+    testTaskCanExecuteFalseConditionalWithSuccessor: function(test) {
+
+        var node = NodeFactory.create('ConditionNode', {condition: 1 != 1,
+            successor: NodeFactory.create('Test2TaskNode'),
+            trueSuccessor : NodeFactory.create('TestTaskNode'),
+            falseSuccessor: NodeFactory.create('Test3TaskNode')});
+
+        var request = {data: []};
+
+        node.execute(request).then(function(response){
+
+            test.ok(response.data.length == 2, "Unexpected response items");
+            test.ok(response.data[0] == "executed 3");
+            test.ok(response.data[1] == "executed 2");
+
+            console.log(response.data.join(', '));
+
+
+            test.ok(request.data.length == 2, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 3");
+            test.ok(request.data[1] == "request data 2");
+
+            console.log(request.data.join(', '));
+
+            test.done();
+        });
+    },
+    testTaskCanExecuteConditionalSequenceWithSuccessor: function(test) {
+
+        var node = NodeFactory.create('ConditionNode', {condition: true,
+            successor: NodeFactory.create('Test2TaskNode'),
+            trueSuccessor : NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')}),
+            falseSuccessor: NodeFactory.create('Test3TaskNode')});
+
+        var request = {data: []};
+
+        node.execute(request).then(function(response){
+
+            test.ok(response.data.length == 3, "Unexpected response items");
+            test.ok(response.data[0] == "executed 1");
+            test.ok(response.data[1] == "executed 2");
+            test.ok(response.data[2] == "executed 2");
+
+            console.log(response.data.join(', '));
+
+
+            test.ok(request.data.length == 3, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 1");
+            test.ok(request.data[1] == "request data 2");
+            test.ok(request.data[2] == "request data 2");
+
+            console.log(request.data.join(', '));
+
+            test.done();
+        });
+    },
+    testTaskCanExecuteStartPlusConditionalSequenceWithSuccessor: function(test) {
+
+        var node = NodeFactory.create('Test3TaskNode',
+            {successor:
+                NodeFactory.create('ConditionNode',
+                    {condition: true,
+                        successor: NodeFactory.create('Test2TaskNode'),
+                        trueSuccessor : NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')}),
+                        falseSuccessor: NodeFactory.create('Test3TaskNode')})});
+
+        var request = {data: []};
+
+        node.execute(request).then(function(response){
+
+            test.ok(response.data.length == 4, "Unexpected response items");
+            test.ok(response.data[0] == "executed 3");
+            test.ok(response.data[1] == "executed 1");
+            test.ok(response.data[2] == "executed 2");
+            test.ok(response.data[3] == "executed 2");
+
+            console.log(response.data.join(', '));
+
+
+            test.ok(request.data.length == 4, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 3");
+            test.ok(request.data[1] == "request data 1");
+            test.ok(request.data[2] == "request data 2");
+            test.ok(request.data[3] == "request data 2");
+
+            console.log(request.data.join(', '));
+
+            test.done();
+        });
+    },
+    testTaskCanExecuteStartPlusConditionalWithSuccessorAndErrorInTrueSuccessor: function(test) {
+        var node = NodeFactory.create('Test3TaskNode',
+            {successor:
+                NodeFactory.create('ConditionNode',
+                    {condition: true,
+                        successor: NodeFactory.create('Test2TaskNode'),
+                        trueSuccessor : NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test4TaskNode')}),
+                        falseSuccessor: NodeFactory.create('Test3TaskNode')})});
+
+        var request = {data: []};
+
+        node.execute(request).then(function(response){
+
+            test.ok(response.data.length == 2, "Unexpected response items");
+            test.ok(response.data[0] == "executed 3");
+            test.ok(response.data[1] == "executed 1");
+
+            console.log(response.data.join(', '));
+
+
+            test.ok(request.data.length == 2, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 3");
+            test.ok(request.data[1] == "request data 1");
+
+            console.log(request.data.join(', '));
+
+            test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+            test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+
+            test.done();
+        });
+    },
+    testTaskCanExecuteStartPlusConditionalWithSuccessorAndErrorBeforeCondition: function(test) {
+        var node = NodeFactory.create('Test4TaskNode',
+            {successor:
+                NodeFactory.create('ConditionNode',
+                    {condition: true,
+                        successor: NodeFactory.create('Test2TaskNode'),
+                        trueSuccessor : NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test4TaskNode')}),
+                        falseSuccessor: NodeFactory.create('Test3TaskNode')})});
+
+        var request = {data: []};
+
+        node.execute(request).then(function(response){
+
+            test.ok(request.data.length == 0, "Unexpected number of items in request data");
+
+            console.log(request.data.join(', '));
+
+            test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+            test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+
+            test.done();
+        });
+    },
+    testTaskCanExecuteStartPlusConditionalWithSuccessorAndErrorSuccessor: function(test) {
+    var node = NodeFactory.create('Test3TaskNode',
+        {successor:
+            NodeFactory.create('ConditionNode',
+                {condition: true,
+                    successor: NodeFactory.create('Test4TaskNode'),
+                    trueSuccessor : NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')}),
+                    falseSuccessor: NodeFactory.create('Test3TaskNode')})});
+
+    var request = {data: []};
+
+    node.execute(request).then(function(response){
+
+        test.ok(response.data.length == 3, "Unexpected response items");
+        test.ok(response.data[0] == "executed 3");
+        test.ok(response.data[1] == "executed 1");
+        test.ok(response.data[2] == "executed 2");
+
+        console.log(response.data.join(', '));
+
+
+        test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
+        test.ok(request.data.length == 3, "Unexpected number of items in request data");
+        test.ok(request.data[0] == "request data 3");
+        test.ok(request.data[1] == "request data 1");
+
+        test.ok(request.data[2] == "request data 2");
+
+        console.log(request.data.join(', '));
+        test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+        test.ok(response.isSuccess == false, "isSuccess should be false");
+
+
+        test.done();
+    });
+},
+    testTaskCanExecuteStartPlusConditionalWithSuccessorMissingFalseSuccessor: function(test) {
+    var node = NodeFactory.create('Test3TaskNode',
+        {successor:
+            NodeFactory.create('ConditionNode',
+                {condition: 1!=1,
+                    successor: NodeFactory.create('Test2TaskNode'),
+                    trueSuccessor : NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')})})});
+
+    var request = {data: []};
+
+    node.execute(request).then(function(response){
+
+        test.ok(response.data.length == 2, "Unexpected response items");
+        test.ok(response.data[0] == "executed 3");
+        test.ok(response.data[1] == "executed 2");
+
+        console.log(response.data.join(', '));
+
+
+        test.ok(request.data.length == 2, "Unexpected number of items in request data");
+        test.ok(request.data[0] == "request data 3");
+        test.ok(request.data[1] == "request data 2");
+
+        console.log(request.data.join(', '));
+
+
+        test.done();
+    });
+},
+    testTaskCanExecuteStartPlusConditionalWithSuccessorMissingFalseSuccessorAndErrorInSuccessor: function(test) {
+        var node = NodeFactory.create('Test3TaskNode',
+            {successor:
+                NodeFactory.create('ConditionNode',
+                    {condition: 1!=1,
+                        successor: NodeFactory.create('Test4TaskNode'),
+                        trueSuccessor : NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')})})});
+
+        var request = {data: []};
+
+        node.execute(request).then(function(response){
+
+            test.ok(response.data.length == 1, "Unexpected response items");
+            test.ok(response.data[0] == "executed 3");
+
+            console.log(response.data.join(', '));
+
+
+            test.ok(request.data.length == 1, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 3");
+
+            console.log(request.data.join(', '));
+            test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+            test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+            test.done();
+        });
     }
+
+
+
 
 
 };

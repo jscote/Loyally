@@ -128,5 +128,11 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
             .register({dependency: '/controllers/ItemController', name: 'ItemController', resolutionName: '/:id/items/:item?/:op?'})
             .register({dependency: '/services/ItemService', name: 'itemService', resolutionName: '/:id/items/:item?/:op?'})
 
+            .register({dependency: '/Processors/Processor::TaskNode', name: 'TaskNode'})
+            .register({dependency: '/Processors/Processor::ConditionNode', name: 'ConditionNode'})
+            .register({dependency: '/Processors/TestClasses::TestTaskNode', name: 'TestTaskNode'})
+            .register({dependency: '/Processors/TestClasses::Test2TaskNode', name: 'Test2TaskNode'})
+            .register({dependency: '/Processors/TestClasses::Test3TaskNode', name: 'Test3TaskNode'})
+            .register({dependency: '/Processors/TestClasses::Test4TaskNode', name: 'Test4TaskNode'});
     }
 })(lodash, decoratorHelper);

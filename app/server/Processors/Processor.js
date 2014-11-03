@@ -44,6 +44,26 @@
         return this;
     }
 
+    Node.copyResponseIntoAnother = function(response, successorResponse) {
+        response.errors = response.errors.concat(successorResponse.errors);
+
+        if(Array.isArray(response.data) && Array.isArray(successorResponse.data)) {
+            response.data = response.data.concat(successorResponse.data);
+        } else {
+            for (var prop in successorResponse.data) {
+
+
+                if (Array.isArray(response.data[prop]) && Array.isArray(successorResponse.data[prop])) {
+                    response.data = response.data[prop].concat(successorResponse.data[prop]);
+                } else {
+                    response.data[prop] = successorResponse.data[prop];
+                }
+            }
+
+        }
+        response.isSuccess = !response.isSuccess ? response.isSuccess : successorResponse.isSuccess;
+
+    };
 
     Node.prototype.initialize = function(params) {
         params = params || {};
@@ -92,23 +112,7 @@
                         return response;
                     }
 
-                    response.errors = response.errors.concat(successorResponse.errors);
-
-                    if(Array.isArray(response.data) && Array.isArray(successorResponse.data)) {
-                        response.data = response.data.concat(successorResponse.data);
-                    } else {
-                        for (var prop in successorResponse.data) {
-
-
-                            if (Array.isArray(response.data[prop]) && Array.isArray(successorResponse.data[prop])) {
-                                response.data = response.data[prop].concat(successorResponse.data[prop]);
-                            } else {
-                                response.data[prop] = successorResponse.data[prop];
-                            }
-                        }
-                    }
-
-                    response.isSuccess = !response.isSuccess ? response.isSuccess : successorResponse.isSuccess;
+                    Node.copyResponseIntoAnother(response, successorResponse);
 
                     dfd.resolve(response);
                     return;
@@ -150,6 +154,8 @@
     function ConditionNode(serviceMessage) {
         Node.call(this, serviceMessage);
 
+        this.serviceMessage = serviceMessage;
+
         var _trueSuccessor;
         Object.defineProperty(this, "trueSuccessor", {
             get: function () {
@@ -186,7 +192,7 @@
                 return _condition;
             },
             set: function (value) {
-                if(!value) throw Error("A condition must be provided");
+                if(_.isUndefined(value)) throw Error("A condition must be provided");
                 //if(value instanceof Node) {
                     _condition = value;
                 //} else {
@@ -203,44 +209,110 @@
 
     ConditionNode.prototype.initialize = function(params) {
         params = params || {};
-        TaskNode.super_.prototype.initialize.call(this, params);
+        ConditionNode.super_.prototype.initialize.call(this, params);
         this.condition = params.condition;
         this.trueSuccessor = params.trueSuccessor;
         this.falseSuccessor = params.falseSuccessor;
     };
 
     ConditionNode.prototype.execute = function (request) {
-        var result = TaskNode.super_.prototype.execute(request);
-        return result + ' from TaskNode';
+        var dfd = q.defer();
+        var self = this;
+        if(this.condition) {
+            this.trueSuccessor.execute(request).then(function(response) {
+
+                if(self.successor && response.isSuccess) {
+                    ConditionNode.super_.prototype.execute.call(self.successor, request).then(function(successorResponse){
+                        Node.copyResponseIntoAnother(response, successorResponse);
+                        dfd.resolve(response);
+                        return;
+                    });
+                } else {
+                    dfd.resolve(response);
+                    return;
+                }
+            });
+        } else {
+            if (this.falseSuccessor) {
+                this.falseSuccessor.execute(request).then(function (response) {
+
+                    if (self.successor && response.isSuccess) {
+                        ConditionNode.super_.prototype.execute.call(self.successor, request).then(function (successorResponse) {
+                            Node.copyResponseIntoAnother(response, successorResponse);
+                            dfd.resolve(response);
+                            return;
+                        });
+                    } else {
+                        dfd.resolve(response);
+                        return;
+                    }
+                });
+            } else {
+                if (self.successor) {
+                    ConditionNode.super_.prototype.execute.call(self.successor, request).then(function (successorResponse) {
+                        dfd.resolve(successorResponse);
+                        return;
+                    });
+                } else {
+                    var response = new self.serviceMessage.ServiceResponse();
+                    dfd.resolve(response);
+                    return;
+                }
+            }
+        }
+        return dfd.promise;
     };
 
-    function BlockNode(params) {
-        params = params || {};
-        Node.call(this, {successor: params.successor});
+    function BlockNode(serviceMessage) {
+        Node.call(this, serviceMessage);
 
         return this;
     }
 
     util.inherits(BlockNode, Node);
 
+    BlockNode.prototype.initialize = function(params) {
+        params = params || {};
+        BlockNode.super_.prototype.initialize.call(this, params);
+    };
 
     BlockNode.prototype.execute = function (request) {
-        var result = TaskNode.super_.prototype.execute(request);
+        var result = BlockNode.super_.prototype.execute(request);
         return result + ' from TaskNode';
     };
 
-    function LoopNode(params) {
-        params = params || {};
-        Node.call(this, {successor: params.successor});
+
+    function LoopNode(serviceMessage) {
+        Node.call(this, serviceMessage);
+
+        var _condition;
+        Object.defineProperty(this, "condition", {
+            get: function () {
+                return _condition;
+            },
+            set: function (value) {
+                if(!value) throw Error("A condition must be provided");
+                //if(value instanceof Node) {
+                _condition = value;
+                //} else {
+                //    throw Error('Condition is not of type XXX or one of its descendant');
+                //}
+            }
+        });
 
         return this;
     }
 
     util.inherits(LoopNode, Node);
 
+    LoopNode.prototype.initialize = function(params) {
+        params = params || {};
+        LoopNode.super_.prototype.initialize.call(this, params);
+        this.condition = params.condition;
+    };
 
     LoopNode.prototype.execute = function (request) {
-        var result = TaskNode.super_.prototype.execute(request);
+        var result = LoopNode.super_.prototype.execute(request);
         return result + ' from TaskNode';
     };
 
