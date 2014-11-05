@@ -300,7 +300,7 @@
 
                 if(response.isSuccess) {
                     //execute successor.... everything is good, let's move on
-                    executeSuccessor(self, response, request, dfd, self.successor.execute);
+                    executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
                 } else {
                     //we need to execute the compensation branch and then let bubble up the chain
                     process.nextTick(function(){
