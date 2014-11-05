@@ -64,8 +64,10 @@
     }
 
     function executeConditionBranch(successorBranch, request, self, dfd) {
-        successorBranch.execute(request).then(function (response) {
-            executeSuccessor(self, response, request, dfd, Node.prototype.execute);
+        process.nextTick(function() {
+            q.fcall(successorBranch.execute.bind(successorBranch),request).then(function (response) {
+                executeSuccessor(self, response, request, dfd, Node.prototype.execute);
+            });
         });
     }
 
