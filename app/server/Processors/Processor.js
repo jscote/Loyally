@@ -41,7 +41,7 @@
         }
         response.isSuccess = !response.isSuccess ? response.isSuccess : successorResponse.isSuccess;
 
-    };
+    }
 
     function executeSuccessor(self, response, request, dfd, executeFn) {
         if (response.isSuccess && self.successor) {
@@ -65,7 +65,7 @@
 
     function executeConditionBranch(successorBranch, request, self, dfd) {
         successorBranch.execute(request).then(function (response) {
-            executeSuccessor(self, response, request, dfd, ConditionNode.super_.prototype.execute);
+            executeSuccessor(self, response, request, dfd, Node.prototype.execute);
         });
     }
 
@@ -132,7 +132,7 @@
 
 
 
-    Node.prototype.handleRequest = function (request) {
+    Node.prototype.handleRequest = function () {
         throw Error("HandleRequest is not implemented");
     };
 
@@ -239,6 +239,36 @@
     function CompensatedNode(serviceMessage) {
         Node.call(this, serviceMessage);
 
+        var _startNode;
+        Object.defineProperty(this, "startNode", {
+            get: function () {
+                return _startNode;
+            },
+            set: function (value) {
+                if (_.isUndefined(value)) throw Error("A start node must be provided");
+                if (value instanceof Node) {
+                    _startNode = value;
+                } else {
+                    throw Error('StartNode is not of type Node or one of its descendant');
+                }
+            }
+        });
+
+        var _compensationNode;
+        Object.defineProperty(this, "compensationNode", {
+            get: function () {
+                return _compensationNode;
+            },
+            set: function (value) {
+                if (_.isUndefined(value)) throw Error("A compensation node must be provided");
+                if (value instanceof Node) {
+                    _compensationNode = value;
+                } else {
+                    throw Error('Compensation Node is not of type Node or one of its descendant');
+                }
+            }
+        });
+
         return this;
     }
 
@@ -246,12 +276,52 @@
 
     CompensatedNode.prototype.initialize = function (params) {
         params = params || {};
-        BlockNode.super_.prototype.initialize.call(this, params);
+        CompensatedNode.super_.prototype.initialize.call(this, params);
+        this.startNode = params.startNode;
+        this.compensationNode = params.compensationNode;
     };
 
     CompensatedNode.prototype.execute = function (request) {
-        var result = BlockNode.super_.prototype.execute(request);
-        return result + ' from TaskNode';
+        var dfd = q.defer();
+        var self = this;
+
+        process.nextTick(function () {
+            q.fcall(self.startNode.execute.bind(self.startNode), request).then(function (response) {
+
+                if (!response instanceof self.messaging.ServiceResponse) {
+                    response = new self.messaging.ServiceResponse();
+                    response.isSuccess = false;
+                    response.errors.push("Invalid response type");
+                    dfd.resolve(response);
+                    return;
+                }
+
+                if(response.isSuccess) {
+                    //execute successor.... everything is good, let's move on
+                    executeSuccessor(self, response, request, dfd, self.successor.execute);
+                } else {
+                    //we need to execute the compensation branch and then let bubble up the chain
+                    process.nextTick(function(){
+                        q.fcall(self.compensationNode.execute.bind(self.compensationNode), request).then(function(compensationResponse){
+                            if (!compensationResponse instanceof self.messaging.ServiceResponse) {
+                                compensationResponse = new self.messaging.ServiceResponse();
+                                compensationResponse.isSuccess = false;
+                                compensationResponse.errors.push("Invalid response type");
+                                dfd.resolve(compensationResponse);
+                                return;
+                            }
+
+                            copyResponseIntoAnother(response, compensationResponse);
+
+                            dfd.resolve(response);
+                        });
+                    });
+
+                }
+            });
+        });
+
+        return dfd.promise;
     };
 
 
