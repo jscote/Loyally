@@ -99,6 +99,10 @@ module.exports = {
 
             test.ok(request.data.length == 1, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
+
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
+
             test.done();
         });
     },
@@ -115,6 +119,9 @@ module.exports = {
             test.ok(request.data.length == 2, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
             test.ok(request.data[1] == "request data 2");
+
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
 
             test.done();
         });
@@ -141,6 +148,9 @@ module.exports = {
             test.ok(request.data[2] == "request data 3");
 
             console.log(response.data.join(', '));
+
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
 
             test.done();
         });
@@ -221,6 +231,8 @@ module.exports = {
             test.ok(request.data.length == 1, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
 
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
 
             test.done();
         });
@@ -250,6 +262,9 @@ module.exports = {
 
             console.log(request.data.join(', '));
 
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
+
             test.done();
         });
     },
@@ -278,6 +293,9 @@ module.exports = {
             test.ok(request.data[1] == "request data 2");
 
             console.log(request.data.join(', '));
+
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
 
             test.done();
         });
@@ -309,6 +327,9 @@ module.exports = {
             test.ok(request.data[2] == "request data 2");
 
             console.log(request.data.join(', '));
+
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
 
             test.done();
         });
@@ -346,6 +367,9 @@ module.exports = {
             test.ok(request.data[3] == "request data 2");
 
             console.log(request.data.join(', '));
+
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
 
             test.done();
         });
@@ -482,6 +506,8 @@ module.exports = {
 
             console.log(request.data.join(', '));
 
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
 
             test.done();
         });
@@ -538,7 +564,8 @@ module.exports = {
             test.ok(request.data.length == 1, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
 
-
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
             test.done();
         });
 
@@ -548,43 +575,316 @@ module.exports = {
 
         //expect to see only compensated task executed
 
-        test.ok(false);
-        test.done();
+        var node = NodeFactory.create('CompensatedNode',
+            {
+                startNode: NodeFactory.create('Test4TaskNode'),
+                compensationNode: NodeFactory.create('TestTaskNode')
+            });
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 1, "Unexpected response items");
+            test.ok(response.data[0] == "executed 1");
+
+            test.ok(request.data.length == 1, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 1");
+
+            test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+            test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+            test.done();
+        });
     }
     ,
     testCompensantedTaskWithNoPredecessorAndNoSuccessorTwoTaskWithError: function (test) {
-        test.ok(false);
-        test.done();
+        var node = NodeFactory.create('CompensatedNode',
+            {
+                startNode: NodeFactory.create('Test2TaskNode', {successor: NodeFactory.create('Test4TaskNode')}),
+                compensationNode: NodeFactory.create('TestTaskNode')
+            });
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 2, "Unexpected response items");
+            test.ok(response.data[0] == "executed 2");
+            test.ok(response.data[1] == "executed 1");
+
+
+            test.ok(request.data.length == 2, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 2");
+            test.ok(request.data[1] == "request data 1");
+
+            test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+            test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+            test.done();
+        });
     }
     ,
     testCompensantedTaskWithNoPredecessorAndOneSuccessorOneTaskNoError: function (test) {
-        test.ok(false);
-        test.done();
+        var node = NodeFactory.create('CompensatedNode',
+            {
+                startNode: NodeFactory.create('Test2TaskNode'),
+                compensationNode: NodeFactory.create('TestTaskNode'),
+                successor: NodeFactory.create('Test3TaskNode')
+            });
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 2, "Unexpected response items");
+            test.ok(response.data[0] == "executed 2");
+            test.ok(response.data[1] == "executed 3");
+
+
+            test.ok(request.data.length == 2, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 2");
+            test.ok(request.data[1] == "request data 3");
+
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
+
+            test.done();
+        });
     }
     ,
     testCompensantedTaskWithNoPredecessorAndOneSuccessorOneTaskWithError: function (test) {
-        test.ok(false);
-        test.done();
+        var node = NodeFactory.create('CompensatedNode',
+            {
+                startNode: NodeFactory.create('Test2TaskNode', {successor: NodeFactory.create('Test4TaskNode')}),
+                compensationNode: NodeFactory.create('TestTaskNode'),
+                successor: NodeFactory.create('Test3TaskNode')
+            });
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 2, "Unexpected response items");
+            test.ok(response.data[0] == "executed 2");
+            test.ok(response.data[1] == "executed 1");
+
+
+            test.ok(request.data.length == 2, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 2");
+            test.ok(request.data[1] == "request data 1");
+
+            test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+            test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+            test.done();
+        });
     }
     ,
     testCompensantedTaskWithNoPredecessorAndOneSuccessorTwoTaskNoError: function (test) {
-        test.ok(false);
-        test.done();
+        var node = NodeFactory.create('CompensatedNode',
+            {
+                startNode: NodeFactory.create('Test2TaskNode', {successor: NodeFactory.create('Test3TaskNode')}),
+                compensationNode: NodeFactory.create('TestTaskNode'),
+                successor: NodeFactory.create('Test3TaskNode')
+            });
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 3, "Unexpected response items");
+            test.ok(response.data[0] == "executed 2");
+            test.ok(response.data[1] == "executed 3");
+            test.ok(response.data[2] == "executed 3");
+
+
+            test.ok(request.data.length == 3, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 2");
+            test.ok(request.data[1] == "request data 3");
+            test.ok(request.data[2] == "request data 3");
+
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess);
+            //test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
+            //test.ok(response.isSuccess == false, "isSuccess should be false");
+
+            test.done();
+        });
     }
     ,
     testCompensantedTaskWithNoPredecessorAndOneSuccessorTwoTaskWithError: function (test) {
-        test.ok(false);
-        test.done();
+        var node = NodeFactory.create('CompensatedNode',
+            {
+                startNode: NodeFactory.create('Test2TaskNode', {successor: NodeFactory.create('Test3TaskNode', {successor: NodeFactory.create('Test4TaskNode')})}),
+                compensationNode: NodeFactory.create('TestTaskNode'),
+                successor: NodeFactory.create('Test3TaskNode')
+            });
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 3, "Unexpected response items");
+            test.ok(response.data[0] == "executed 2");
+            test.ok(response.data[1] == "executed 3");
+            test.ok(response.data[2] == "executed 1");
+
+
+            test.ok(request.data.length == 3, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 2");
+            test.ok(request.data[1] == "request data 3");
+            test.ok(request.data[2] == "request data 1");
+
+
+            test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+            test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+            test.done();
+        });
     }
     ,
     testCompensantedTaskWithPredecessorAndOneSuccessorTwoTaskNoError: function (test) {
-        test.ok(false);
-        test.done();
+        var node = NodeFactory.create('TestTaskNode', { successor:
+            NodeFactory.create('CompensatedNode',
+            {
+                startNode: NodeFactory.create('Test2TaskNode', {successor: NodeFactory.create('Test3TaskNode')}),
+                compensationNode: NodeFactory.create('TestTaskNode'),
+                successor: NodeFactory.create('Test3TaskNode')
+            })});
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 4, "Unexpected response items");
+            test.ok(response.data[0] == "executed 1");
+            test.ok(response.data[1] == "executed 2");
+            test.ok(response.data[2] == "executed 3");
+            test.ok(response.data[3] == "executed 3");
+
+
+            test.ok(request.data.length == 4, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 1");
+            test.ok(request.data[1] == "request data 2");
+            test.ok(request.data[2] == "request data 3");
+            test.ok(request.data[3] == "request data 3");
+
+
+            test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess, "isSuccess should be true");
+
+            test.done();
+        });
     }
     ,
     testCompensantedTaskWithPredecessorAndOneSuccessorTwoTaskWithError: function (test) {
-        test.ok(false);
-        test.done();
+        var node = NodeFactory.create('TestTaskNode', { successor:
+            NodeFactory.create('CompensatedNode',
+                {
+                    startNode: NodeFactory.create('Test2TaskNode', {successor: NodeFactory.create('Test3TaskNode', {successor: NodeFactory.create('Test4TaskNode')})}),
+                    compensationNode: NodeFactory.create('TestTaskNode'),
+                    successor: NodeFactory.create('Test3TaskNode')
+                })});
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 4, "Unexpected response items");
+            test.ok(response.data[0] == "executed 1");
+            test.ok(response.data[1] == "executed 2");
+            test.ok(response.data[2] == "executed 3");
+            test.ok(response.data[3] == "executed 1");
+
+
+            test.ok(request.data.length == 4, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 1");
+            test.ok(request.data[1] == "request data 2");
+            test.ok(request.data[2] == "request data 3");
+            test.ok(request.data[3] == "request data 1");
+
+
+            test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+            test.done();
+        });
+    },
+    testCompensantedTaskWithPredecessorAndOneSuccessorTwoTaskWithError2Compensation: function (test) {
+        var node = NodeFactory.create('TestTaskNode', { successor:
+            NodeFactory.create('CompensatedNode',
+                {
+                    startNode: NodeFactory.create('Test2TaskNode', {successor: NodeFactory.create('Test3TaskNode', {successor: NodeFactory.create('Test4TaskNode')})}),
+                    compensationNode: NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')}),
+                    successor: NodeFactory.create('Test3TaskNode')
+                })});
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 5, "Unexpected response items");
+            test.ok(response.data[0] == "executed 1");
+            test.ok(response.data[1] == "executed 2");
+            test.ok(response.data[2] == "executed 3");
+            test.ok(response.data[3] == "executed 1");
+            test.ok(response.data[4] == "executed 2");
+
+
+            test.ok(request.data.length == 5, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 1");
+            test.ok(request.data[1] == "request data 2");
+            test.ok(request.data[2] == "request data 3");
+            test.ok(request.data[3] == "request data 1");
+            test.ok(request.data[4] == "request data 2");
+
+
+            test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+            test.done();
+        });
+    }
+    ,
+    testCompensantedTaskWithPredecessorAndOneSuccessorTwoTaskWithError2CompensationWithError: function (test) {
+        var node = NodeFactory.create('TestTaskNode', { successor:
+            NodeFactory.create('CompensatedNode',
+                {
+                    startNode: NodeFactory.create('Test2TaskNode', {successor: NodeFactory.create('Test3TaskNode', {successor: NodeFactory.create('Test4TaskNode')})}),
+                    compensationNode: NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode', {successor: NodeFactory.create('Test4TaskNode')})}),
+                    successor: NodeFactory.create('Test3TaskNode')
+                })});
+
+        var request = {data: []};
+
+        node.execute(request).then(function (response) {
+
+            test.ok(response.data.length == 5, "Unexpected response items");
+            test.ok(response.data[0] == "executed 1");
+            test.ok(response.data[1] == "executed 2");
+            test.ok(response.data[2] == "executed 3");
+            test.ok(response.data[3] == "executed 1");
+            test.ok(response.data[4] == "executed 2");
+
+
+            test.ok(request.data.length == 5, "Unexpected number of items in request data");
+            test.ok(request.data[0] == "request data 1");
+            test.ok(request.data[1] == "request data 2");
+            test.ok(request.data[2] == "request data 3");
+            test.ok(request.data[3] == "request data 1");
+            test.ok(request.data[4] == "request data 2");
+
+
+            test.ok(response.errors.length == 2, "Errors doesn't have expected number of items");
+            test.ok(response.isSuccess == false, "isSuccess should be false");
+
+            test.done();
+        });
     }
 
 

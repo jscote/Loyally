@@ -27,6 +27,11 @@
 
         if (Array.isArray(response.data) && Array.isArray(successorResponse.data)) {
             response.data = response.data.concat(successorResponse.data);
+        } else if (_.isEmpty(response.data) && Array.isArray(successorResponse.data)) {
+            response.data = successorResponse.data;
+        } else if (_.isObject(response.data) && !_.isEmpty(response.data) && Array.isArray(successorResponse.data)) {
+            if (_.isUndefined(response.data.arrays)) response.data.arrays = [];
+            response.data.arrays = response.data.arrays.concat(successorResponse.data);
         } else {
             for (var prop in successorResponse.data) {
 
@@ -64,8 +69,8 @@
     }
 
     function executeConditionBranch(successorBranch, request, self, dfd) {
-        process.nextTick(function() {
-            q.fcall(successorBranch.execute.bind(successorBranch),request).then(function (response) {
+        process.nextTick(function () {
+            q.fcall(successorBranch.execute.bind(successorBranch), request).then(function (response) {
                 executeSuccessor(self, response, request, dfd, Node.prototype.execute);
             });
         });
@@ -126,12 +131,10 @@
             return dfd.promise;
         }
 
-        executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute: null);
+        executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
 
         return dfd.promise;
     };
-
-
 
 
     Node.prototype.handleRequest = function () {
@@ -298,13 +301,13 @@
                     return;
                 }
 
-                if(response.isSuccess) {
+                if (response.isSuccess) {
                     //execute successor.... everything is good, let's move on
                     executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
                 } else {
                     //we need to execute the compensation branch and then let bubble up the chain
-                    process.nextTick(function(){
-                        q.fcall(self.compensationNode.execute.bind(self.compensationNode), request).then(function(compensationResponse){
+                    process.nextTick(function () {
+                        q.fcall(self.compensationNode.execute.bind(self.compensationNode), request).then(function (compensationResponse) {
                             if (!compensationResponse instanceof self.messaging.ServiceResponse) {
                                 compensationResponse = new self.messaging.ServiceResponse();
                                 compensationResponse.isSuccess = false;
@@ -336,7 +339,7 @@
                 return _condition;
             },
             set: function (value) {
-                if (!value) throw Error("A condition must be provided");
+                if (_.isUndefined(value)) throw Error("A condition must be provided");
                 //if(value instanceof Node) {
                 _condition = value;
                 //} else {
@@ -344,6 +347,22 @@
                 //}
             }
         });
+
+        var _startNode;
+        Object.defineProperty(this, "startNode", {
+            get: function () {
+                return _startNode;
+            },
+            set: function (value) {
+                if (_.isUndefined(value)) throw Error("A start node must be provided");
+                if (value instanceof Node) {
+                    _startNode = value;
+                } else {
+                    throw Error('StartNode is not of type Node or one of its descendant');
+                }
+            }
+        });
+
 
         return this;
     }
@@ -354,11 +373,41 @@
         params = params || {};
         LoopNode.super_.prototype.initialize.call(this, params);
         this.condition = params.condition;
+        this.startNode = params.startNode;
     };
 
     LoopNode.prototype.execute = function (request) {
-        var result = LoopNode.super_.prototype.execute(request);
-        return result + ' from TaskNode';
+        var dfd = q.defer();
+        var self = this;
+        if (this.condition) {
+            //Whatever is in here must be executed while the condition is true, starting at the start node.
+            process.nextTick(function () {
+                q.fcall(self.startNode.execute.bind(self.startNode), request).then(function (response) {
+                    if (!response instanceof self.messaging.ServiceResponse) {
+                        response = new self.messaging.ServiceResponse();
+                        response.isSuccess = false;
+                        response.errors.push("Invalid response type");
+                        return response;
+                    }
+                    //copyResponseIntoAnother(response, successorResponse);
+                    dfd.resolve(response);
+
+
+                });
+            });
+        } else {
+            if (self.successor) {
+                LoopNode.super_.prototype.execute.call(self.successor, request).then(function (successorResponse) {
+                    dfd.resolve(successorResponse);
+                });
+            } else {
+                var response = new self.serviceMessage.ServiceResponse();
+                dfd.resolve(response);
+                return;
+            }
+        }
+
+        return dfd.promise;
     };
 
 
