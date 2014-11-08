@@ -68,10 +68,16 @@
         }
     }
 
-    function executeConditionBranch(successorBranch, request, self, dfd) {
+    function executeConditionBranch(branch, request, self, dfd) {
         process.nextTick(function () {
-            q.fcall(successorBranch.execute.bind(successorBranch), request).then(function (response) {
+            q.fcall(branch.execute.bind(branch), request).then(function (response) {
                 executeSuccessor(self, response, request, dfd, Node.prototype.execute);
+            }, function(error) {
+                var response = new self.messaging.ServiceResponse();
+                response.isSuccess = false;
+                response.errors.push(error.message);
+                dfd.resolve(response);
+                return;
             });
         });
     }
@@ -229,23 +235,25 @@
     ConditionNode.prototype.execute = function (request) {
         var dfd = q.defer();
         var self = this;
-        if (this.condition) {
-            executeConditionBranch.call(this, this.trueSuccessor, request, self, dfd);
-        } else {
-            if (this.falseSuccessor) {
-                executeConditionBranch.call(this, this.falseSuccessor, request, self, dfd);
+        q.fcall(self.condition.bind(self), request).then(function(conditionResult) {
+            if (conditionResult) {
+                executeConditionBranch.call(self, self.trueSuccessor, request, self, dfd);
             } else {
-                if (self.successor) {
-                    ConditionNode.super_.prototype.execute.call(self.successor, request).then(function (successorResponse) {
-                        dfd.resolve(successorResponse);
-                    });
+                if (self.falseSuccessor) {
+                    executeConditionBranch.call(self, self.falseSuccessor, request, self, dfd);
                 } else {
-                    var response = new self.serviceMessage.ServiceResponse();
-                    dfd.resolve(response);
-                    return;
+                    if (self.successor) {
+                        ConditionNode.super_.prototype.execute.call(self.successor, request).then(function (successorResponse) {
+                            dfd.resolve(successorResponse);
+                        });
+                    } else {
+                        var response = new self.serviceMessage.ServiceResponse();
+                        dfd.resolve(response);
+                        return;
+                    }
                 }
             }
-        }
+        });
         return dfd.promise;
     };
 
@@ -412,8 +420,13 @@
                 if(conditionResult) {
 
                     q.fcall(self.startNode.execute.bind(self.startNode), request).then(function(innerLoopResponse) {
-                        copyResponseIntoAnother(loopResponse, innerLoopResponse)
-                        loop(loopResponse);
+                        copyResponseIntoAnother(loopResponse, innerLoopResponse);
+                        if(innerLoopResponse.isSuccess) {
+                            loop(loopResponse);
+                        } else {
+                            //When any of the successor within the loop returns an error, we exit the loop
+                            return dfd.resolve(loopResponse);
+                        }
                     }, function(error) {
                         return dfd.reject(error);
                     });
