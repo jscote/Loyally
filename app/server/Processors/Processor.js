@@ -37,7 +37,7 @@
 
 
                 if (Array.isArray(response.data[prop]) && Array.isArray(successorResponse.data[prop])) {
-                    response.data = response.data[prop].concat(successorResponse.data[prop]);
+                    response.data[prop] = response.data[prop].concat(successorResponse.data[prop]);
                 } else {
                     response.data[prop] = successorResponse.data[prop];
                 }
@@ -389,7 +389,7 @@
         var self = this;
         var dfd = q.defer();
         self.loopWhile(request).then(function(response) {
-           dfd.resolve(response);
+            executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute: null);
         }).done();
 
         // The promise

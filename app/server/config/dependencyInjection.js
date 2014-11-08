@@ -137,6 +137,10 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
             .register({dependency: '/Processors/TestClasses::Test2TaskNode', name: 'Test2TaskNode'})
             .register({dependency: '/Processors/TestClasses::Test3TaskNode', name: 'Test3TaskNode'})
             .register({dependency: '/Processors/TestClasses::Test4TaskNode', name: 'Test4TaskNode'})
-            .register({dependency: '/Processors/TestClasses::TestLoopTaskNode', name: 'TestLoopTaskNode'});
+            .register({dependency: '/Processors/TestClasses::TestLoopTaskNode', name: 'TestLoopTaskNode'})
+            .register({dependency: '/Processors/TestClasses::Test2LoopTaskNode', name: 'Test2LoopTaskNode'})
+            .register({dependency: '/Processors/TestClasses::TestPredecessorToLoopTaskNode', name: 'TestPredecessorToLoopTaskNode'})
+            .register({dependency: '/Processors/TestClasses::TestSuccessorToLoopTaskNode', name: 'TestSuccessorToLoopTaskNode'})
+        ;
     }
 })(lodash, decoratorHelper);

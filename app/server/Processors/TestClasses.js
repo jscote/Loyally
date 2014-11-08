@@ -1,7 +1,7 @@
 /**
  * Created by jean-sebastiencote on 11/2/14.
  */
-(function (q, util, base) {
+(function (_, q, util, base) {
 
     function TestTaskNode(serviceMessage) {
         base.TaskNode.call(this, serviceMessage)
@@ -115,8 +115,38 @@
 
             request.data.index++;
 
-            if (!Array.isArray(response.data)) response.data = [];
-            response.data.push("executed in loop");
+            if(_.isUndefined(response.data.steps)) {
+                response.data.steps = [];
+            }
+
+            response.data.steps.push("executed in loop");
+
+            return dfd.resolve(response);
+        });
+
+        return dfd.promise;
+
+    };
+
+    function Test2LoopTaskNode(serviceMessage) {
+        base.TaskNode.call(this, serviceMessage)
+    }
+
+    util.inherits(Test2LoopTaskNode, base.TaskNode);
+
+    Test2LoopTaskNode.prototype.handleRequest = function (request) {
+
+        var self = this;
+        var dfd = q.defer();
+
+        process.nextTick(function() {
+            var response = new self.messaging.ServiceResponse();
+
+            if(_.isUndefined(response.data.steps)) {
+                response.data.steps = [];
+            }
+
+            response.data.steps.push("executed in loop 2");
 
             return dfd.resolve(response);
         });
@@ -126,13 +156,73 @@
     };
 
 
+    function TestPredecessorToLoopTaskNode(serviceMessage) {
+        base.TaskNode.call(this, serviceMessage)
+    }
+
+    util.inherits(TestPredecessorToLoopTaskNode, base.TaskNode);
+
+    TestPredecessorToLoopTaskNode.prototype.handleRequest = function (request) {
+
+        var self = this;
+        var dfd = q.defer();
+
+        process.nextTick(function() {
+            var response = new self.messaging.ServiceResponse();
+
+            if(_.isUndefined(response.data.steps)) {
+                response.data.steps = [];
+            }
+
+            response.data.steps.push("passed in predecessor");
+
+
+            return dfd.resolve(response);
+        });
+
+        return dfd.promise;
+
+    };
+
+    function TestSuccessorToLoopTaskNode(serviceMessage) {
+        base.TaskNode.call(this, serviceMessage)
+    }
+
+    util.inherits(TestSuccessorToLoopTaskNode, base.TaskNode);
+
+    TestSuccessorToLoopTaskNode.prototype.handleRequest = function (request) {
+
+        var self = this;
+        var dfd = q.defer();
+
+        process.nextTick(function() {
+            var response = new self.messaging.ServiceResponse();
+
+            if(_.isUndefined(response.data.steps)) {
+                response.data.steps = [];
+            }
+
+            response.data.steps.push("passed in successor");
+
+
+            return dfd.resolve(response);
+        });
+
+        return dfd.promise;
+
+    };
+
     module.exports.TestTaskNode = TestTaskNode;
     module.exports.Test2TaskNode = Test2TaskNode;
     module.exports.Test3TaskNode = Test3TaskNode;
     module.exports.Test4TaskNode = Test4TaskNode;
     module.exports.TestLoopTaskNode = TestLoopTaskNode;
+    module.exports.Test2LoopTaskNode = Test2LoopTaskNode;
+    module.exports.TestPredecessorToLoopTaskNode = TestPredecessorToLoopTaskNode;
+    module.exports.TestSuccessorToLoopTaskNode = TestSuccessorToLoopTaskNode;
 
 })(
+    require('lodash'),
     require('q'),
     require('util'),
     require(Injector.getBasePath() + '/Processors/Processor')
