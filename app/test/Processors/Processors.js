@@ -886,6 +886,38 @@ module.exports = {
             test.done();
         });
     }
+    ,
+    testLoopTaskNoPredecessorNoSuccessorShouldLoopOnce: function (test) {
+        var node = NodeFactory.create('LoopNode', {
+            startNode: NodeFactory.create('TestLoopTaskNode'),
+            condition: function(request) {
+                return request.data.index < 2;
+            }
+        });
 
+        var request = {data: {index: 0}};
+
+        node.execute(request).then(function (response) {
+
+            try{
+                test.ok(response.data.length == 2, "Unexpected response items");
+                test.ok(response.data[0] == "executed in loop");
+                test.ok(response.data[1] == "executed in loop");
+
+                test.ok(request.data.index == 2);
+
+
+                test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+                test.ok(response.isSuccess == true, "isSuccess should be false");
+            }catch(e)
+            {
+                test.ok(false, "Error while executing");
+                console.log(e.message);
+            }
+
+
+            test.done();
+        });
+    }
 
 };

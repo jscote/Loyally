@@ -108,21 +108,32 @@
         var self = this;
         var dfd = q.defer();
         try {
-            response = self.handleRequest(request);
+            q.fcall(self.handleRequest.bind(self), request).then(function (response) {
 
-            if (!response instanceof self.messaging.ServiceResponse) {
+                if (!response instanceof self.messaging.ServiceResponse) {
+                    response = new self.messaging.ServiceResponse();
+                    response.isSuccess = false;
+                    response.errors.push("Invalid response type");
+                    dfd.resolve(response);
+                    return;
+                }
+
+                if (response.errors.length > 0) {
+                    response.isSuccess = false;
+                    dfd.resolve(response);
+                    return;
+
+                }
+
+
+                executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
+            }, function(error) {
                 response = new self.messaging.ServiceResponse();
                 response.isSuccess = false;
-                response.errors.push("Invalid response type");
-                return response;
-            }
-
-            if (response.errors.length > 0) {
-                response.isSuccess = false;
+                response.errors.push(error.message);
                 dfd.resolve(response);
                 return;
-
-            }
+            }).done();
         } catch (e) {
             response = new self.messaging.ServiceResponse();
             response.isSuccess = false;
@@ -130,9 +141,6 @@
             dfd.resolve(response);
             return dfd.promise;
         }
-
-        executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
-
         return dfd.promise;
     };
 
@@ -377,39 +385,59 @@
     };
 
     LoopNode.prototype.execute = function (request) {
-        var dfd = q.defer();
+
         var self = this;
-        if (this.condition) {
-            //Whatever is in here must be executed while the condition is true, starting at the start node.
-            process.nextTick(function () {
-                q.fcall(self.startNode.execute.bind(self.startNode), request).then(function (response) {
-                    if (!response instanceof self.messaging.ServiceResponse) {
-                        response = new self.messaging.ServiceResponse();
-                        response.isSuccess = false;
-                        response.errors.push("Invalid response type");
-                        return response;
-                    }
-                    //copyResponseIntoAnother(response, successorResponse);
-                    dfd.resolve(response);
+        var dfd = q.defer();
+        self.loopWhile(request).then(function(response) {
+           dfd.resolve(response);
+        }).done();
 
-
-                });
-            });
-        } else {
-            if (self.successor) {
-                LoopNode.super_.prototype.execute.call(self.successor, request).then(function (successorResponse) {
-                    dfd.resolve(successorResponse);
-                });
-            } else {
-                var response = new self.serviceMessage.ServiceResponse();
-                dfd.resolve(response);
-                return;
-            }
-        }
-
+        // The promise
         return dfd.promise;
     };
 
+
+    LoopNode.prototype.loopWhile = function(request) {
+        var self = this;
+        var dfd = q.defer();
+
+        var response = new self.messaging.ServiceResponse();
+
+        function loop(loopResponse) {
+            // When the result of calling `condition` is no longer true, we are
+            // done.
+
+            q.fcall(self.condition.bind(self), request).then(function(conditionResult){
+
+                if(conditionResult) {
+
+                    q.fcall(self.startNode.execute.bind(self.startNode), request).then(function(innerLoopResponse) {
+                        copyResponseIntoAnother(loopResponse, innerLoopResponse)
+                        loop(loopResponse);
+                    }, function(error) {
+                        return dfd.reject(error);
+                    });
+                }
+                else
+                {
+                    return dfd.resolve(loopResponse);
+                }
+
+            }, function(error) {
+                console.log("there is an error");
+            }).done();
+        }
+
+        // Start running the loop in the next tick so that this function is
+        // completely async. It would be unexpected if `startNode` was called
+        // synchronously the first time.
+        process.nextTick(function() {
+            loop(response);
+        });
+
+        // The promise
+        return dfd.promise;
+    };
 
     function NodeFactory() {
 
@@ -432,6 +460,7 @@
     exports.ConditionNode = ConditionNode;
     exports.CompensatedNode = CompensatedNode;
     exports.NodeFactory = NodeFactory;
+    exports.LoopNode = LoopNode;
 
 })
 (

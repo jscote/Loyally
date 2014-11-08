@@ -1,7 +1,7 @@
 /**
  * Created by jean-sebastiencote on 11/2/14.
  */
-(function(util, base) {
+(function (q, util, base) {
 
     function TestTaskNode(serviceMessage) {
         base.TaskNode.call(this, serviceMessage)
@@ -9,15 +9,25 @@
 
     util.inherits(TestTaskNode, base.TaskNode);
 
-    TestTaskNode.prototype.handleRequest = function(request) {
-        var response = new this.messaging.ServiceResponse();
+    TestTaskNode.prototype.handleRequest = function (request) {
+        var dfd = q.defer();
+        var self = this;
 
-        if(!Array.isArray(response.data)) response.data = [];
-        response.data.push("executed 1");
+        process.nextTick(function () {
 
-        request.data.push("request data 1");
+            var response = new self.messaging.ServiceResponse();
 
-        return response;
+            if (!Array.isArray(response.data)) response.data = [];
+            response.data.push("executed 1");
+
+            request.data.push("request data 1");
+
+
+            dfd.resolve(response);
+        });
+
+
+        return dfd.promise;
 
     };
 
@@ -27,10 +37,10 @@
 
     util.inherits(Test2TaskNode, base.TaskNode);
 
-    Test2TaskNode.prototype.handleRequest = function(request) {
+    Test2TaskNode.prototype.handleRequest = function (request) {
         var response = new this.messaging.ServiceResponse();
 
-        if(!Array.isArray(response.data)) response.data = [];
+        if (!Array.isArray(response.data)) response.data = [];
         response.data.push("executed 2");
 
         request.data.push("request data 2");
@@ -45,10 +55,10 @@
 
     util.inherits(Test3TaskNode, base.TaskNode);
 
-    Test3TaskNode.prototype.handleRequest = function(request) {
+    Test3TaskNode.prototype.handleRequest = function (request) {
         var response = new this.messaging.ServiceResponse();
 
-        if(!Array.isArray(response.data)) response.data = [];
+        if (!Array.isArray(response.data)) response.data = [];
         response.data.push("executed 3");
 
         request.data.push("request data 3");
@@ -63,18 +73,67 @@
 
     util.inherits(Test4TaskNode, base.TaskNode);
 
-    Test4TaskNode.prototype.handleRequest = function(request) {
-        throw Error("Test Error");
+    Test4TaskNode.prototype.handleRequest = function (request) {
+        var dfd = q.defer();
+        var self = this;
 
-        request.data.push("request data 4");
+        process.nextTick(function () {
+
+            try{
+                throw Error("Test Error");
+
+                request.data.push("request data 4");
+            }
+            catch(e) {
+                dfd.reject(e);
+                return;
+            }
+
+            dfd.resolve();
+
+        });
+
+
+        return dfd.promise;
+
+
     };
+
+    function TestLoopTaskNode(serviceMessage) {
+        base.TaskNode.call(this, serviceMessage)
+    }
+
+    util.inherits(TestLoopTaskNode, base.TaskNode);
+
+    TestLoopTaskNode.prototype.handleRequest = function (request) {
+
+        var self = this;
+        var dfd = q.defer();
+
+        process.nextTick(function() {
+            var response = new self.messaging.ServiceResponse();
+
+            request.data.index++;
+
+            if (!Array.isArray(response.data)) response.data = [];
+            response.data.push("executed in loop");
+
+            return dfd.resolve(response);
+        });
+
+        return dfd.promise;
+
+    };
+
 
     module.exports.TestTaskNode = TestTaskNode;
     module.exports.Test2TaskNode = Test2TaskNode;
     module.exports.Test3TaskNode = Test3TaskNode;
     module.exports.Test4TaskNode = Test4TaskNode;
+    module.exports.TestLoopTaskNode = TestLoopTaskNode;
 
 })(
+    require('q'),
     require('util'),
     require(Injector.getBasePath() + '/Processors/Processor')
 );
