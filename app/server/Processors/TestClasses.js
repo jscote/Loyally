@@ -184,6 +184,35 @@
 
     };
 
+    function TestCompensationToLoopTaskNode(serviceMessage) {
+        base.TaskNode.call(this, serviceMessage)
+    }
+
+    util.inherits(TestCompensationToLoopTaskNode, base.TaskNode);
+
+    TestCompensationToLoopTaskNode.prototype.handleRequest = function (request) {
+
+        var self = this;
+        var dfd = q.defer();
+
+        process.nextTick(function() {
+            var response = new self.messaging.ServiceResponse();
+
+            if(_.isUndefined(response.data.steps)) {
+                response.data.steps = [];
+            }
+
+            response.data.steps.push("passed in compensation");
+
+
+            return dfd.resolve(response);
+        });
+
+        return dfd.promise;
+
+    };
+
+
     function TestSuccessorToLoopTaskNode(serviceMessage) {
         base.TaskNode.call(this, serviceMessage)
     }
@@ -220,6 +249,7 @@
     module.exports.Test2LoopTaskNode = Test2LoopTaskNode;
     module.exports.TestPredecessorToLoopTaskNode = TestPredecessorToLoopTaskNode;
     module.exports.TestSuccessorToLoopTaskNode = TestSuccessorToLoopTaskNode;
+    module.exports.TestCompensationToLoopTaskNode = TestCompensationToLoopTaskNode;
 
 })(
     require('lodash'),

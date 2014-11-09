@@ -216,7 +216,9 @@ module.exports = {
     testTaskCanExecuteConditional: function (test) {
 
         var node = NodeFactory.create('ConditionNode', {
-            condition: function() {return true},
+            condition: function () {
+                return true
+            },
             successor: null,
             trueSuccessor: NodeFactory.create('TestTaskNode')
         });
@@ -240,7 +242,9 @@ module.exports = {
     testTaskCanExecuteConditionalWithSuccessor: function (test) {
 
         var node = NodeFactory.create('ConditionNode', {
-            condition: function() {return true},
+            condition: function () {
+                return true
+            },
             successor: NodeFactory.create('Test2TaskNode'),
             trueSuccessor: NodeFactory.create('TestTaskNode')
         });
@@ -271,7 +275,9 @@ module.exports = {
     testTaskCanExecuteFalseConditionalWithSuccessor: function (test) {
 
         var node = NodeFactory.create('ConditionNode', {
-            condition: function() {return false;},
+            condition: function () {
+                return false;
+            },
             successor: NodeFactory.create('Test2TaskNode'),
             trueSuccessor: NodeFactory.create('TestTaskNode'),
             falseSuccessor: NodeFactory.create('Test3TaskNode')
@@ -303,7 +309,9 @@ module.exports = {
     testTaskCanExecuteConditionalSequenceWithSuccessor: function (test) {
 
         var node = NodeFactory.create('ConditionNode', {
-            condition: function() {return true;},
+            condition: function () {
+                return true;
+            },
             successor: NodeFactory.create('Test2TaskNode'),
             trueSuccessor: NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')}),
             falseSuccessor: NodeFactory.create('Test3TaskNode')
@@ -340,7 +348,9 @@ module.exports = {
             {
                 successor: NodeFactory.create('ConditionNode',
                     {
-                        condition: function() {return true;},
+                        condition: function () {
+                            return true;
+                        },
                         successor: NodeFactory.create('Test2TaskNode'),
                         trueSuccessor: NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')}),
                         falseSuccessor: NodeFactory.create('Test3TaskNode')
@@ -379,7 +389,9 @@ module.exports = {
             {
                 successor: NodeFactory.create('ConditionNode',
                     {
-                        condition: function() { return true;},
+                        condition: function () {
+                            return true;
+                        },
                         successor: NodeFactory.create('Test2TaskNode'),
                         trueSuccessor: NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test4TaskNode')}),
                         falseSuccessor: NodeFactory.create('Test3TaskNode')
@@ -444,7 +456,9 @@ module.exports = {
             {
                 successor: NodeFactory.create('ConditionNode',
                     {
-                        condition: function() {return true;},
+                        condition: function () {
+                            return true;
+                        },
                         successor: NodeFactory.create('Test4TaskNode'),
                         trueSuccessor: NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')}),
                         falseSuccessor: NodeFactory.create('Test3TaskNode')
@@ -483,7 +497,9 @@ module.exports = {
             {
                 successor: NodeFactory.create('ConditionNode',
                     {
-                        condition: function() {return false;},
+                        condition: function () {
+                            return false;
+                        },
                         successor: NodeFactory.create('Test2TaskNode'),
                         trueSuccessor: NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')})
                     })
@@ -517,7 +533,9 @@ module.exports = {
             {
                 successor: NodeFactory.create('ConditionNode',
                     {
-                        condition: function() {return false;},
+                        condition: function () {
+                            return false;
+                        },
                         successor: NodeFactory.create('Test4TaskNode'),
                         trueSuccessor: NodeFactory.create('TestTaskNode', {successor: NodeFactory.create('Test2TaskNode')})
                     })
@@ -1062,6 +1080,53 @@ module.exports = {
                 test.ok(response.data.steps[0] == "passed in predecessor");
                 test.ok(response.data.steps[1] == "executed in loop");
                 test.ok(response.data.steps[2] == "executed in loop 2");
+
+                test.ok(request.data.index == 1);
+
+
+                test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+                test.ok(response.isSuccess == false, "isSuccess should be false");
+            } catch (e) {
+                test.ok(false, "Error while executing");
+                console.log(e.message);
+            }
+
+
+            test.done();
+        });
+    }
+    ,
+    testLoopTaskWithPredecessorAndSuccessorAndLongSequenceShouldStopOnErrorWithCompensation: function (test) {
+        var node = NodeFactory.create('TestPredecessorToLoopTaskNode', {
+            successor: NodeFactory.create('LoopNode', {
+                condition: function (request) {
+                    return request.data.index < 2;
+                },
+                successor: NodeFactory.create('TestSuccessorToLoopTaskNode'),
+                startNode: NodeFactory.create('CompensatedNode',
+                    {
+                        startNode: NodeFactory.create('TestLoopTaskNode',
+                            {
+                                successor: NodeFactory.create('Test2LoopTaskNode',
+                                    {successor: NodeFactory.create('Test4TaskNode')})
+                            }),
+                        compensationNode: NodeFactory.create('TestCompensationToLoopTaskNode')
+
+                    })
+            })
+        });
+
+
+        var request = {data: {index: 0}};
+
+        node.execute(request).then(function (response) {
+
+            try {
+                test.ok(response.data.steps.length == 4, "Unexpected response items");
+                test.ok(response.data.steps[0] == "passed in predecessor");
+                test.ok(response.data.steps[1] == "executed in loop");
+                test.ok(response.data.steps[2] == "executed in loop 2");
+                test.ok(response.data.steps[3] == "passed in compensation");
 
                 test.ok(request.data.index == 1);
 

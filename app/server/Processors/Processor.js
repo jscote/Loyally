@@ -398,6 +398,8 @@
         var dfd = q.defer();
         self.loopWhile(request).then(function(response) {
             executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute: null);
+        }, function(error){
+
         }).done();
 
         // The promise
