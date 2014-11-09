@@ -77,7 +77,6 @@
                 response.isSuccess = false;
                 response.errors.push(error.message);
                 dfd.resolve(response);
-                return;
             });
         });
     }
@@ -138,13 +137,18 @@
 
     };
 
-    Node.prototype.visit = function (request) {
+    Node.prototype.visit = function (request, action) {
         if (!_.isUndefined(this.executionContext)) {
             if (_.isUndefined(this.executionContext.steps)) {
                 this.executionContext.steps = [];
             }
 
-            this.executionContext.steps.push(this.name);
+            if(_.isUndefined(action)) {
+                this.executionContext.steps.push({action: "visiting", name: this.name});
+            } else {
+                this.executionContext.steps.push({action: action, name: this.name});
+            }
+
         }
     };
 
@@ -183,7 +187,6 @@
                 response.isSuccess = false;
                 response.errors.push(error.message);
                 dfd.resolve(response);
-                return;
             }).done();
         } catch (e) {
             response = new self.messaging.ServiceResponse();
@@ -291,11 +294,13 @@
 
         var dfd = q.defer();
         var self = this;
-        this.visit(request);
+        this.visit(request, "Entering Condition");
         q.fcall(self.condition.bind(self), request).then(function (conditionResult) {
             if (conditionResult) {
+                self.visit(request, "Condition evaluated to true");
                 executeConditionBranch.call(self, self.trueSuccessor, request, self, dfd);
             } else {
+                self.visit(request, "Condition evaluated to false");
                 if (self.falseSuccessor) {
                     executeConditionBranch.call(self, self.falseSuccessor, request, self, dfd);
                 } else {
@@ -306,7 +311,6 @@
                     } else {
                         var response = new self.serviceMessage.ServiceResponse();
                         dfd.resolve(response);
-                        return;
                     }
                 }
             }
@@ -372,8 +376,9 @@
 
         var dfd = q.defer();
         var self = this;
-        this.visit(request);
+
         process.nextTick(function () {
+            self.visit(request, "Executing Compensatable path");
             q.fcall(self.startNode.execute.bind(self.startNode), request).then(function (response) {
 
                 if (!response instanceof self.messaging.ServiceResponse) {
@@ -390,7 +395,7 @@
                 } else {
                     //we need to execute the compensation branch and then let bubble up the chain
                     process.nextTick(function () {
-                        //self.visit(request);
+                        self.visit(request, "Entered Compensation");
                         q.fcall(self.compensationNode.execute.bind(self.compensationNode), request).then(function (compensationResponse) {
                             if (!compensationResponse instanceof self.messaging.ServiceResponse) {
                                 compensationResponse = new self.messaging.ServiceResponse();
@@ -500,7 +505,7 @@
             q.fcall(self.condition.bind(self), request).then(function (conditionResult) {
 
                 if (conditionResult) {
-
+                    self.visit(request, "loop evaluated with condition true");
                     q.fcall(self.startNode.execute.bind(self.startNode), request).then(function (innerLoopResponse) {
                         copyResponseIntoAnother(loopResponse, innerLoopResponse);
                         if (innerLoopResponse.isSuccess) {
@@ -514,6 +519,7 @@
                     });
                 }
                 else {
+                    self.visit(request, "Exiting loop with condition false");
                     return dfd.resolve(loopResponse);
                 }
 
