@@ -132,6 +132,9 @@ var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper
             .register({dependency: '/Processors/Processor::ConditionNode', name: 'ConditionNode'})
             .register({dependency: '/Processors/Processor::CompensatedNode', name: 'CompensatedNode'})
             .register({dependency: '/Processors/Processor::LoopNode', name: 'LoopNode'})
+            .register({dependency: '/Processors/Processor::Processor', name: 'Processor'})
+            .register({dependency: '/Processors/Processor::NoOpTaskNode', name: 'NoOpTaskNode'})
+            .register({dependency: '/Processors/Processor::ProcessorLoader', name: 'processorLoader'})
 
             .register({dependency: '/Processors/TestClasses::TestTaskNode', name: 'TestTaskNode'})
             .register({dependency: '/Processors/TestClasses::Test2TaskNode', name: 'Test2TaskNode'})

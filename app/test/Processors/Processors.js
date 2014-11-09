@@ -1141,5 +1141,72 @@ module.exports = {
 
             test.done();
         });
+    },
+    testCanInstantiateProcessor: function(test) {
+
+        var processor = Processor.getProcessor('testProcessor');
+
+        test.ok(processor, "the processor is not instantiated");
+
+        test.done();
+    },
+    testCanExecuteComplexProcessorWithError: function (test) {
+        var processor = Processor.getProcessor('testProcessorWithError');
+
+        var request = {data: {index: 0}};
+
+        processor.execute(request).then(function (response) {
+
+            try {
+                test.ok(response.data.steps.length == 4, "Unexpected response items");
+                test.ok(response.data.steps[0] == "passed in predecessor");
+                test.ok(response.data.steps[1] == "executed in loop");
+                test.ok(response.data.steps[2] == "executed in loop 2");
+                test.ok(response.data.steps[3] == "passed in compensation");
+
+                test.ok(request.data.index == 1);
+
+
+                test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
+                test.ok(response.isSuccess == false, "isSuccess should be false");
+            } catch (e) {
+                test.ok(false, "Error while executing");
+                console.log(e.message);
+            }
+
+
+            test.done();
+        });
+    }
+    ,
+    testCanExecuteComplexProcessor: function (test) {
+        var processor = Processor.getProcessor('testProcessor');
+
+        var request = {data: {index: 0}};
+
+        processor.execute(request).then(function (response) {
+
+            try {
+                test.ok(response.data.steps.length == 6, "Unexpected response items");
+                test.ok(response.data.steps[0] == "passed in predecessor");
+                test.ok(response.data.steps[1] == "executed in loop");
+                test.ok(response.data.steps[2] == "executed in loop 2");
+                test.ok(response.data.steps[3] == "executed in loop");
+                test.ok(response.data.steps[4] == "executed in loop 2");
+                test.ok(response.data.steps[5] == "passed in successor");
+
+                test.ok(request.data.index == 2);
+
+
+                test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+                test.ok(response.isSuccess == true, "isSuccess should be false");
+            } catch (e) {
+                test.ok(false, "Error while executing");
+                console.log(e.message);
+            }
+
+
+            test.done();
+        });
     }
 };

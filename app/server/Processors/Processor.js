@@ -72,7 +72,7 @@
         process.nextTick(function () {
             q.fcall(branch.execute.bind(branch), request).then(function (response) {
                 executeSuccessor(self, response, request, dfd, Node.prototype.execute);
-            }, function(error) {
+            }, function (error) {
                 var response = new self.messaging.ServiceResponse();
                 response.isSuccess = false;
                 response.errors.push(error.message);
@@ -105,7 +105,7 @@
                 return _name;
             },
             set: function (value) {
-                if(_.isUndefined(value))
+                if (_.isUndefined(value))
                     throw Error('A Name must be provided');
                 if (_.isString(value)) {
                     _name = value;
@@ -124,7 +124,7 @@
     Node.prototype.initialize = function (params) {
         params = params || {};
         this.successor = params.successor;
-        if(_.isUndefined(this.name)) this.name = params.name;
+        if (_.isUndefined(this.name)) this.name = params.name;
     };
 
     Node.prototype.execute = function (request) {
@@ -151,7 +151,7 @@
 
 
                 executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
-            }, function(error) {
+            }, function (error) {
                 response = new self.messaging.ServiceResponse();
                 response.isSuccess = false;
                 response.errors.push(error.message);
@@ -255,7 +255,7 @@
     ConditionNode.prototype.execute = function (request) {
         var dfd = q.defer();
         var self = this;
-        q.fcall(self.condition.bind(self), request).then(function(conditionResult) {
+        q.fcall(self.condition.bind(self), request).then(function (conditionResult) {
             if (conditionResult) {
                 executeConditionBranch.call(self, self.trueSuccessor, request, self, dfd);
             } else {
@@ -418,9 +418,9 @@
 
         var self = this;
         var dfd = q.defer();
-        self.loopWhile(request).then(function(response) {
-            executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute: null);
-        }, function(error){
+        self.loopWhile(request).then(function (response) {
+            executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
+        }, function (error) {
 
         }).done();
 
@@ -429,7 +429,7 @@
     };
 
 
-    LoopNode.prototype.loopWhile = function(request) {
+    LoopNode.prototype.loopWhile = function (request) {
         var self = this;
         var dfd = q.defer();
 
@@ -439,28 +439,27 @@
             // When the result of calling `condition` is no longer true, we are
             // done.
 
-            q.fcall(self.condition.bind(self), request).then(function(conditionResult){
+            q.fcall(self.condition.bind(self), request).then(function (conditionResult) {
 
-                if(conditionResult) {
+                if (conditionResult) {
 
-                    q.fcall(self.startNode.execute.bind(self.startNode), request).then(function(innerLoopResponse) {
+                    q.fcall(self.startNode.execute.bind(self.startNode), request).then(function (innerLoopResponse) {
                         copyResponseIntoAnother(loopResponse, innerLoopResponse);
-                        if(innerLoopResponse.isSuccess) {
+                        if (innerLoopResponse.isSuccess) {
                             loop(loopResponse);
                         } else {
                             //When any of the successor within the loop returns an error, we exit the loop
                             return dfd.resolve(loopResponse);
                         }
-                    }, function(error) {
+                    }, function (error) {
                         return dfd.reject(error);
                     });
                 }
-                else
-                {
+                else {
                     return dfd.resolve(loopResponse);
                 }
 
-            }, function(error) {
+            }, function (error) {
                 console.log("there is an error");
             }).done();
         }
@@ -468,12 +467,25 @@
         // Start running the loop in the next tick so that this function is
         // completely async. It would be unexpected if `startNode` was called
         // synchronously the first time.
-        process.nextTick(function() {
+        process.nextTick(function () {
             loop(response);
         });
 
         // The promise
         return dfd.promise;
+    };
+
+    function NoOpTaskNode(serviceMessage) {
+        TaskNode.call(this, serviceMessage);
+        this.name = 'NoOpTask';
+        return this
+    }
+
+    util.inherits(NoOpTaskNode, TaskNode);
+
+    NoOpTaskNode.prototype.handleRequest = function (request) {
+
+        return new this.messaging.ServiceResponse();
     };
 
     function NodeFactory() {
@@ -488,16 +500,103 @@
         return node;
     };
 
-    function Processor() {
-
+    function ProcessorLoader() {
+        return this;
     }
 
+    ProcessorLoader.prototype.load = function (processorName) {
+
+        //TODO, load appropriately based on persistence mechanism
+        if (processorName == 'testProcessorWithError') {
+            return NodeFactory.create('CompensatedNode', {
+                compensationNode: NodeFactory.create('NoOpTaskNode'),
+                startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
+                    successor: NodeFactory.create('LoopNode', {
+                        condition: function (request) {
+                            return request.data.index < 2;
+                        },
+                        successor: NodeFactory.create('TestSuccessorToLoopTaskNode'),
+                        startNode: NodeFactory.create('CompensatedNode',
+                            {
+                                startNode: NodeFactory.create('TestLoopTaskNode',
+                                    {
+                                        successor: NodeFactory.create('Test2LoopTaskNode',
+                                            {successor: NodeFactory.create('Test4TaskNode')})
+                                    }),
+                                compensationNode: NodeFactory.create('TestCompensationToLoopTaskNode')
+
+                            })
+                    })
+                })
+            });
+        } else if (processorName == 'testProcessor') {
+            return NodeFactory.create('CompensatedNode', {
+                compensationNode: NodeFactory.create('NoOpTaskNode'),
+                startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
+                    successor: NodeFactory.create('LoopNode', {
+                        startNode: NodeFactory.create('TestLoopTaskNode', {successor: NodeFactory.create('Test2LoopTaskNode')}),
+                        condition: function (request) {
+                            return request.data.index < 2;
+                        },
+                        successor: NodeFactory.create('TestSuccessorToLoopTaskNode')
+                    })
+                })
+            });
+        }
+
+    };
+
+    function Processor(serviceMessage, processorLoader) {
+
+        CompensatedNode.call(this, serviceMessage);
+
+        var _processorLoader;
+        Object.defineProperty(this, "processorLoader", {
+            get: function () {
+                return _processorLoader;
+            },
+            set: function (value) {
+                if (_.isUndefined(value)) throw Error("A ProcessorLoader must be used");
+                if (value instanceof ProcessorLoader) {
+                    _processorLoader = value;
+                } else {
+                    throw Error('ProcessorLoader is not of type ProcessorLoader or one of its descendant');
+                }
+            }
+        });
+
+        this.processorLoader = processorLoader;
+
+        return this
+    }
+
+    util.inherits(Processor, CompensatedNode);
+
+    Processor.prototype.initialize = function (params) {
+        params = params || {};
+
+        var process = this.processorLoader.load(params.name);
+        params.startNode = process.startNode;
+        params.compensationNode = process.compensationNode;
+
+        Processor.super_.prototype.initialize.call(this, params);
+
+    };
+
+    Processor.getProcessor = function (processorName) {
+        var params = {name: processorName};
+        var processor = NodeFactory.create('Processor', params);
+        return processor;
+    };
+
     exports.Processor = Processor;
+    exports.ProcessorLoader = ProcessorLoader;
     exports.TaskNode = TaskNode;
     exports.ConditionNode = ConditionNode;
     exports.CompensatedNode = CompensatedNode;
     exports.NodeFactory = NodeFactory;
     exports.LoopNode = LoopNode;
+    exports.NoOpTaskNode = NoOpTaskNode;
 
 })
 (
