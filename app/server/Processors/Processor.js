@@ -99,7 +99,24 @@
             }
         });
 
+        var _name;
+        Object.defineProperty(this, "name", {
+            get: function () {
+                return _name;
+            },
+            set: function (value) {
+                if(_.isUndefined(value))
+                    throw Error('A Name must be provided');
+                if (_.isString(value)) {
+                    _name = value;
+                } else {
+                    throw Error('name must be a string');
+                }
+            }
+        });
+
         this.messaging = serviceMessage;
+        this.name = 'Node';
 
         return this;
     }
@@ -107,6 +124,7 @@
     Node.prototype.initialize = function (params) {
         params = params || {};
         this.successor = params.successor;
+        if(_.isUndefined(this.name)) this.name = params.name;
     };
 
     Node.prototype.execute = function (request) {
@@ -158,6 +176,7 @@
 
     function TaskNode(serviceMessage) {
         Node.call(this, serviceMessage);
+        this.name = 'TaskNode';
         return this;
     }
 
@@ -229,6 +248,7 @@
         this.condition = params.condition;
         this.trueSuccessor = params.trueSuccessor;
         this.falseSuccessor = params.falseSuccessor;
+        this.name = 'ConditionNode';
     };
 
 
@@ -300,6 +320,7 @@
         CompensatedNode.super_.prototype.initialize.call(this, params);
         this.startNode = params.startNode;
         this.compensationNode = params.compensationNode;
+        this.name = 'Compensated Node';
     };
 
     CompensatedNode.prototype.execute = function (request) {
@@ -390,6 +411,7 @@
         LoopNode.super_.prototype.initialize.call(this, params);
         this.condition = params.condition;
         this.startNode = params.startNode;
+        this.name = 'Loop Node';
     };
 
     LoopNode.prototype.execute = function (request) {

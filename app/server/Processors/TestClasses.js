@@ -4,7 +4,8 @@
 (function (_, q, util, base) {
 
     function TestTaskNode(serviceMessage) {
-        base.TaskNode.call(this, serviceMessage)
+        base.TaskNode.call(this, serviceMessage);
+        this.name = 'TestTaskNode';
     }
 
     util.inherits(TestTaskNode, base.TaskNode);
@@ -32,7 +33,8 @@
     };
 
     function Test2TaskNode(serviceMessage) {
-        base.TaskNode.call(this, serviceMessage)
+        base.TaskNode.call(this, serviceMessage);
+        this.name = 'Test2TaskNode';
     }
 
     util.inherits(Test2TaskNode, base.TaskNode);
@@ -50,7 +52,8 @@
     };
 
     function Test3TaskNode(serviceMessage) {
-        base.TaskNode.call(this, serviceMessage)
+        base.TaskNode.call(this, serviceMessage);
+        this.name = 'Test3TaskNode';
     }
 
     util.inherits(Test3TaskNode, base.TaskNode);
@@ -68,7 +71,8 @@
     };
 
     function Test4TaskNode(serviceMessage) {
-        base.TaskNode.call(this, serviceMessage)
+        base.TaskNode.call(this, serviceMessage);
+        this.name = 'Test4TaskNode';
     }
 
     util.inherits(Test4TaskNode, base.TaskNode);
@@ -100,7 +104,8 @@
     };
 
     function TestLoopTaskNode(serviceMessage) {
-        base.TaskNode.call(this, serviceMessage)
+        base.TaskNode.call(this, serviceMessage);
+        this.name = 'TestLoopTaskNode';
     }
 
     util.inherits(TestLoopTaskNode, base.TaskNode);
@@ -129,7 +134,8 @@
     };
 
     function Test2LoopTaskNode(serviceMessage) {
-        base.TaskNode.call(this, serviceMessage)
+        base.TaskNode.call(this, serviceMessage);
+        this.name = 'Test2LoopTaskNode';
     }
 
     util.inherits(Test2LoopTaskNode, base.TaskNode);
@@ -157,7 +163,8 @@
 
 
     function TestPredecessorToLoopTaskNode(serviceMessage) {
-        base.TaskNode.call(this, serviceMessage)
+        base.TaskNode.call(this, serviceMessage);
+        this.name = 'TestPredecessorToLoopTaskNode';
     }
 
     util.inherits(TestPredecessorToLoopTaskNode, base.TaskNode);
@@ -185,7 +192,8 @@
     };
 
     function TestCompensationToLoopTaskNode(serviceMessage) {
-        base.TaskNode.call(this, serviceMessage)
+        base.TaskNode.call(this, serviceMessage);
+        this.name = 'TestCompensationToLoopTaskNode';
     }
 
     util.inherits(TestCompensationToLoopTaskNode, base.TaskNode);
@@ -214,7 +222,8 @@
 
 
     function TestSuccessorToLoopTaskNode(serviceMessage) {
-        base.TaskNode.call(this, serviceMessage)
+        base.TaskNode.call(this, serviceMessage);
+        this.name = 'TestSuccessorToLoopTaskNode';
     }
 
     util.inherits(TestSuccessorToLoopTaskNode, base.TaskNode);
