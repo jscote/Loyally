@@ -115,6 +115,16 @@
             }
         });
 
+        var _executionContext;
+        Object.defineProperty(this, "executionContext", {
+            get: function () {
+                return _executionContext;
+            },
+            set: function (value) {
+                _executionContext = value;
+            }
+        });
+
         this.messaging = serviceMessage;
         this.name = 'Node';
 
@@ -125,13 +135,30 @@
         params = params || {};
         this.successor = params.successor;
         if (_.isUndefined(this.name)) this.name = params.name;
+
+    };
+
+    Node.prototype.visit = function (request) {
+        if (!_.isUndefined(this.executionContext)) {
+            if (_.isUndefined(this.executionContext.steps)) {
+                this.executionContext.steps = [];
+            }
+
+            this.executionContext.steps.push(this.name);
+        }
     };
 
     Node.prototype.execute = function (request) {
+
+        if (this.successor) {
+            this.successor.executionContext = this.executionContext;
+        }
+
         var response;
         var self = this;
         var dfd = q.defer();
         try {
+            this.visit(request);
             q.fcall(self.handleRequest.bind(self), request).then(function (response) {
 
                 if (!response instanceof self.messaging.ServiceResponse) {
@@ -249,12 +276,22 @@
         this.trueSuccessor = params.trueSuccessor;
         this.falseSuccessor = params.falseSuccessor;
         this.name = 'ConditionNode';
+
     };
 
 
     ConditionNode.prototype.execute = function (request) {
+
+        if (this.trueSuccessor) {
+            this.trueSuccessor.executionContext = this.executionContext;
+        }
+        if (this.falseSuccessor) {
+            this.falseSuccessor.executionContext = this.executionContext;
+        }
+
         var dfd = q.defer();
         var self = this;
+        this.visit(request);
         q.fcall(self.condition.bind(self), request).then(function (conditionResult) {
             if (conditionResult) {
                 executeConditionBranch.call(self, self.trueSuccessor, request, self, dfd);
@@ -324,9 +361,18 @@
     };
 
     CompensatedNode.prototype.execute = function (request) {
+
+        if (this.startNode) {
+            this.startNode.executionContext = this.executionContext;
+        }
+
+        if (this.compensationNode) {
+            this.compensationNode.executionContext = this.executionContext;
+        }
+
         var dfd = q.defer();
         var self = this;
-
+        this.visit(request);
         process.nextTick(function () {
             q.fcall(self.startNode.execute.bind(self.startNode), request).then(function (response) {
 
@@ -344,6 +390,7 @@
                 } else {
                     //we need to execute the compensation branch and then let bubble up the chain
                     process.nextTick(function () {
+                        //self.visit(request);
                         q.fcall(self.compensationNode.execute.bind(self.compensationNode), request).then(function (compensationResponse) {
                             if (!compensationResponse instanceof self.messaging.ServiceResponse) {
                                 compensationResponse = new self.messaging.ServiceResponse();
@@ -412,12 +459,23 @@
         this.condition = params.condition;
         this.startNode = params.startNode;
         this.name = 'Loop Node';
+
+
     };
 
     LoopNode.prototype.execute = function (request) {
 
+        if (this.startNode) {
+            this.startNode.executionContext = this.executionContext;
+        }
+
+        if (this.successor) {
+            this.successor.executionContext = this.executionContext;
+        }
+
         var self = this;
         var dfd = q.defer();
+        this.visit(request);
         self.loopWhile(request).then(function (response) {
             executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
         }, function (error) {
@@ -566,6 +624,8 @@
         });
 
         this.processorLoader = processorLoader;
+        this.executionContext = {steps: []};
+
 
         return this
     }
@@ -578,6 +638,9 @@
         var process = this.processorLoader.load(params.name);
         params.startNode = process.startNode;
         params.compensationNode = process.compensationNode;
+
+        params.startNode.executionContext = this.executionContext;
+        params.compensationNode.executionContext = this.executionContext;
 
         Processor.super_.prototype.initialize.call(this, params);
 

@@ -1185,7 +1185,7 @@ module.exports = {
         var request = {data: {index: 0}};
 
         processor.execute(request).then(function (response) {
-
+            var p = processor;
             try {
                 test.ok(response.data.steps.length == 6, "Unexpected response items");
                 test.ok(response.data.steps[0] == "passed in predecessor");
