@@ -3,6 +3,7 @@
  */
 
 var p = require('path');
+var q = require('q');
 
 require(p.resolve(__dirname + '../../../server/config/injection'))(p.resolve(__dirname + '../../../server/'));
 
@@ -1157,7 +1158,9 @@ module.exports = {
 
         processor.execute(request).then(function (response) {
 
+            var p = processor;
             try {
+
                 test.ok(response.data.steps.length == 4, "Unexpected response items");
                 test.ok(response.data.steps[0] == "passed in predecessor");
                 test.ok(response.data.steps[1] == "executed in loop");
@@ -1184,29 +1187,43 @@ module.exports = {
 
         var request = {data: {index: 0}};
 
-        processor.execute(request).then(function (response) {
-            var p = processor;
-            try {
-                test.ok(response.data.steps.length == 6, "Unexpected response items");
-                test.ok(response.data.steps[0] == "passed in predecessor");
-                test.ok(response.data.steps[1] == "executed in loop");
-                test.ok(response.data.steps[2] == "executed in loop 2");
-                test.ok(response.data.steps[3] == "executed in loop");
-                test.ok(response.data.steps[4] == "executed in loop 2");
-                test.ok(response.data.steps[5] == "passed in successor");
+            processor.execute(request).then(function (response) {
+                var p = processor;
+                try {
+                    test.ok(response.data.steps.length == 6, "Unexpected response items");
+                    test.ok(response.data.steps[0] == "passed in predecessor");
+                    test.ok(response.data.steps[1] == "executed in loop");
+                    test.ok(response.data.steps[2] == "executed in loop 2");
+                    test.ok(response.data.steps[3] == "executed in loop");
+                    test.ok(response.data.steps[4] == "executed in loop 2");
+                    test.ok(response.data.steps[5] == "passed in successor");
 
-                test.ok(request.data.index == 2);
-
-
-                test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
-                test.ok(response.isSuccess == true, "isSuccess should be false");
-            } catch (e) {
-                test.ok(false, "Error while executing");
-                console.log(e.message);
-            }
+                    test.ok(request.data.index == 2);
 
 
-            test.done();
-        });
+                    test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
+                    test.ok(response.isSuccess == true, "isSuccess should be false");
+                } catch (e) {
+                    test.ok(false, "Error while executing");
+                    console.log(e.message);
+                }
+
+
+                test.done();
+            });
+
+    },
+    testLoad: function(test)
+    {
+        var promises = [];
+        for(var i=0;i<1000;i++){
+            var processor = Processor.getProcessor("testProcessor");
+            var request = {data: {index:0}};
+
+            promises.push(processor.execute(request));
+
+        }
+
+        q.all(promises).then(function(){ test.done()})
     }
 };
