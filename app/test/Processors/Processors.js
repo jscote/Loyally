@@ -93,10 +93,11 @@ module.exports = {
         var taskNode = NodeFactory.create("TestTaskNode");
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        taskNode.execute(request).then(function (response) {
-            test.ok(response.data.length == 1);
-            test.ok(response.data[0] == "executed 1");
+        taskNode.execute(request, context).then(function (response) {
+            test.ok(context.data.length == 1);
+            test.ok(context.data[0] == "executed 1");
 
             test.ok(request.data.length == 1, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
@@ -111,11 +112,12 @@ module.exports = {
         var taskNode = NodeFactory.create("TestTaskNode", {successor: NodeFactory.create('Test2TaskNode')});
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        taskNode.execute(request).then(function (response) {
-            test.ok(response.data.length == 2);
-            test.ok(response.data[0] == "executed 1");
-            test.ok(response.data[1] == "executed 2");
+        taskNode.execute(request, context).then(function (response) {
+            test.ok(context.data.length == 2);
+            test.ok(context.data[0] == "executed 1");
+            test.ok(context.data[1] == "executed 2");
 
             test.ok(request.data.length == 2, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
@@ -136,19 +138,20 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        taskNode.execute(request).then(function (response) {
-            test.ok(response.data.length == 3);
-            test.ok(response.data[0] == "executed 1");
-            test.ok(response.data[1] == "executed 2");
-            test.ok(response.data[2] == "executed 3");
+        taskNode.execute(request, context).then(function (response) {
+            test.ok(context.data.length == 3);
+            test.ok(context.data[0] == "executed 1");
+            test.ok(context.data[1] == "executed 2");
+            test.ok(context.data[2] == "executed 3");
 
             test.ok(request.data.length == 3, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
             test.ok(request.data[1] == "request data 2");
             test.ok(request.data[2] == "request data 3");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
             test.ok(response.errors.length == 0, "Errors doesn't have expected number of items");
             test.ok(response.isSuccess);
@@ -161,8 +164,9 @@ module.exports = {
         var taskNode = NodeFactory.create("Test4TaskNode");
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        taskNode.execute(request).then(function (response) {
+        taskNode.execute(request, context).then(function (response) {
             test.ok(response.errors.length == 1);
             test.ok(response.errors[0] == "Test Error");
             test.ok(response.isSuccess == false);
@@ -181,23 +185,24 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        taskNode.execute(request).then(function (response) {
+        taskNode.execute(request, context).then(function (response) {
             test.ok(response.errors.length == 1, "Errors doesn't have expected number of items");
             test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
             test.ok(response.isSuccess == false, "isSuccess should be false");
 
-            test.ok(response.data.length == 3);
-            test.ok(response.data[0] == "executed 1");
-            test.ok(response.data[1] == "executed 2");
-            test.ok(response.data[2] == "executed 3");
+            test.ok(context.data.length == 3);
+            test.ok(context.data[0] == "executed 1");
+            test.ok(context.data[1] == "executed 2");
+            test.ok(context.data[2] == "executed 3");
 
             test.ok(request.data.length == 3, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
             test.ok(request.data[1] == "request data 2");
             test.ok(request.data[2] == "request data 3");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
             test.done();
         });
@@ -225,11 +230,12 @@ module.exports = {
         });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 1);
-            test.ok(response.data[0] == "executed 1");
+            test.ok(context.data.length == 1);
+            test.ok(context.data[0] == "executed 1");
 
             test.ok(request.data.length == 1, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
@@ -251,14 +257,15 @@ module.exports = {
         });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 2, "Unexpected response items");
-            test.ok(response.data[0] == "executed 1");
-            test.ok(response.data[1] == "executed 2");
+            test.ok(context.data.length == 2, "Unexpected response items");
+            test.ok(context.data[0] == "executed 1");
+            test.ok(context.data[1] == "executed 2");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
 
             test.ok(request.data.length == 2, "Unexpected number of items in request data");
@@ -285,14 +292,15 @@ module.exports = {
         });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 2, "Unexpected response items");
-            test.ok(response.data[0] == "executed 3");
-            test.ok(response.data[1] == "executed 2");
+            test.ok(context.data.length == 2, "Unexpected response items");
+            test.ok(context.data[0] == "executed 3");
+            test.ok(context.data[1] == "executed 2");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
 
             test.ok(request.data.length == 2, "Unexpected number of items in request data");
@@ -319,15 +327,16 @@ module.exports = {
         });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 3, "Unexpected response items");
-            test.ok(response.data[0] == "executed 1");
-            test.ok(response.data[1] == "executed 2");
-            test.ok(response.data[2] == "executed 2");
+            test.ok(context.data.length == 3, "Unexpected response items");
+            test.ok(context.data[0] == "executed 1");
+            test.ok(context.data[1] == "executed 2");
+            test.ok(context.data[2] == "executed 2");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
 
             test.ok(request.data.length == 3, "Unexpected number of items in request data");
@@ -359,16 +368,17 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 4, "Unexpected response items");
-            test.ok(response.data[0] == "executed 3");
-            test.ok(response.data[1] == "executed 1");
-            test.ok(response.data[2] == "executed 2");
-            test.ok(response.data[3] == "executed 2");
+            test.ok(context.data.length == 4, "Unexpected response items");
+            test.ok(context.data[0] == "executed 3");
+            test.ok(context.data[1] == "executed 1");
+            test.ok(context.data[2] == "executed 2");
+            test.ok(context.data[3] == "executed 2");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
 
             test.ok(request.data.length == 4, "Unexpected number of items in request data");
@@ -400,14 +410,15 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 2, "Unexpected response items");
-            test.ok(response.data[0] == "executed 3");
-            test.ok(response.data[1] == "executed 1");
+            test.ok(context.data.length == 2, "Unexpected response items");
+            test.ok(context.data[0] == "executed 3");
+            test.ok(context.data[1] == "executed 1");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
 
             test.ok(request.data.length == 2, "Unexpected number of items in request data");
@@ -437,8 +448,9 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
             test.ok(request.data.length == 0, "Unexpected number of items in request data");
 
@@ -467,15 +479,16 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 3, "Unexpected response items");
-            test.ok(response.data[0] == "executed 3");
-            test.ok(response.data[1] == "executed 1");
-            test.ok(response.data[2] == "executed 2");
+            test.ok(context.data.length == 3, "Unexpected response items");
+            test.ok(context.data[0] == "executed 3");
+            test.ok(context.data[1] == "executed 1");
+            test.ok(context.data[2] == "executed 2");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
 
             test.ok(response.errors[0] == "Test Error", "Didn't get expected error message");
@@ -507,14 +520,15 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 2, "Unexpected response items");
-            test.ok(response.data[0] == "executed 3");
-            test.ok(response.data[1] == "executed 2");
+            test.ok(context.data.length == 2, "Unexpected response items");
+            test.ok(context.data[0] == "executed 3");
+            test.ok(context.data[1] == "executed 2");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
 
             test.ok(request.data.length == 2, "Unexpected number of items in request data");
@@ -543,13 +557,14 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 1, "Unexpected response items");
-            test.ok(response.data[0] == "executed 3");
+            test.ok(context.data.length == 1, "Unexpected response items");
+            test.ok(context.data[0] == "executed 3");
 
-            console.log(response.data.join(', '));
+            console.log(context.data.join(', '));
 
 
             test.ok(request.data.length == 1, "Unexpected number of items in request data");
@@ -574,11 +589,12 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 1, "Unexpected response items");
-            test.ok(response.data[0] == "executed 1");
+            test.ok(context.data.length == 1, "Unexpected response items");
+            test.ok(context.data[0] == "executed 1");
 
             test.ok(request.data.length == 1, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
@@ -601,11 +617,12 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 1, "Unexpected response items");
-            test.ok(response.data[0] == "executed 1");
+            test.ok(context.data.length == 1, "Unexpected response items");
+            test.ok(context.data[0] == "executed 1");
 
             test.ok(request.data.length == 1, "Unexpected number of items in request data");
             test.ok(request.data[0] == "request data 1");
@@ -626,12 +643,13 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 2, "Unexpected response items");
-            test.ok(response.data[0] == "executed 2");
-            test.ok(response.data[1] == "executed 1");
+            test.ok(context.data.length == 2, "Unexpected response items");
+            test.ok(context.data[0] == "executed 2");
+            test.ok(context.data[1] == "executed 1");
 
 
             test.ok(request.data.length == 2, "Unexpected number of items in request data");
@@ -655,12 +673,13 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 2, "Unexpected response items");
-            test.ok(response.data[0] == "executed 2");
-            test.ok(response.data[1] == "executed 3");
+            test.ok(context.data.length == 2, "Unexpected response items");
+            test.ok(context.data[0] == "executed 2");
+            test.ok(context.data[1] == "executed 3");
 
 
             test.ok(request.data.length == 2, "Unexpected number of items in request data");
@@ -683,12 +702,13 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 2, "Unexpected response items");
-            test.ok(response.data[0] == "executed 2");
-            test.ok(response.data[1] == "executed 1");
+            test.ok(context.data.length == 2, "Unexpected response items");
+            test.ok(context.data[0] == "executed 2");
+            test.ok(context.data[1] == "executed 1");
 
 
             test.ok(request.data.length == 2, "Unexpected number of items in request data");
@@ -712,13 +732,14 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 3, "Unexpected response items");
-            test.ok(response.data[0] == "executed 2");
-            test.ok(response.data[1] == "executed 3");
-            test.ok(response.data[2] == "executed 3");
+            test.ok(context.data.length == 3, "Unexpected response items");
+            test.ok(context.data[0] == "executed 2");
+            test.ok(context.data[1] == "executed 3");
+            test.ok(context.data[2] == "executed 3");
 
 
             test.ok(request.data.length == 3, "Unexpected number of items in request data");
@@ -744,13 +765,14 @@ module.exports = {
             });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 3, "Unexpected response items");
-            test.ok(response.data[0] == "executed 2");
-            test.ok(response.data[1] == "executed 3");
-            test.ok(response.data[2] == "executed 1");
+            test.ok(context.data.length == 3, "Unexpected response items");
+            test.ok(context.data[0] == "executed 2");
+            test.ok(context.data[1] == "executed 3");
+            test.ok(context.data[2] == "executed 1");
 
 
             test.ok(request.data.length == 3, "Unexpected number of items in request data");
@@ -778,14 +800,15 @@ module.exports = {
         });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 4, "Unexpected response items");
-            test.ok(response.data[0] == "executed 1");
-            test.ok(response.data[1] == "executed 2");
-            test.ok(response.data[2] == "executed 3");
-            test.ok(response.data[3] == "executed 3");
+            test.ok(context.data.length == 4, "Unexpected response items");
+            test.ok(context.data[0] == "executed 1");
+            test.ok(context.data[1] == "executed 2");
+            test.ok(context.data[2] == "executed 3");
+            test.ok(context.data[3] == "executed 3");
 
 
             test.ok(request.data.length == 4, "Unexpected number of items in request data");
@@ -813,14 +836,15 @@ module.exports = {
         });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 4, "Unexpected response items");
-            test.ok(response.data[0] == "executed 1");
-            test.ok(response.data[1] == "executed 2");
-            test.ok(response.data[2] == "executed 3");
-            test.ok(response.data[3] == "executed 1");
+            test.ok(context.data.length == 4, "Unexpected response items");
+            test.ok(context.data[0] == "executed 1");
+            test.ok(context.data[1] == "executed 2");
+            test.ok(context.data[2] == "executed 3");
+            test.ok(context.data[3] == "executed 1");
 
 
             test.ok(request.data.length == 4, "Unexpected number of items in request data");
@@ -847,15 +871,16 @@ module.exports = {
         });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 5, "Unexpected response items");
-            test.ok(response.data[0] == "executed 1");
-            test.ok(response.data[1] == "executed 2");
-            test.ok(response.data[2] == "executed 3");
-            test.ok(response.data[3] == "executed 1");
-            test.ok(response.data[4] == "executed 2");
+            test.ok(context.data.length == 5, "Unexpected response items");
+            test.ok(context.data[0] == "executed 1");
+            test.ok(context.data[1] == "executed 2");
+            test.ok(context.data[2] == "executed 3");
+            test.ok(context.data[3] == "executed 1");
+            test.ok(context.data[4] == "executed 2");
 
 
             test.ok(request.data.length == 5, "Unexpected number of items in request data");
@@ -884,15 +909,16 @@ module.exports = {
         });
 
         var request = {data: []};
+        var context = {data: undefined};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
-            test.ok(response.data.length == 5, "Unexpected response items");
-            test.ok(response.data[0] == "executed 1");
-            test.ok(response.data[1] == "executed 2");
-            test.ok(response.data[2] == "executed 3");
-            test.ok(response.data[3] == "executed 1");
-            test.ok(response.data[4] == "executed 2");
+            test.ok(context.data.length == 5, "Unexpected response items");
+            test.ok(context.data[0] == "executed 1");
+            test.ok(context.data[1] == "executed 2");
+            test.ok(context.data[2] == "executed 3");
+            test.ok(context.data[3] == "executed 1");
+            test.ok(context.data[4] == "executed 2");
 
 
             test.ok(request.data.length == 5, "Unexpected number of items in request data");
@@ -919,13 +945,14 @@ module.exports = {
         });
 
         var request = {data: {index: 0}};
+        var context = {data: {}};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
             try {
-                test.ok(response.data.steps.length == 2, "Unexpected response items");
-                test.ok(response.data.steps[0] == "executed in loop");
-                test.ok(response.data.steps[1] == "executed in loop");
+                test.ok(context.data.steps.length == 2, "Unexpected response items");
+                test.ok(context.data.steps[0] == "executed in loop");
+                test.ok(context.data.steps[1] == "executed in loop");
 
                 test.ok(request.data.index == 2);
 
@@ -954,14 +981,15 @@ module.exports = {
 
 
         var request = {data: {index: 0}};
+        var context = {data: {}};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
             try {
-                test.ok(response.data.steps.length == 3, "Unexpected response items");
-                test.ok(response.data.steps[0] == "passed in predecessor");
-                test.ok(response.data.steps[1] == "executed in loop");
-                test.ok(response.data.steps[2] == "executed in loop");
+                test.ok(context.data.steps.length == 3, "Unexpected response items");
+                test.ok(context.data.steps[0] == "passed in predecessor");
+                test.ok(context.data.steps[1] == "executed in loop");
+                test.ok(context.data.steps[2] == "executed in loop");
 
                 test.ok(request.data.index == 2);
 
@@ -990,16 +1018,17 @@ module.exports = {
 
 
         var request = {data: {index: 0}};
+        var context = {data: {}};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
             try {
-                test.ok(response.data.steps.length == 5, "Unexpected response items");
-                test.ok(response.data.steps[0] == "passed in predecessor");
-                test.ok(response.data.steps[1] == "executed in loop");
-                test.ok(response.data.steps[2] == "executed in loop 2");
-                test.ok(response.data.steps[3] == "executed in loop");
-                test.ok(response.data.steps[4] == "executed in loop 2");
+                test.ok(context.data.steps.length == 5, "Unexpected response items");
+                test.ok(context.data.steps[0] == "passed in predecessor");
+                test.ok(context.data.steps[1] == "executed in loop");
+                test.ok(context.data.steps[2] == "executed in loop 2");
+                test.ok(context.data.steps[3] == "executed in loop");
+                test.ok(context.data.steps[4] == "executed in loop 2");
 
                 test.ok(request.data.index == 2);
 
@@ -1029,17 +1058,18 @@ module.exports = {
 
 
         var request = {data: {index: 0}};
+        var context = {data: {}};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
             try {
-                test.ok(response.data.steps.length == 6, "Unexpected response items");
-                test.ok(response.data.steps[0] == "passed in predecessor");
-                test.ok(response.data.steps[1] == "executed in loop");
-                test.ok(response.data.steps[2] == "executed in loop 2");
-                test.ok(response.data.steps[3] == "executed in loop");
-                test.ok(response.data.steps[4] == "executed in loop 2");
-                test.ok(response.data.steps[5] == "passed in successor");
+                test.ok(context.data.steps.length == 6, "Unexpected response items");
+                test.ok(context.data.steps[0] == "passed in predecessor");
+                test.ok(context.data.steps[1] == "executed in loop");
+                test.ok(context.data.steps[2] == "executed in loop 2");
+                test.ok(context.data.steps[3] == "executed in loop");
+                test.ok(context.data.steps[4] == "executed in loop 2");
+                test.ok(context.data.steps[5] == "passed in successor");
 
                 test.ok(request.data.index == 2);
 
@@ -1073,14 +1103,15 @@ module.exports = {
 
 
         var request = {data: {index: 0}};
+        var context = {data: {}};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
             try {
-                test.ok(response.data.steps.length == 3, "Unexpected response items");
-                test.ok(response.data.steps[0] == "passed in predecessor");
-                test.ok(response.data.steps[1] == "executed in loop");
-                test.ok(response.data.steps[2] == "executed in loop 2");
+                test.ok(context.data.steps.length == 3, "Unexpected response items");
+                test.ok(context.data.steps[0] == "passed in predecessor");
+                test.ok(context.data.steps[1] == "executed in loop");
+                test.ok(context.data.steps[2] == "executed in loop 2");
 
                 test.ok(request.data.index == 1);
 
@@ -1119,15 +1150,16 @@ module.exports = {
 
 
         var request = {data: {index: 0}};
+        var context = {data: {}};
 
-        node.execute(request).then(function (response) {
+        node.execute(request, context).then(function (response) {
 
             try {
-                test.ok(response.data.steps.length == 4, "Unexpected response items");
-                test.ok(response.data.steps[0] == "passed in predecessor");
-                test.ok(response.data.steps[1] == "executed in loop");
-                test.ok(response.data.steps[2] == "executed in loop 2");
-                test.ok(response.data.steps[3] == "passed in compensation");
+                test.ok(context.data.steps.length == 4, "Unexpected response items");
+                test.ok(context.data.steps[0] == "passed in predecessor");
+                test.ok(context.data.steps[1] == "executed in loop");
+                test.ok(context.data.steps[2] == "executed in loop 2");
+                test.ok(context.data.steps[3] == "passed in compensation");
 
                 test.ok(request.data.index == 1);
 
@@ -1161,11 +1193,11 @@ module.exports = {
             var p = processor;
             try {
 
-                test.ok(response.data.steps.length == 4, "Unexpected response items");
-                test.ok(response.data.steps[0] == "passed in predecessor");
-                test.ok(response.data.steps[1] == "executed in loop");
-                test.ok(response.data.steps[2] == "executed in loop 2");
-                test.ok(response.data.steps[3] == "passed in compensation");
+                test.ok(response.data.data.steps.length == 4, "Unexpected response items");
+                test.ok(response.data.data.steps[0] == "passed in predecessor");
+                test.ok(response.data.data.steps[1] == "executed in loop");
+                test.ok(response.data.data.steps[2] == "executed in loop 2");
+                test.ok(response.data.data.steps[3] == "passed in compensation");
 
                 test.ok(request.data.index == 1);
 
@@ -1190,13 +1222,13 @@ module.exports = {
             processor.execute(request).then(function (response) {
                 var p = processor;
                 try {
-                    test.ok(response.data.steps.length == 6, "Unexpected response items");
-                    test.ok(response.data.steps[0] == "passed in predecessor");
-                    test.ok(response.data.steps[1] == "executed in loop");
-                    test.ok(response.data.steps[2] == "executed in loop 2");
-                    test.ok(response.data.steps[3] == "executed in loop");
-                    test.ok(response.data.steps[4] == "executed in loop 2");
-                    test.ok(response.data.steps[5] == "passed in successor");
+                    test.ok(response.data.data.steps.length == 6, "Unexpected response items");
+                    test.ok(response.data.data.steps[0] == "passed in predecessor");
+                    test.ok(response.data.data.steps[1] == "executed in loop");
+                    test.ok(response.data.data.steps[2] == "executed in loop 2");
+                    test.ok(response.data.data.steps[3] == "executed in loop");
+                    test.ok(response.data.data.steps[4] == "executed in loop 2");
+                    test.ok(response.data.data.steps[5] == "passed in successor");
 
                     test.ok(request.data.index == 2);
 

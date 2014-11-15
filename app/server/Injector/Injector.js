@@ -132,7 +132,7 @@
 
             if (_.isString(target)) {
 
-                console.log("Resolving dependency: " + target);
+                //console.log("Resolving dependency: " + target);
 
                 newTarget = getDependencies({arr: [target], resolutionName: resolutionName})[0];
 
@@ -159,7 +159,7 @@
 
                 newTarget.dependency = target;
 
-                console.log("Resolving dependency on a function");
+                //console.log("Resolving dependency on a function");
             }
 
             var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
@@ -286,10 +286,10 @@
 
 
             if (_.isUndefined(resolutionName)) {
-                console.log('registering target with name: ' + name);
+                //console.log('registering target with name: ' + name);
                 collection[name] = target;
             } else {
-                console.log('registering target with name: ' + name + ' and resolutionName: ' + resolutionName);
+                //console.log('registering target with name: ' + name + ' and resolutionName: ' + resolutionName);
 
                 //if we already have a dependency for this name, let's move it to an object and make the current
                 //dependency the default one.
@@ -315,7 +315,7 @@
             var resolutionName = parameters.resolutionName;
 
             if (_.isEmpty(dependency)) {
-                console.error('The dependency cannot be undefined');
+                //console.error('The dependency cannot be undefined');
                 throw('The dependency cannot be undefined');
             }
 
@@ -344,13 +344,13 @@
             } else {
 
                 if (_.isEmpty(name) || (!_.isString(name))) {
-                    console.error("Name must be defined, not null and have a value");
+                    //console.error("Name must be defined, not null and have a value");
                     throw("Name must be defined, not null and have a value");
                 }
             }
 
             if (_.isUndefined(decorator) || !_.isFunction(decorator)) {
-                console.error("Decorator must be a valid function");
+                //console.error("Decorator must be a valid function");
                 throw("Decorator must be a valid function");
             }
 

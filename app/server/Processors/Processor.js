@@ -25,7 +25,7 @@
     function copyResponseIntoAnother(response, successorResponse) {
         response.errors = response.errors.concat(successorResponse.errors);
 
-        if (Array.isArray(response.data) && Array.isArray(successorResponse.data)) {
+        /*if (Array.isArray(response.data) && Array.isArray(successorResponse.data)) {
             response.data = response.data.concat(successorResponse.data);
         } else if (_.isEmpty(response.data) && Array.isArray(successorResponse.data)) {
             response.data = successorResponse.data;
@@ -43,15 +43,15 @@
                 }
             }
 
-        }
+        }*/
         response.isSuccess = !response.isSuccess ? response.isSuccess : successorResponse.isSuccess;
 
     }
 
-    function executeSuccessor(self, response, request, dfd, executeFn) {
+    function executeSuccessor(self, response, request, context, dfd, executeFn) {
         if (response.isSuccess && self.successor) {
             process.nextTick(function () {
-                q.fcall(executeFn.bind(self.successor), request).then(function (successorResponse) {
+                q.fcall(executeFn.bind(self.successor), request, context).then(function (successorResponse) {
 
                     if (!successorResponse instanceof self.messaging.ServiceResponse) {
                         response = new self.messaging.ServiceResponse();
@@ -68,10 +68,10 @@
         }
     }
 
-    function executeConditionBranch(branch, request, self, dfd) {
+    function executeConditionBranch(branch, request, context, self, dfd) {
         process.nextTick(function () {
-            q.fcall(branch.execute.bind(branch), request).then(function (response) {
-                executeSuccessor(self, response, request, dfd, Node.prototype.execute);
+            q.fcall(branch.execute.bind(branch), request, context).then(function (response) {
+                executeSuccessor(self, response, request, context, dfd, Node.prototype.execute);
             }, function (error) {
                 var response = new self.messaging.ServiceResponse();
                 response.isSuccess = false;
@@ -152,7 +152,7 @@
         }
     };
 
-    Node.prototype.execute = function (request) {
+    Node.prototype.execute = function (request, context) {
 
         if (this.successor) {
             this.successor.executionContext = this.executionContext;
@@ -163,7 +163,7 @@
         var dfd = q.defer();
         try {
             this.visit(request);
-            q.fcall(self.handleRequest.bind(self), request).then(function (response) {
+            q.fcall(self.handleRequest.bind(self), request, context).then(function (response) {
 
                 if (!response instanceof self.messaging.ServiceResponse) {
                     response = new self.messaging.ServiceResponse();
@@ -181,7 +181,7 @@
                 }
 
 
-                executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
+                executeSuccessor(self, response, request, context, dfd, self.successor ? self.successor.execute : null);
             }, function (error) {
                 response = new self.messaging.ServiceResponse();
                 response.isSuccess = false;
@@ -280,11 +280,6 @@
         this.falseSuccessor = params.falseSuccessor;
         this.name = 'ConditionNode';
 
-    };
-
-
-    ConditionNode.prototype.execute = function (request) {
-
         if (this.trueSuccessor) {
             this.trueSuccessor.executionContext = this.executionContext;
         }
@@ -292,20 +287,24 @@
             this.falseSuccessor.executionContext = this.executionContext;
         }
 
+    };
+
+
+    ConditionNode.prototype.execute = function (request, context) {
         var dfd = q.defer();
         var self = this;
         this.visit(request, "Entering Condition");
-        q.fcall(self.condition.bind(self), request).then(function (conditionResult) {
+        q.fcall(self.condition.bind(self), request, context).then(function (conditionResult) {
             if (conditionResult) {
                 self.visit(request, "Condition evaluated to true");
-                executeConditionBranch.call(self, self.trueSuccessor, request, self, dfd);
+                executeConditionBranch.call(self, self.trueSuccessor, request, context, self, dfd);
             } else {
                 self.visit(request, "Condition evaluated to false");
                 if (self.falseSuccessor) {
-                    executeConditionBranch.call(self, self.falseSuccessor, request, self, dfd);
+                    executeConditionBranch.call(self, self.falseSuccessor, request, context, self, dfd);
                 } else {
                     if (self.successor) {
-                        ConditionNode.super_.prototype.execute.call(self.successor, request).then(function (successorResponse) {
+                        ConditionNode.super_.prototype.execute.call(self.successor, request, context).then(function (successorResponse) {
                             dfd.resolve(successorResponse);
                         });
                     } else {
@@ -362,9 +361,6 @@
         this.startNode = params.startNode;
         this.compensationNode = params.compensationNode;
         this.name = 'Compensated Node';
-    };
-
-    CompensatedNode.prototype.execute = function (request) {
 
         if (this.startNode) {
             this.startNode.executionContext = this.executionContext;
@@ -373,13 +369,16 @@
         if (this.compensationNode) {
             this.compensationNode.executionContext = this.executionContext;
         }
+    };
+
+    CompensatedNode.prototype.execute = function (request, context) {
 
         var dfd = q.defer();
         var self = this;
 
         process.nextTick(function () {
             self.visit(request, "Executing Compensatable path");
-            q.fcall(self.startNode.execute.bind(self.startNode), request).then(function (response) {
+            q.fcall(self.startNode.execute.bind(self.startNode), request, context).then(function (response) {
 
                 if (!response instanceof self.messaging.ServiceResponse) {
                     response = new self.messaging.ServiceResponse();
@@ -391,12 +390,12 @@
 
                 if (response.isSuccess) {
                     //execute successor.... everything is good, let's move on
-                    executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
+                    executeSuccessor(self, response, request, context, dfd, self.successor ? self.successor.execute : null);
                 } else {
                     //we need to execute the compensation branch and then let bubble up the chain
                     process.nextTick(function () {
                         self.visit(request, "Entered Compensation");
-                        q.fcall(self.compensationNode.execute.bind(self.compensationNode), request).then(function (compensationResponse) {
+                        q.fcall(self.compensationNode.execute.bind(self.compensationNode), request, context).then(function (compensationResponse) {
                             if (!compensationResponse instanceof self.messaging.ServiceResponse) {
                                 compensationResponse = new self.messaging.ServiceResponse();
                                 compensationResponse.isSuccess = false;
@@ -465,11 +464,6 @@
         this.startNode = params.startNode;
         this.name = 'Loop Node';
 
-
-    };
-
-    LoopNode.prototype.execute = function (request) {
-
         if (this.startNode) {
             this.startNode.executionContext = this.executionContext;
         }
@@ -478,11 +472,14 @@
             this.successor.executionContext = this.executionContext;
         }
 
+    };
+
+    LoopNode.prototype.execute = function (request, context) {
         var self = this;
         var dfd = q.defer();
         this.visit(request);
-        self.loopWhile(request).then(function (response) {
-            executeSuccessor(self, response, request, dfd, self.successor ? self.successor.execute : null);
+        self.loopWhile(request, context).then(function (response) {
+            executeSuccessor(self, response, request, context, dfd, self.successor ? self.successor.execute : null);
         }, function (error) {
 
         }).done();
@@ -492,7 +489,7 @@
     };
 
 
-    LoopNode.prototype.loopWhile = function (request) {
+    LoopNode.prototype.loopWhile = function (request, context) {
         var self = this;
         var dfd = q.defer();
 
@@ -502,11 +499,11 @@
             // When the result of calling `condition` is no longer true, we are
             // done.
 
-            q.fcall(self.condition.bind(self), request).then(function (conditionResult) {
+            q.fcall(self.condition.bind(self), request, context).then(function (conditionResult) {
 
                 if (conditionResult) {
                     self.visit(request, "loop evaluated with condition true");
-                    q.fcall(self.startNode.execute.bind(self.startNode), request).then(function (innerLoopResponse) {
+                    q.fcall(self.startNode.execute.bind(self.startNode), request, context).then(function (innerLoopResponse) {
                         copyResponseIntoAnother(loopResponse, innerLoopResponse);
                         if (innerLoopResponse.isSuccess) {
                             loop(loopResponse);
@@ -547,7 +544,7 @@
 
     util.inherits(NoOpTaskNode, TaskNode);
 
-    NoOpTaskNode.prototype.handleRequest = function (request) {
+    NoOpTaskNode.prototype.handleRequest = function () {
 
         return new this.messaging.ServiceResponse();
     };
@@ -568,44 +565,54 @@
         return this;
     }
 
+    var testProcessor = null;
+    var testProcessorWithError = null;
+
     ProcessorLoader.prototype.load = function (processorName) {
 
         //TODO, load appropriately based on persistence mechanism
+        //TODO, Implement caching of the resolved paths as garbage collection seems to be our enemy under load
         if (processorName == 'testProcessorWithError') {
-            return NodeFactory.create('CompensatedNode', {
-                compensationNode: NodeFactory.create('NoOpTaskNode'),
-                startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
-                    successor: NodeFactory.create('LoopNode', {
-                        condition: function (request) {
-                            return request.data.index < 2;
-                        },
-                        successor: NodeFactory.create('TestSuccessorToLoopTaskNode'),
-                        startNode: NodeFactory.create('CompensatedNode',
-                            {
-                                startNode: NodeFactory.create('TestLoopTaskNode',
-                                    {
-                                        successor: NodeFactory.create('Test2LoopTaskNode',
-                                            {successor: NodeFactory.create('Test4TaskNode')})
-                                    }),
-                                compensationNode: NodeFactory.create('TestCompensationToLoopTaskNode')
+            if(testProcessorWithError == null) {
+                testProcessorWithError = NodeFactory.create('CompensatedNode', {
+                    compensationNode: NodeFactory.create('NoOpTaskNode'),
+                    startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
+                        successor: NodeFactory.create('LoopNode', {
+                            condition: function (request) {
+                                return request.data.index < 2;
+                            },
+                            successor: NodeFactory.create('TestSuccessorToLoopTaskNode'),
+                            startNode: NodeFactory.create('CompensatedNode',
+                                {
+                                    startNode: NodeFactory.create('TestLoopTaskNode',
+                                        {
+                                            successor: NodeFactory.create('Test2LoopTaskNode',
+                                                {successor: NodeFactory.create('Test4TaskNode')})
+                                        }),
+                                    compensationNode: NodeFactory.create('TestCompensationToLoopTaskNode')
 
-                            })
+                                })
+                        })
                     })
-                })
-            });
+                });
+            }
+            return testProcessorWithError;
         } else if (processorName == 'testProcessor') {
-            return NodeFactory.create('CompensatedNode', {
-                compensationNode: NodeFactory.create('NoOpTaskNode'),
-                startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
-                    successor: NodeFactory.create('LoopNode', {
-                        startNode: NodeFactory.create('TestLoopTaskNode', {successor: NodeFactory.create('Test2LoopTaskNode')}),
-                        condition: function (request) {
-                            return request.data.index < 2;
-                        },
-                        successor: NodeFactory.create('TestSuccessorToLoopTaskNode')
+            if(testProcessor == null) {
+                testProcessor = NodeFactory.create('CompensatedNode', {
+                    compensationNode: NodeFactory.create('NoOpTaskNode'),
+                    startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
+                        successor: NodeFactory.create('LoopNode', {
+                            startNode: NodeFactory.create('TestLoopTaskNode', {successor: NodeFactory.create('Test2LoopTaskNode')}),
+                            condition: function (request) {
+                                return request.data.index < 2;
+                            },
+                            successor: NodeFactory.create('TestSuccessorToLoopTaskNode')
+                        })
                     })
-                })
-            });
+                });
+            }
+            return testProcessor;
         }
 
     };
@@ -650,6 +657,18 @@
 
         Processor.super_.prototype.initialize.call(this, params);
 
+    };
+
+    Processor.prototype.execute = function(request){
+
+        this.executionContext.steps = [];
+        var context = {};
+        var dfd = q.defer();
+        Processor.super_.prototype.execute.call(this, request, context).then(function(response){
+            response.data = context;
+            dfd.resolve(response);
+        });
+        return dfd.promise;
     };
 
     Processor.getProcessor = function (processorName) {

@@ -10,16 +10,20 @@
 
     util.inherits(TestTaskNode, base.TaskNode);
 
-    TestTaskNode.prototype.handleRequest = function (request) {
+    TestTaskNode.prototype.handleRequest = function (request, context) {
         var dfd = q.defer();
         var self = this;
 
         process.nextTick(function () {
 
             var response = new self.messaging.ServiceResponse();
+            try{
+                if (!Array.isArray(context.data)) context.data = [];
+                context.data.push("executed 1");
+            } catch(e) {
+                console.log(e);
+            }
 
-            if (!Array.isArray(response.data)) response.data = [];
-            response.data.push("executed 1");
 
             request.data.push("request data 1");
 
@@ -39,11 +43,11 @@
 
     util.inherits(Test2TaskNode, base.TaskNode);
 
-    Test2TaskNode.prototype.handleRequest = function (request) {
+    Test2TaskNode.prototype.handleRequest = function (request, context) {
         var response = new this.messaging.ServiceResponse();
 
-        if (!Array.isArray(response.data)) response.data = [];
-        response.data.push("executed 2");
+        if (!Array.isArray(context.data)) context.data = [];
+        context.data.push("executed 2");
 
         request.data.push("request data 2");
 
@@ -58,11 +62,11 @@
 
     util.inherits(Test3TaskNode, base.TaskNode);
 
-    Test3TaskNode.prototype.handleRequest = function (request) {
+    Test3TaskNode.prototype.handleRequest = function (request, context) {
         var response = new this.messaging.ServiceResponse();
 
-        if (!Array.isArray(response.data)) response.data = [];
-        response.data.push("executed 3");
+        if (!Array.isArray(context.data)) context.data = [];
+        context.data.push("executed 3");
 
         request.data.push("request data 3");
 
@@ -77,7 +81,7 @@
 
     util.inherits(Test4TaskNode, base.TaskNode);
 
-    Test4TaskNode.prototype.handleRequest = function (request) {
+    Test4TaskNode.prototype.handleRequest = function (request, context) {
         var dfd = q.defer();
         var self = this;
 
@@ -110,7 +114,7 @@
 
     util.inherits(TestLoopTaskNode, base.TaskNode);
 
-    TestLoopTaskNode.prototype.handleRequest = function (request) {
+    TestLoopTaskNode.prototype.handleRequest = function (request, context) {
 
         var self = this;
         var dfd = q.defer();
@@ -120,11 +124,12 @@
 
             request.data.index++;
 
-            if(_.isUndefined(response.data.steps)) {
-                response.data.steps = [];
+            if(_.isUndefined(context.data.steps)) {
+                context.data.steps = [];
             }
 
-            response.data.steps.push("executed in loop");
+            if (!Array.isArray(context.data.steps)) context.data.steps = [];
+            context.data.steps.push("executed in loop");
 
             return dfd.resolve(response);
         });
@@ -140,7 +145,7 @@
 
     util.inherits(Test2LoopTaskNode, base.TaskNode);
 
-    Test2LoopTaskNode.prototype.handleRequest = function (request) {
+    Test2LoopTaskNode.prototype.handleRequest = function (request, context) {
 
         var self = this;
         var dfd = q.defer();
@@ -148,11 +153,11 @@
         process.nextTick(function() {
             var response = new self.messaging.ServiceResponse();
 
-            if(_.isUndefined(response.data.steps)) {
-                response.data.steps = [];
+            if(_.isUndefined(context.data.steps)) {
+                context.data.steps = [];
             }
 
-            response.data.steps.push("executed in loop 2");
+            context.data.steps.push("executed in loop 2");
 
             return dfd.resolve(response);
         });
@@ -169,7 +174,7 @@
 
     util.inherits(TestPredecessorToLoopTaskNode, base.TaskNode);
 
-    TestPredecessorToLoopTaskNode.prototype.handleRequest = function (request) {
+    TestPredecessorToLoopTaskNode.prototype.handleRequest = function (request, context) {
 
         var self = this;
         var dfd = q.defer();
@@ -177,11 +182,13 @@
         process.nextTick(function() {
             var response = new self.messaging.ServiceResponse();
 
-            if(_.isUndefined(response.data.steps)) {
-                response.data.steps = [];
+            if(_.isUndefined(context.data)) context.data = {};
+
+            if(_.isUndefined(context.data.steps)) {
+                context.data.steps = [];
             }
 
-            response.data.steps.push("passed in predecessor");
+            context.data.steps.push("passed in predecessor");
 
 
             return dfd.resolve(response);
@@ -198,7 +205,7 @@
 
     util.inherits(TestCompensationToLoopTaskNode, base.TaskNode);
 
-    TestCompensationToLoopTaskNode.prototype.handleRequest = function (request) {
+    TestCompensationToLoopTaskNode.prototype.handleRequest = function (request, context) {
 
         var self = this;
         var dfd = q.defer();
@@ -206,11 +213,11 @@
         process.nextTick(function() {
             var response = new self.messaging.ServiceResponse();
 
-            if(_.isUndefined(response.data.steps)) {
-                response.data.steps = [];
+            if(_.isUndefined(context.data.steps)) {
+                context.data.steps = [];
             }
 
-            response.data.steps.push("passed in compensation");
+            context.data.steps.push("passed in compensation");
 
 
             return dfd.resolve(response);
@@ -228,7 +235,7 @@
 
     util.inherits(TestSuccessorToLoopTaskNode, base.TaskNode);
 
-    TestSuccessorToLoopTaskNode.prototype.handleRequest = function (request) {
+    TestSuccessorToLoopTaskNode.prototype.handleRequest = function (request, context) {
 
         var self = this;
         var dfd = q.defer();
@@ -236,11 +243,11 @@
         process.nextTick(function() {
             var response = new self.messaging.ServiceResponse();
 
-            if(_.isUndefined(response.data.steps)) {
-                response.data.steps = [];
+            if(_.isUndefined(context.data.steps)) {
+                context.data.steps = [];
             }
 
-            response.data.steps.push("passed in successor");
+            context.data.steps.push("passed in successor");
 
 
             return dfd.resolve(response);
