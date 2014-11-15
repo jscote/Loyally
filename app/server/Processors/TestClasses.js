@@ -261,7 +261,7 @@
 
     };
 
-    ProcessorTestLoader = function() {
+    var ProcessorTestLoader = function() {
         ProcessorLoader.call(this);
     };
 
@@ -291,7 +291,7 @@
     };
 
 
-    ProcessorTestErrorLoader = function() {
+    var ProcessorTestErrorLoader = function() {
         ProcessorLoader.call(this);
     };
 
