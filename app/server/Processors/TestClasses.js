@@ -3,6 +3,10 @@
  */
 (function (_, q, util, base) {
 
+    var p = require('path');
+    var ProcessorLoader = require(p.resolve(__dirname + '../../../server/Processors/Processor')).ProcessorLoader;
+    var NodeFactory = require(p.resolve(__dirname + '../../../server/Processors/Processor')).NodeFactory;
+
     function TestTaskNode(serviceMessage) {
         base.TaskNode.call(this, serviceMessage);
         this.name = 'TestTaskNode';
@@ -257,6 +261,75 @@
 
     };
 
+    ProcessorTestLoader = function() {
+        ProcessorLoader.call(this);
+    };
+
+    util.inherits(ProcessorTestLoader, ProcessorLoader);
+
+    ProcessorTestLoader.prototype.load = function(processorName){
+        var testProcessor = this.getFromCache(processorName);
+
+        if(testProcessor == null) {
+            testProcessor = NodeFactory.create('CompensatedNode', {
+                compensationNode: NodeFactory.create('NoOpTaskNode'),
+                startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
+                    successor: NodeFactory.create('LoopNode', {
+                        startNode: NodeFactory.create('TestLoopTaskNode', {successor: NodeFactory.create('Test2LoopTaskNode')}),
+                        condition: function (request) {
+                            return request.data.index < 2;
+                        },
+                        successor: NodeFactory.create('TestSuccessorToLoopTaskNode')
+                    })
+                })
+            });
+
+            this.addToCache(processorName, testProcessor);
+        }
+
+        return testProcessor;
+    };
+
+
+    ProcessorTestErrorLoader = function() {
+        ProcessorLoader.call(this);
+    };
+
+    util.inherits(ProcessorTestErrorLoader, ProcessorLoader);
+
+    ProcessorTestErrorLoader.prototype.load = function(processorName){
+        var testProcessor = this.getFromCache(processorName);
+
+        if(testProcessor == null) {
+            testProcessor = NodeFactory.create('CompensatedNode', {
+                compensationNode: NodeFactory.create('NoOpTaskNode'),
+                startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
+                    successor: NodeFactory.create('LoopNode', {
+                        condition: function (request) {
+                            return request.data.index < 2;
+                        },
+                        successor: NodeFactory.create('TestSuccessorToLoopTaskNode'),
+                        startNode: NodeFactory.create('CompensatedNode',
+                            {
+                                startNode: NodeFactory.create('TestLoopTaskNode',
+                                    {
+                                        successor: NodeFactory.create('Test2LoopTaskNode',
+                                            {successor: NodeFactory.create('Test4TaskNode')})
+                                    }),
+                                compensationNode: NodeFactory.create('TestCompensationToLoopTaskNode')
+
+                            })
+                    })
+                })
+            });
+
+            this.addToCache(processorName, testProcessor);
+        }
+
+        return testProcessor;
+    };
+
+
     module.exports.TestTaskNode = TestTaskNode;
     module.exports.Test2TaskNode = Test2TaskNode;
     module.exports.Test3TaskNode = Test3TaskNode;
@@ -266,6 +339,8 @@
     module.exports.TestPredecessorToLoopTaskNode = TestPredecessorToLoopTaskNode;
     module.exports.TestSuccessorToLoopTaskNode = TestSuccessorToLoopTaskNode;
     module.exports.TestCompensationToLoopTaskNode = TestCompensationToLoopTaskNode;
+    module.exports.ProcessorTestLoader = ProcessorTestLoader;
+    module.exports.ProcessorTestErrorLoader = ProcessorTestErrorLoader;
 
 })(
     require('lodash'),

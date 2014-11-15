@@ -4,15 +4,17 @@
 
 var p = require('path');
 var q = require('q');
-
+var util = require('util');
 require(p.resolve(__dirname + '../../../server/config/injection'))(p.resolve(__dirname + '../../../server/'));
 
 
 var Processor = require(p.resolve(__dirname + '../../../server/Processors/Processor')).Processor;
+var ProcessorLoader = require(p.resolve(__dirname + '../../../server/Processors/Processor')).ProcessorLoader;
 var NodeFactory = require(p.resolve(__dirname + '../../../server/Processors/Processor')).NodeFactory;
 var TaskNode = require(p.resolve(__dirname + '../../../server/Processors/Processor')).TaskNode;
 var ConditionNode = require(p.resolve(__dirname + '../../../server/Processors/Processor')).ConditionNode;
 var LoopNode = require(p.resolve(__dirname + '../../../server/Processors/Processor')).LoopNode;
+
 
 
 module.exports = {
@@ -1176,6 +1178,7 @@ module.exports = {
         });
     },
     testCanInstantiateProcessor: function(test) {
+        Injector.register({dependency: '/Processors/TestClasses::ProcessorTestLoader', name: 'processorLoader'})
 
         var processor = Processor.getProcessor('testProcessor');
 
@@ -1184,6 +1187,9 @@ module.exports = {
         test.done();
     },
     testCanExecuteComplexProcessorWithError: function (test) {
+        Injector.register({dependency: '/Processors/TestClasses::ProcessorTestErrorLoader', name: 'processorLoader'})
+
+
         var processor = Processor.getProcessor('testProcessorWithError');
 
         var request = {data: {index: 0}};
@@ -1215,6 +1221,8 @@ module.exports = {
     }
     ,
     testCanExecuteComplexProcessor: function (test) {
+        Injector.register({dependency: '/Processors/TestClasses::ProcessorTestLoader', name: 'processorLoader'})
+
         var processor = Processor.getProcessor('testProcessor');
 
         var request = {data: {index: 0}};
@@ -1247,6 +1255,9 @@ module.exports = {
     },
     testLoad: function(test)
     {
+        Injector.register({dependency: '/Processors/TestClasses::ProcessorTestLoader', name: 'processorLoader'})
+
+
         var promises = [];
         for(var i=0;i<1000;i++){
             var processor = Processor.getProcessor("testProcessor");

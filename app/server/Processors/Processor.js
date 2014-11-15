@@ -565,56 +565,35 @@
         return this;
     }
 
-    var testProcessor = null;
-    var testProcessorWithError = null;
+    var cache = {};
+
+    function ProcessorCache(){
+
+    }
+
+    ProcessorCache.add = function(name, processorDefinition) {
+        cache[name] = processorDefinition;
+    };
+
+    ProcessorCache.get = function(name) {
+        if(!_.isUndefined(cache[name])) return cache[name];
+
+        return null;
+    };
 
     ProcessorLoader.prototype.load = function (processorName) {
 
         //TODO, load appropriately based on persistence mechanism
         //TODO, Implement caching of the resolved paths as garbage collection seems to be our enemy under load
-        if (processorName == 'testProcessorWithError') {
-            if(testProcessorWithError == null) {
-                testProcessorWithError = NodeFactory.create('CompensatedNode', {
-                    compensationNode: NodeFactory.create('NoOpTaskNode'),
-                    startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
-                        successor: NodeFactory.create('LoopNode', {
-                            condition: function (request) {
-                                return request.data.index < 2;
-                            },
-                            successor: NodeFactory.create('TestSuccessorToLoopTaskNode'),
-                            startNode: NodeFactory.create('CompensatedNode',
-                                {
-                                    startNode: NodeFactory.create('TestLoopTaskNode',
-                                        {
-                                            successor: NodeFactory.create('Test2LoopTaskNode',
-                                                {successor: NodeFactory.create('Test4TaskNode')})
-                                        }),
-                                    compensationNode: NodeFactory.create('TestCompensationToLoopTaskNode')
 
-                                })
-                        })
-                    })
-                });
-            }
-            return testProcessorWithError;
-        } else if (processorName == 'testProcessor') {
-            if(testProcessor == null) {
-                testProcessor = NodeFactory.create('CompensatedNode', {
-                    compensationNode: NodeFactory.create('NoOpTaskNode'),
-                    startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
-                        successor: NodeFactory.create('LoopNode', {
-                            startNode: NodeFactory.create('TestLoopTaskNode', {successor: NodeFactory.create('Test2LoopTaskNode')}),
-                            condition: function (request) {
-                                return request.data.index < 2;
-                            },
-                            successor: NodeFactory.create('TestSuccessorToLoopTaskNode')
-                        })
-                    })
-                });
-            }
-            return testProcessor;
-        }
+    };
 
+    ProcessorLoader.prototype.addToCache = function(processorName, processorDefinition) {
+        ProcessorCache.add(processorName, processorDefinition);
+    };
+
+    ProcessorLoader.prototype.getFromCache = function(processorName) {
+        return ProcessorCache.get(processorName);
     };
 
     function Processor(serviceMessage, processorLoader) {
