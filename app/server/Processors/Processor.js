@@ -294,7 +294,7 @@
         var dfd = q.defer();
         var self = this;
         this.visit(request, "Entering Condition");
-        q.fcall(self.condition.bind(self), request, context).then(function (conditionResult) {
+        q.fcall(self.condition.bind(self), {request: request, context: context}).then(function (conditionResult) {
             if (conditionResult) {
                 self.visit(request, "Condition evaluated to true");
                 executeConditionBranch.call(self, self.trueSuccessor, request, context, self, dfd);
@@ -499,7 +499,7 @@
             // When the result of calling `condition` is no longer true, we are
             // done.
 
-            q.fcall(self.condition.bind(self), request, context).then(function (conditionResult) {
+            q.fcall(self.condition.bind(self), {request: request, context: context}).then(function (conditionResult) {
 
                 if (conditionResult) {
                     self.visit(request, "loop evaluated with condition true");

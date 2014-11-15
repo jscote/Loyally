@@ -941,8 +941,8 @@ module.exports = {
     testLoopTaskNoPredecessorNoSuccessorShouldLoopTwice: function (test) {
         var node = NodeFactory.create('LoopNode', {
             startNode: NodeFactory.create('TestLoopTaskNode'),
-            condition: function (request) {
-                return request.data.index < 2;
+            condition: function (fact) {
+                return fact.request.data.index < 2;
             }
         });
 
@@ -975,8 +975,8 @@ module.exports = {
         var node = NodeFactory.create('TestPredecessorToLoopTaskNode', {
             successor: NodeFactory.create('LoopNode', {
                 startNode: NodeFactory.create('TestLoopTaskNode'),
-                condition: function (request) {
-                    return request.data.index < 2;
+                condition: function (fact) {
+                    return fact.request.data.index < 2;
                 }
             })
         });
@@ -1012,8 +1012,8 @@ module.exports = {
         var node = NodeFactory.create('TestPredecessorToLoopTaskNode', {
             successor: NodeFactory.create('LoopNode', {
                 startNode: NodeFactory.create('TestLoopTaskNode', {successor: NodeFactory.create('Test2LoopTaskNode')}),
-                condition: function (request) {
-                    return request.data.index < 2;
+                condition: function (fact) {
+                    return fact.request.data.index < 2;
                 }
             })
         });
@@ -1051,8 +1051,8 @@ module.exports = {
         var node = NodeFactory.create('TestPredecessorToLoopTaskNode', {
             successor: NodeFactory.create('LoopNode', {
                 startNode: NodeFactory.create('TestLoopTaskNode', {successor: NodeFactory.create('Test2LoopTaskNode')}),
-                condition: function (request) {
-                    return request.data.index < 2;
+                condition: function (fact) {
+                    return fact.request.data.index < 2;
                 },
                 successor: NodeFactory.create('TestSuccessorToLoopTaskNode')
             })
@@ -1096,8 +1096,8 @@ module.exports = {
                         successor: NodeFactory.create('Test2LoopTaskNode',
                             {successor: NodeFactory.create('Test4TaskNode')})
                     }),
-                condition: function (request) {
-                    return request.data.index < 2;
+                condition: function (fact) {
+                    return fact.request.data.index < 2;
                 },
                 successor: NodeFactory.create('TestSuccessorToLoopTaskNode')
             })
@@ -1133,8 +1133,8 @@ module.exports = {
     testLoopTaskWithPredecessorAndSuccessorAndLongSequenceShouldStopOnErrorWithCompensation: function (test) {
         var node = NodeFactory.create('TestPredecessorToLoopTaskNode', {
             successor: NodeFactory.create('LoopNode', {
-                condition: function (request) {
-                    return request.data.index < 2;
+                condition: function (fact) {
+                    return fact.request.data.index < 2;
                 },
                 successor: NodeFactory.create('TestSuccessorToLoopTaskNode'),
                 startNode: NodeFactory.create('CompensatedNode',

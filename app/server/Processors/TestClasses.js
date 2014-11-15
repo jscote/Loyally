@@ -276,8 +276,8 @@
                 startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
                     successor: NodeFactory.create('LoopNode', {
                         startNode: NodeFactory.create('TestLoopTaskNode', {successor: NodeFactory.create('Test2LoopTaskNode')}),
-                        condition: function (request) {
-                            return request.data.index < 2;
+                        condition: function (fact) {
+                            return fact.request.data.index < 2;
                         },
                         successor: NodeFactory.create('TestSuccessorToLoopTaskNode')
                     })
@@ -305,8 +305,8 @@
                 compensationNode: NodeFactory.create('NoOpTaskNode'),
                 startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
                     successor: NodeFactory.create('LoopNode', {
-                        condition: function (request) {
-                            return request.data.index < 2;
+                        condition: function (fact) {
+                            return fact.request.data.index < 2;
                         },
                         successor: NodeFactory.create('TestSuccessorToLoopTaskNode'),
                         startNode: NodeFactory.create('CompensatedNode',
