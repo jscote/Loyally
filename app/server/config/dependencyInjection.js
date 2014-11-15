@@ -5,8 +5,8 @@
  * Created by jscote on 10/20/13.
  */
 
-var lodash = require('lodash');
-var decoratorHelper = require(Injector.getBasePath() + '/Helpers/decoratorHelper');
+var lodash = module.require('lodash');
+var decoratorHelper = module.require(Injector.getBasePath() + '/Helpers/decoratorHelper');
 
 (function (_, decoratorHelper) {
 

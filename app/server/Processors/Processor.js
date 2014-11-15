@@ -1,7 +1,7 @@
 /**
  * Created by jean-sebastiencote on 11/1/14.
  */
-(function (util, _, q) {
+(function (util, _, q, process) {
 
     /*
      Expected hierarchy of objects to deal with in the execution of a process. It all starts with a BlockNode, which will
@@ -308,7 +308,7 @@
                             dfd.resolve(successorResponse);
                         });
                     } else {
-                        var response = new self.serviceMessage.ServiceResponse();
+                        var response = new self.messaging.ServiceResponse();
                         dfd.resolve(response);
                     }
                 }
@@ -584,7 +584,6 @@
     ProcessorLoader.prototype.load = function (processorName) {
 
         //TODO, load appropriately based on persistence mechanism
-        //TODO, Implement caching of the resolved paths as garbage collection seems to be our enemy under load
 
     };
 
@@ -652,8 +651,7 @@
 
     Processor.getProcessor = function (processorName) {
         var params = {name: processorName};
-        var processor = NodeFactory.create('Processor', params);
-        return processor;
+        return NodeFactory.create('Processor', params);
     };
 
     exports.Processor = Processor;
@@ -667,7 +665,8 @@
 
 })
 (
-    require('util'),
-    require('lodash'),
-    require('q')
+    module.require('util'),
+    module.require('lodash'),
+    module.require('q'),
+    process
 );
