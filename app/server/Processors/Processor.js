@@ -562,6 +562,33 @@
     };
 
     function ProcessorLoader() {
+
+    }
+
+    ProcessorLoader.prototype.load = function(processorName) {
+
+    };
+
+    function ProcessorResolver(processorLoader) {
+
+        var _processorLoader;
+        Object.defineProperty(this, "processorLoader", {
+            get: function () {
+                return _processorLoader;
+            },
+            set: function (value) {
+                if (_.isUndefined(value)) throw Error("A ProcessorLoader must be used");
+                if (value instanceof ProcessorLoader) {
+                    _processorLoader = value;
+                } else {
+                    throw Error('ProcessorLoader is not of type ProcessorLoader or one of its descendant');
+                }
+            }
+        });
+
+        this.processorLoader = processorLoader;
+
+
         return this;
     }
 
@@ -581,40 +608,57 @@
         return null;
     };
 
-    ProcessorLoader.prototype.load = function (processorName) {
+    ProcessorResolver.prototype.load = function (processorName) {
 
-        //TODO, load appropriately based on persistence mechanism
+        //TODO the entire processor stuff should be built as a package that can be reuse across projects.
+
+        var parsedProcessor = this.getFromCache(processorName);
+
+        if(parsedProcessor == null) {
+            var processorDefinition = this.processorLoader.load(processorName);
+            parsedProcessor = this.parseProcessorDefinition(processorDefinition);
+
+            this.addToCache(processorName, parsedProcessor);
+
+        }
+
+        return parsedProcessor;
 
     };
 
-    ProcessorLoader.prototype.addToCache = function(processorName, processorDefinition) {
+    ProcessorResolver.prototype.parseProcessorDefinition = function(processorDefinition){
+        //TODO Implement parsing of definition
+        return processorDefinition;
+    };
+
+    ProcessorResolver.prototype.addToCache = function(processorName, processorDefinition) {
         ProcessorCache.add(processorName, processorDefinition);
     };
 
-    ProcessorLoader.prototype.getFromCache = function(processorName) {
+    ProcessorResolver.prototype.getFromCache = function(processorName) {
         return ProcessorCache.get(processorName);
     };
 
-    function Processor(serviceMessage, processorLoader) {
+    function Processor(serviceMessage, processorResolver) {
 
         CompensatedNode.call(this, serviceMessage);
 
-        var _processorLoader;
-        Object.defineProperty(this, "processorLoader", {
+        var _processorResolver;
+        Object.defineProperty(this, "processorResolver", {
             get: function () {
-                return _processorLoader;
+                return _processorResolver;
             },
             set: function (value) {
-                if (_.isUndefined(value)) throw Error("A ProcessorLoader must be used");
-                if (value instanceof ProcessorLoader) {
-                    _processorLoader = value;
+                if (_.isUndefined(value)) throw Error("A ProcessorResolver must be used");
+                if (value instanceof ProcessorResolver) {
+                    _processorResolver = value;
                 } else {
-                    throw Error('ProcessorLoader is not of type ProcessorLoader or one of its descendant');
+                    throw Error('ProcessorResolver is not of type ProcessorLoader or one of its descendant');
                 }
             }
         });
 
-        this.processorLoader = processorLoader;
+        this.processorResolver = processorResolver;
         this.executionContext = {steps: []};
 
 
@@ -626,7 +670,7 @@
     Processor.prototype.initialize = function (params) {
         params = params || {};
 
-        var process = this.processorLoader.load(params.name);
+        var process = this.processorResolver.load(params.name);
         params.startNode = process.startNode;
         params.compensationNode = process.compensationNode;
 
@@ -656,6 +700,7 @@
 
     exports.Processor = Processor;
     exports.ProcessorLoader = ProcessorLoader;
+    exports.ProcessorResolver = ProcessorResolver;
     exports.TaskNode = TaskNode;
     exports.ConditionNode = ConditionNode;
     exports.CompensatedNode = CompensatedNode;

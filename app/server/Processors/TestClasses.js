@@ -268,10 +268,10 @@
     util.inherits(ProcessorTestLoader, ProcessorLoader);
 
     ProcessorTestLoader.prototype.load = function(processorName){
-        var testProcessor = this.getFromCache(processorName);
+        //var testProcessor = this.getFromCache(processorName);
 
-        if(testProcessor == null) {
-            testProcessor = NodeFactory.create('CompensatedNode', {
+        //if(testProcessor == null) {
+            return NodeFactory.create('CompensatedNode', {
                 compensationNode: NodeFactory.create('NoOpTaskNode'),
                 startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
                     successor: NodeFactory.create('LoopNode', {
@@ -284,10 +284,10 @@
                 })
             });
 
-            this.addToCache(processorName, testProcessor);
-        }
+            //this.addToCache(processorName, testProcessor);
+        //}
 
-        return testProcessor;
+        //return testProcessor;
     };
 
 
@@ -298,10 +298,11 @@
     util.inherits(ProcessorTestErrorLoader, ProcessorLoader);
 
     ProcessorTestErrorLoader.prototype.load = function(processorName){
-        var testProcessor = this.getFromCache(processorName);
 
-        if(testProcessor == null) {
-            testProcessor = NodeFactory.create('CompensatedNode', {
+        //var testProcessor = this.getFromCache(processorName);
+
+        //if(testProcessor == null) {
+            return NodeFactory.create('CompensatedNode', {
                 compensationNode: NodeFactory.create('NoOpTaskNode'),
                 startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
                     successor: NodeFactory.create('LoopNode', {
@@ -323,10 +324,10 @@
                 })
             });
 
-            this.addToCache(processorName, testProcessor);
-        }
+            //this.addToCache(processorName, testProcessor);
+        //}
 
-        return testProcessor;
+        //return testProcessor;
     };
 
 
