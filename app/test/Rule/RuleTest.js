@@ -233,7 +233,6 @@ module.exports = {
             return Specification.and(ageGreaterThanOrEqual20Spec, ageLessThanOrEqual40Spec).isSatisfiedBy(item);
         }, Person);
 
-
         var femaleBetweenAge20And40Spec = new PredicateSpecification(function (item) {
             return Specification.and(ageBetween20And40Spec, Specification.not(genderSpec)).isSatisfiedBy(item);
         }, Person);

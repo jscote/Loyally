@@ -628,7 +628,47 @@
 
     ProcessorResolver.prototype.parseProcessorDefinition = function(processorDefinition){
         //TODO Implement parsing of definition
-        return processorDefinition;
+
+        if(_.isUndefined(processorDefinition) || !processorDefinition) {
+            throw Error("Process definition is not provided");
+        }
+
+        var materializedDefinition = {};
+
+        function internalParse (innerDefinition) {
+            var nodeType = '';
+            var parameters = null;
+            var inner = {};
+
+            for(var prop in innerDefinition) {
+
+                if(prop == 'nodeType') {
+                    nodeType = innerDefinition[prop];
+                } else if(prop == 'parameters') {
+                    parameters = innerDefinition[prop];
+                    if(!_.isUndefined(parameters)) {
+                        for(var paramProp in parameters) {
+                            if(paramProp == 'condition') {
+                                inner[paramProp] = parameters[paramProp];
+                            } else {
+                                inner[paramProp] = internalParse(parameters[paramProp]);
+                            }
+                        }
+                    }
+                } else {
+                    return innerDefinition[prop];
+                }
+
+
+            }
+
+            var node = NodeFactory.create(nodeType, inner);
+            return node;
+        };
+
+        materializedDefinition = internalParse(processorDefinition);
+
+        return materializedDefinition;
     };
 
     ProcessorResolver.prototype.addToCache = function(processorName, processorDefinition) {

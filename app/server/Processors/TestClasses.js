@@ -21,10 +21,10 @@
         process.nextTick(function () {
 
             var response = new self.messaging.ServiceResponse();
-            try{
+            try {
                 if (!Array.isArray(context.data)) context.data = [];
                 context.data.push("executed 1");
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
 
@@ -91,12 +91,12 @@
 
         process.nextTick(function () {
 
-            try{
+            try {
                 throw Error("Test Error");
 
                 request.data.push("request data 4");
             }
-            catch(e) {
+            catch (e) {
                 dfd.reject(e);
                 return;
             }
@@ -123,12 +123,12 @@
         var self = this;
         var dfd = q.defer();
 
-        process.nextTick(function() {
+        process.nextTick(function () {
             var response = new self.messaging.ServiceResponse();
 
             request.data.index++;
 
-            if(_.isUndefined(context.data.steps)) {
+            if (_.isUndefined(context.data.steps)) {
                 context.data.steps = [];
             }
 
@@ -154,10 +154,10 @@
         var self = this;
         var dfd = q.defer();
 
-        process.nextTick(function() {
+        process.nextTick(function () {
             var response = new self.messaging.ServiceResponse();
 
-            if(_.isUndefined(context.data.steps)) {
+            if (_.isUndefined(context.data.steps)) {
                 context.data.steps = [];
             }
 
@@ -183,12 +183,12 @@
         var self = this;
         var dfd = q.defer();
 
-        process.nextTick(function() {
+        process.nextTick(function () {
             var response = new self.messaging.ServiceResponse();
 
-            if(_.isUndefined(context.data)) context.data = {};
+            if (_.isUndefined(context.data)) context.data = {};
 
-            if(_.isUndefined(context.data.steps)) {
+            if (_.isUndefined(context.data.steps)) {
                 context.data.steps = [];
             }
 
@@ -214,10 +214,10 @@
         var self = this;
         var dfd = q.defer();
 
-        process.nextTick(function() {
+        process.nextTick(function () {
             var response = new self.messaging.ServiceResponse();
 
-            if(_.isUndefined(context.data.steps)) {
+            if (_.isUndefined(context.data.steps)) {
                 context.data.steps = [];
             }
 
@@ -244,10 +244,10 @@
         var self = this;
         var dfd = q.defer();
 
-        process.nextTick(function() {
+        process.nextTick(function () {
             var response = new self.messaging.ServiceResponse();
 
-            if(_.isUndefined(context.data.steps)) {
+            if (_.isUndefined(context.data.steps)) {
                 context.data.steps = [];
             }
 
@@ -261,73 +261,90 @@
 
     };
 
-    var ProcessorTestLoader = function() {
+    var ProcessorTestLoader = function () {
         ProcessorLoader.call(this);
     };
 
     util.inherits(ProcessorTestLoader, ProcessorLoader);
 
-    ProcessorTestLoader.prototype.load = function(processorName){
-        //var testProcessor = this.getFromCache(processorName);
+    ProcessorTestLoader.prototype.load = function (processorName) {
+        var testProcessor = {
+            nodeType: 'CompensatedNode',
+            parameters: {
+                compensationNode: {nodeType: 'NoOpTaskNode'},
+                startNode: {
+                    nodeType: 'TestPredecessorToLoopTaskNode',
+                    parameters: {
+                        successor: {
+                            nodeType: 'LoopNode',
+                            parameters: {
+                                startNode: {
+                                    nodeType: 'TestLoopTaskNode',
+                                    parameters: {successor: {nodeType: 'Test2LoopTaskNode'}}
+                                },
+                                condition: function (fact) {
+                                    return fact.request.data.index < 2;
+                                },
+                                successor: {nodeType: 'TestSuccessorToLoopTaskNode'}
+                            }
+                        }
+                    }
+                }
+            }
+        };
 
-        //if(testProcessor == null) {
-            return NodeFactory.create('CompensatedNode', {
-                compensationNode: NodeFactory.create('NoOpTaskNode'),
-                startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
-                    successor: NodeFactory.create('LoopNode', {
-                        startNode: NodeFactory.create('TestLoopTaskNode', {successor: NodeFactory.create('Test2LoopTaskNode')}),
-                        condition: function (fact) {
-                            return fact.request.data.index < 2;
-                        },
-                        successor: NodeFactory.create('TestSuccessorToLoopTaskNode')
-                    })
-                })
-            });
+        return testProcessor;
 
-            //this.addToCache(processorName, testProcessor);
-        //}
-
-        //return testProcessor;
     };
 
 
-    var ProcessorTestErrorLoader = function() {
+    var ProcessorTestErrorLoader = function () {
         ProcessorLoader.call(this);
     };
 
     util.inherits(ProcessorTestErrorLoader, ProcessorLoader);
 
-    ProcessorTestErrorLoader.prototype.load = function(processorName){
+    ProcessorTestErrorLoader.prototype.load = function (processorName) {
 
-        //var testProcessor = this.getFromCache(processorName);
+        var testProcessor = {
+            nodeType: 'CompensatedNode',
+            parameters: {
+                compensationNode: {nodeType: 'NoOpTaskNode'},
+                startNode: {
+                    nodeType: 'TestPredecessorToLoopTaskNode',
+                    parameters: {
+                        successor: {
+                            nodeType: 'LoopNode',
+                            parameters: {
+                                startNode: {
+                                    nodeType: 'CompensatedNode', parameters: {
+                                        startNode: {
+                                            nodeType: 'TestLoopTaskNode',
+                                            parameters: {
+                                                successor: {
+                                                    nodeType: 'Test2LoopTaskNode',
+                                                    parameters: {successor: {nodeType: 'Test4TaskNode'}}
+                                                }
+                                            }
+                                        },
+                                        compensationNode: {nodeType: 'TestCompensationToLoopTaskNode'}
+                                    }
+                                },
+                                condition: function (fact) {
+                                    return fact.request.data.index < 2;
+                                },
+                                successor: {nodeType: 'TestSuccessorToLoopTaskNode'}
+                            }
+                        }
+                    }
+                }
+            }
+        };
 
-        //if(testProcessor == null) {
-            return NodeFactory.create('CompensatedNode', {
-                compensationNode: NodeFactory.create('NoOpTaskNode'),
-                startNode: NodeFactory.create('TestPredecessorToLoopTaskNode', {
-                    successor: NodeFactory.create('LoopNode', {
-                        condition: function (fact) {
-                            return fact.request.data.index < 2;
-                        },
-                        successor: NodeFactory.create('TestSuccessorToLoopTaskNode'),
-                        startNode: NodeFactory.create('CompensatedNode',
-                            {
-                                startNode: NodeFactory.create('TestLoopTaskNode',
-                                    {
-                                        successor: NodeFactory.create('Test2LoopTaskNode',
-                                            {successor: NodeFactory.create('Test4TaskNode')})
-                                    }),
-                                compensationNode: NodeFactory.create('TestCompensationToLoopTaskNode')
+        return testProcessor;
 
-                            })
-                    })
-                })
-            });
 
-            //this.addToCache(processorName, testProcessor);
-        //}
 
-        //return testProcessor;
     };
 
 
