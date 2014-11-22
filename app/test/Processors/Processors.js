@@ -1192,7 +1192,9 @@ module.exports = {
 
         var processor = Processor.getProcessor('testProcessorWithError');
 
-        var request = {data: {index: 0}};
+        var request = new processor.messaging.ServiceMessage();
+
+        request.data = {index: 0};
 
         processor.execute(request).then(function (response) {
 
@@ -1225,7 +1227,9 @@ module.exports = {
 
         var processor = Processor.getProcessor('testProcessor');
 
-        var request = {data: {index: 0}};
+        var request = new processor.messaging.ServiceMessage();
+
+        request.data = {index: 0};
 
             processor.execute(request).then(function (response) {
                 var p = processor;
@@ -1259,9 +1263,12 @@ module.exports = {
 
 
         var promises = [];
-        for(var i=0;i<1000;i++){
+        for(var i=0;i<10;i++){
             var processor = Processor.getProcessor("testProcessor");
-            var request = {data: {index:0}};
+            var request = new processor.messaging.ServiceMessage();
+            request.SetCorrelationId();
+
+            request.data = {index: 0};
 
             promises.push(processor.execute(request));
 

@@ -1,7 +1,7 @@
 /**
  * Created by jean-sebastiencote on 11/1/14.
  */
-(function (util, _, q, process) {
+(function (util, _, q, process, log4js) {
 
     /*
      Expected hierarchy of objects to deal with in the execution of a process. It all starts with a BlockNode, which will
@@ -21,29 +21,11 @@
 
      */
 
+    var logger = log4js.getLogger();
+
 
     function copyResponseIntoAnother(response, successorResponse) {
         response.errors = response.errors.concat(successorResponse.errors);
-
-        /*if (Array.isArray(response.data) && Array.isArray(successorResponse.data)) {
-            response.data = response.data.concat(successorResponse.data);
-        } else if (_.isEmpty(response.data) && Array.isArray(successorResponse.data)) {
-            response.data = successorResponse.data;
-        } else if (_.isObject(response.data) && !_.isEmpty(response.data) && Array.isArray(successorResponse.data)) {
-            if (_.isUndefined(response.data.arrays)) response.data.arrays = [];
-            response.data.arrays = response.data.arrays.concat(successorResponse.data);
-        } else {
-            for (var prop in successorResponse.data) {
-
-
-                if (Array.isArray(response.data[prop]) && Array.isArray(successorResponse.data[prop])) {
-                    response.data[prop] = response.data[prop].concat(successorResponse.data[prop]);
-                } else {
-                    response.data[prop] = successorResponse.data[prop];
-                }
-            }
-
-        }*/
         response.isSuccess = !response.isSuccess ? response.isSuccess : successorResponse.isSuccess;
 
     }
@@ -163,7 +145,9 @@
         var dfd = q.defer();
         try {
             this.visit(request);
+            logger.info('Executing Handle Request for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
             q.fcall(self.handleRequest.bind(self), request, context).then(function (response) {
+                logger.info('Done Executing Handle Request for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
 
                 if (!response instanceof self.messaging.ServiceResponse) {
                     response = new self.messaging.ServiceResponse();
@@ -294,13 +278,16 @@
         var dfd = q.defer();
         var self = this;
         this.visit(request, "Entering Condition");
+        logger.info('Evaluating condition for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
         q.fcall(self.condition.bind(self), {request: request, context: context}).then(function (conditionResult) {
             if (conditionResult) {
                 self.visit(request, "Condition evaluated to true");
+                logger.info('Executing true Branch for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
                 executeConditionBranch.call(self, self.trueSuccessor, request, context, self, dfd);
             } else {
                 self.visit(request, "Condition evaluated to false");
                 if (self.falseSuccessor) {
+                    logger.info('Executing false Branch for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
                     executeConditionBranch.call(self, self.falseSuccessor, request, context, self, dfd);
                 } else {
                     if (self.successor) {
@@ -378,7 +365,9 @@
 
         process.nextTick(function () {
             self.visit(request, "Executing Compensatable path");
+            logger.info('Executing Compensatable path for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
             q.fcall(self.startNode.execute.bind(self.startNode), request, context).then(function (response) {
+                logger.info('Execution of Compensatable path completed for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
 
                 if (!response instanceof self.messaging.ServiceResponse) {
                     response = new self.messaging.ServiceResponse();
@@ -395,7 +384,10 @@
                     //we need to execute the compensation branch and then let bubble up the chain
                     process.nextTick(function () {
                         self.visit(request, "Entered Compensation");
+                        logger.info('Executing Compensation path for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
                         q.fcall(self.compensationNode.execute.bind(self.compensationNode), request, context).then(function (compensationResponse) {
+                            logger.info('Execution of Compensation path completed for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
+
                             if (!compensationResponse instanceof self.messaging.ServiceResponse) {
                                 compensationResponse = new self.messaging.ServiceResponse();
                                 compensationResponse.isSuccess = false;
@@ -498,11 +490,12 @@
         function loop(loopResponse) {
             // When the result of calling `condition` is no longer true, we are
             // done.
-
+            logger.info('Evaluating condition for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
             q.fcall(self.condition.bind(self), {request: request, context: context}).then(function (conditionResult) {
 
                 if (conditionResult) {
                     self.visit(request, "loop evaluated with condition true");
+                    logger.info('Entering loop for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
                     q.fcall(self.startNode.execute.bind(self.startNode), request, context).then(function (innerLoopResponse) {
                         copyResponseIntoAnother(loopResponse, innerLoopResponse);
                         if (innerLoopResponse.isSuccess) {
@@ -517,6 +510,8 @@
                 }
                 else {
                     self.visit(request, "Exiting loop with condition false");
+                    logger.info('Exiting loop for correlationId ', request.correlationId || "No Correlation Id", "and Node Name", self.name);
+
                     return dfd.resolve(loopResponse);
                 }
 
@@ -723,6 +718,11 @@
 
     Processor.prototype.execute = function(request){
 
+        if(!(request instanceof this.messaging.ServiceMessage)) {
+            logger.error("Request should be of ServiceMessage type");
+            throw Error("Request should be of ServiceMessage type");
+        }
+
         this.executionContext.steps = [];
         var context = {};
         var dfd = q.defer();
@@ -753,5 +753,6 @@
     module.require('util'),
     module.require('lodash'),
     module.require('q'),
-    process
+    process,
+    require('log4js')
 );
